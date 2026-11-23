@@ -21,7 +21,7 @@ const QUOTES=[
 const X=(t,m,o)=>{o=o||{};const tg=o.tags||"any";return Object.assign({t,m,lo:0,hi:4,needs:[],place:"any",en:2,load:[],g:[],tool:null},o,{tags:tg.split("|")})};
 
 const PATHS={
- body:{name:"Body",about:"Fitness, strength, energy",hero:"Hanuman",heroDev:"हनुमान",c:"var(--body)",
+ body:{name:"Strength",realm:"body",about:"Fitness, strength, energy",hero:"Hanuman",heroDev:"हनुमान",c:"var(--body)",
   q:"Where is your body today?",
   levels:["I rarely exercise","I move now and then","I train 2–3 times a week","I train 4+ times a week"],
   tags:[["strength","Gym and strength"],["climb","Bouldering"],["swim","Swimming"],["run","Running"],["walk","Walking"],["yoga","Yoga and mobility"]],
@@ -63,7 +63,7 @@ const PATHS={
    X("Long run, 8 km",50,{tags:"run",lo:3,place:"out",en:3,load:["cardio","legs"],g:["Easy pace the whole way","Carry water if it’s warm","Eat within an hour after"]}),
    X("Hotel-room workout",15,{place:"any",en:2,load:["push","legs"],travel:true,g:["No kit needed","4 rounds: 10 squats, 8 push-ups, 10 lunges, 30 sec plank","60 sec rest between rounds"],tool:{type:"intervals",work:120,rest:60,rounds:4}}),
    X("Stretch before bed",10,{place:"home",en:1,load:["mobility"],rec:["legs"],g:["Lying hamstring stretch, 60 sec per leg","Figure-4 hip stretch, 60 sec per side","Child’s pose, 90 sec","Slow breathing to finish"],tool:{type:"timer",sec:600}})]},
- bonds:{name:"Bonds",about:"Family, friends, partner, roots",hero:"Rama",heroDev:"राम",c:"var(--bonds)",
+ bonds:{name:"Family",realm:"bonds",about:"Parents, siblings, friends, roots",hero:"Rama",heroDev:"राम",c:"var(--bonds)",
   q:"How connected do you feel?",
   levels:["I’ve drifted from people","I keep in touch sometimes","I’m in regular contact","My circle is close and active"],
   tags:[["parents","Parents"],["abroad","Family in India or abroad"],["partner","Partner"],["friends","Friends"],["family","Siblings and family"],["roots","Roots and culture"]],
@@ -97,7 +97,7 @@ const PATHS={
    X("Teach someone a tradition",15,{tags:"roots",lo:2,g:["Pick a festival, a dish or a word","Tell the story behind it in 2 minutes"]}),
    X("Keep one small promise today",5,{en:1,g:["Pick something you said you would do","Do it before evening"]}),
    X("Write a thank-you message",10,{lo:1,en:1,g:["Name one specific thing they did","Say how it helped you"]})]},
- music:{name:"Music",about:"Guitar, voice, ear, creating",hero:"Narada",heroDev:"नारद",c:"var(--music)",
+ music:{name:"Music",realm:"joy",about:"Guitar, voice, ear, creating",hero:"Narada",heroDev:"नारद",c:"var(--music)",
   q:"Where are you with music?",
   levels:["I’ve never played","I know a few basics","I can play some songs","I write or perform"],
   tags:[["guitar","Guitar"],["singing","Singing"],["keys","Keys"],["theory","Listening and theory"]],
@@ -129,9 +129,155 @@ const PATHS={
    X("Right-hand melody of a simple song",20,{tags:"keys",hi:2,songs:true,g:["Search “song name easy piano” for the notes","Learn 4 notes at a time","Play slowly with the metronome"],tool:{type:"metronome",bpm:60}}),
    X("Listen to one raga",15,{tags:"theory|any",en:1,raga:true,g:["Use headphones and do nothing else","Notice when the main phrase returns","Hum the notes you remember afterwards"],tool:{type:"timer",sec:900}}),
    X("Ear training: intervals",10,{tags:"theory|guitar",hi:3,en:1,g:["Use a free ear-training app or site","Start with 3 intervals: third, fifth, octave","Sing each one before you answer"],tool:{type:"timer",sec:600}}),
-   X("Quiet fingerstyle practice",10,{tags:"guitar",lo:1,en:1,quiet:true,g:["Good for late evenings","Thumb plays the bass, then index, middle, ring","Hold a C chord and play the pattern 10 times slowly"],tool:{type:"metronome",bpm:60}})]}
+   X("Quiet fingerstyle practice",10,{tags:"guitar",lo:1,en:1,quiet:true,g:["Good for late evenings","Thumb plays the bass, then index, middle, ring","Hold a C chord and play the pattern 10 times slowly"],tool:{type:"metronome",bpm:60}})]},
+ flex:{name:"Flexibility and breath",realm:"body",about:"Yoga, mobility, breathing",hero:"Patanjali",heroDev:"पतञ्जलि",c:"var(--flex)",
+  q:"How free does your body feel?",
+  levels:["I feel stiff most days","I stretch now and then","I do yoga or mobility weekly","I practise most days"],
+  tags:[["yoga","Yoga"],["mobility","Mobility"],["breath","Breathwork"],["posture","Desk posture"]],
+  skills:[
+   {n:"Sthira Sukha",d:"स्थिर सुख",s:"Steady and easy: the Yoga Sutras’ test of a good posture.",perk:"swap"},
+   {n:"Pranayama",d:"प्राणायाम",s:"Breath, lengthened and steadied, steadies the mind.",perk:"xp",item:"Mala",itemName:"Rudraksha mala"},
+   {n:"Abhyasa",d:"अभ्यास",s:"Practice kept up for a long time, without a break, with care.",perk:"shield"},
+   {n:"Pratyahara",d:"प्रत्याहार",s:"Drawing the senses inward, the way a tortoise draws in its limbs.",perk:"xp",item:"Pot",itemName:"Kamandalu"},
+   {n:"Samadhi",d:"समाधि",s:"Complete absorption: body, breath and mind as one.",perk:"all"}],
+  trials:[
+   {def:"Fold forward and touch the floor or your shins with straight legs, held 10 sec",breath:"5 min of slow breathing at 6 breaths a minute",yoga:"Hold a 1 min downward dog with steady breath"},
+   {def:"Hold a deep squat for 2 minutes"},
+   {def:"20 minutes of yoga or mobility without a break"},
+   {def:"Hold a 1 min balance pose on each leg with eyes steady"},
+   {def:"A 45 min practice: postures, breath and 10 min of stillness"}],
+  pool:[
+   X("Calm breathing, 5 in, 5 out",6,{tags:"breath|any",en:1,g:["Sit tall, shoulders soft","Breathe in for 5, out for 5: six breaths a minute","Breathe through the nose if you can"],tool:{type:"breath",in:5,hold:0,out:5}}),
+   X("Nadi shodhana, alternate nostril",8,{tags:"breath",en:1,g:["Right thumb closes the right nostril; breathe in left","Ring finger closes the left; breathe out right","In right, out left. That’s one round","Slow and quiet, never forced"],tool:{type:"breath",in:4,hold:2,out:6}}),
+   X("Desk reset: neck and shoulders",5,{tags:"posture|any",en:1,load:["mobility"],g:["Chin tucks, 10 slow","Shoulder rolls, 10 back","Doorway chest stretch, 30 sec each side","Look away from the screen for 30 sec"],tool:{type:"timer",sec:300}}),
+   X("6 rounds of sun salutation",10,{tags:"yoga",hi:2,place:"home",en:2,load:["mobility","push"],g:["One breath per movement","Knees down in the plank if needed","Finish standing still for 3 breaths"],tool:{type:"counter",target:6,label:"rounds"}}),
+   X("Hip opener sequence",15,{tags:"yoga|mobility",place:"home",en:1,load:["mobility"],rec:["legs"],g:["Low lunge, 1 min per side","Pigeon pose or figure-4, 90 sec per side","Butterfly, 1 min","Happy baby, 1 min"],tool:{type:"timer",sec:900}}),
+   X("Hamstring and spine flow",12,{tags:"mobility|any",en:1,load:["mobility"],rec:["legs"],g:["Cat-cow, 10 slow rounds","Standing forward fold, bend the knees, 1 min","Seated twist, 1 min per side","Lying hamstring stretch with a strap or towel, 1 min per leg"],tool:{type:"timer",sec:720}}),
+   X("Balance practice",8,{tags:"yoga",en:1,load:["mobility"],g:["Tree pose, 30 sec per side, 3 times","Fix your eyes on one point","Then try with eyes closed for 5 sec"],tool:{type:"timer",sec:480}}),
+   X("Walk and breathe: 4 steps in, 4 out",15,{tags:"breath",place:"out",en:1,load:["cardio"],g:["Breathe in for 4 steps, out for 4 steps","If that’s easy, try 4 in and 6 out","Notice your feet on the ground"],tool:{type:"timer",sec:900}}),
+   X("Yin stretch before bed",15,{tags:"mobility|yoga",lo:1,place:"home",en:1,load:["mobility"],rec:["legs"],quiet:true,g:["Hold each pose 2–3 minutes, no effort","Child’s pose, then supported bridge, then legs up the wall","Slow breathing throughout"],tool:{type:"timer",sec:900}}),
+   X("Full yoga practice",40,{tags:"yoga",lo:2,place:"home",en:2,load:["mobility","push","legs"],g:["5 min breathing","20 min standing and floor postures","5 min balance","10 min rest in shavasana"],tool:{type:"timer",sec:2400}}),
+   X("Box breathing before a hard moment",4,{tags:"breath|any",en:1,g:["Use it before a meeting or a hard call","In 4, hold 4, out 4","Repeat 6 times"],tool:{type:"breath",in:4,hold:4,out:4}})]},
+ love:{name:"Partner and love",realm:"bonds",about:"Your partner, dating, and self-respect",hero:"Savitri",heroDev:"सावित्री",c:"var(--love)",
+  q:"How is love in your life right now?",
+  levels:["Single, and not sure where to start","Together, but it feels distant","In a good relationship","Deeply connected"],
+  tags:[["partner","Partner"],["dating","Dating"],["selflove","Self-respect"]],
+  skills:[
+   {n:"Svayamvara",d:"स्वयंवर",s:"Savitri chose for herself. Love begins with knowing what you want.",perk:"swap"},
+   {n:"Shraddha",d:"श्रद्धा",s:"Trust in the person you chose, even in hard times.",perk:"xp",item:"Garland",itemName:"Forest garland"},
+   {n:"Sahana",d:"सहन",s:"Patience: a simple life in the forest, lived without complaint.",perk:"shield"},
+   {n:"Vak",d:"वाक्",s:"Wise, calm words. Savitri’s speech moved even Yama.",perk:"xp",item:"Ring",itemName:"Wedding ring"},
+   {n:"Saubhagya",d:"सौभाग्य",s:"A love strong enough to outlast fate.",perk:"all"}],
+  trials:[
+   {def:"Plan and enjoy one screen-free evening together",dating:"Start one real conversation with someone new",selflove:"Spend one evening doing only what you love"},
+   {def:"Have a calm talk about something that bothers you",dating:"Ask someone out, or say yes to an invitation"},
+   {def:"Plan a full day around what your partner loves",dating:"Go on a date and be fully yourself",selflove:"Write down what you want in a partner, and why"},
+   {def:"Share three things you’re grateful for in each other",selflove:"Turn down one thing that doesn’t respect you"},
+   {def:"Make a shared plan for the next year together",dating:"Have an honest talk about what you both want"}],
+  pool:[
+   X("15 min together, phones away",15,{tags:"partner",en:1,g:["Phones in another room","Ask: what was the best part of your day?","Listen more than you talk"],tool:{type:"timer",sec:900}}),
+   X("Send a message just because",3,{tags:"partner|dating",en:1,g:["No logistics, no requests","Mention something specific you like about them"]}),
+   X("Cook something together",45,{tags:"partner",lo:1,g:["Pick a dish neither of you has made","Share the jobs, play music","Eat at the table, no screens"]}),
+   X("Ask a deeper question",10,{tags:"partner|dating",lo:1,en:1,g:["Try: what’s something you’ve changed your mind about?","Or: what do you want more of this year?","Listen, then ask one follow-up"]}),
+   X("Plan a small surprise",10,{tags:"partner",lo:1,en:1,g:["Think of something they mentioned recently","Small and personal beats big and generic"]}),
+   X("Take a walk together",30,{tags:"partner",place:"out",en:1,load:["cardio"],g:["No destination needed","Talk about plans, not problems"]}),
+   X("Say yes to one social plan",5,{tags:"dating",en:1,g:["An event, a class, a friend’s gathering","You meet people by being where people are"]}),
+   X("Write three things you value in a partner",10,{tags:"dating|selflove",en:1,g:["Values, not looks or job titles","Note one thing you won’t compromise on"]}),
+   X("One evening just for you",60,{tags:"selflove",lo:1,en:1,g:["Do something you love, alone","No apologising for it"]}),
+   X("Repair one small hurt",10,{tags:"partner",lo:2,en:2,g:["Name it calmly: “Earlier, when…”","Say how it felt, not what they did wrong","Ask what they need"]}),
+   X("Plan a date night",10,{tags:"partner|dating",en:1,g:["Pick a day and book it","Something you haven’t done together before"]})]},
+ learn:{name:"Learning",realm:"craft",about:"Study, courses, languages, reading",hero:"Saraswati",heroDev:"सरस्वती",c:"var(--learn)",
+  q:"How is your learning going?",
+  levels:["I haven’t studied in a while","I learn now and then","I study a few times a week","I study most days"],
+  tags:[["reading","Reading"],["course","Courses"],["language","Languages"],["tech","Tech and AI"]],
+  skills:[
+   {n:"Akshara",d:"अक्षर",s:"The first letter. Every learner starts with one.",perk:"swap"},
+   {n:"Pustaka",d:"पुस्तक",s:"The book in Saraswati’s hand: knowledge you can return to.",perk:"xp",item:"Book",itemName:"Palm-leaf book"},
+   {n:"Smriti",d:"स्मृति",s:"Memory: what you revisit, stays.",perk:"shield"},
+   {n:"Viveka",d:"विवेक",s:"Like her swan, said to separate milk from water: telling true from false.",perk:"xp",item:"Swan",itemName:"Swan feather"},
+   {n:"Vidya",d:"विद्या",s:"Knowledge that frees you, and grows when shared.",perk:"all"}],
+  trials:[
+   {def:"Finish one chapter or lesson and explain it in 3 sentences",language:"Hold a 2 min conversation in the language",tech:"Build or try one small thing with a new tool"},
+   {def:"Study on 5 days in one week"},
+   {def:"Finish a whole course module or a whole book",language:"Read a short article in the language without a dictionary"},
+   {def:"Teach one thing you learned to someone else"},
+   {def:"Complete a course, certificate or project",language:"Hold a 15 min conversation in the language"}],
+  pool:[
+   X("Read 20 pages",25,{tags:"reading",en:1,quiet:true,g:["Phone in another room","Underline one idea worth keeping","Write it down in one sentence after"],tool:{type:"timer",sec:1500}}),
+   X("Focused study, 25 minutes",25,{tags:"course|tech|any",en:2,g:["One topic only","Notes in your own words","5 min break after"],tool:{type:"timer",sec:1500,label:"Study timer"}}),
+   X("One lesson of your course",30,{tags:"course",en:2,g:["Watch or read the lesson once","Pause and write the key point","Do the exercise, even if it’s optional"]}),
+   X("Language practice, 15 min",15,{tags:"language",en:1,g:["App lesson or flashcards","Say every answer out loud","Learn 5 new words and use each in a sentence"],tool:{type:"timer",sec:900}}),
+   X("Flashcard review",10,{tags:"language|course|any",en:1,g:["Review before you learn new cards","Say the answer before you flip","Hard cards come back sooner"],tool:{type:"counter",target:30,label:"cards",step:5}}),
+   X("Review yesterday’s notes",10,{tags:"any",en:1,g:["Read them once","Cover them and recall the key points","Fix anything you got wrong"]}),
+   X("Teach it back",15,{tags:"any",lo:1,en:2,g:["Explain today’s topic out loud, as if to a friend","Where you get stuck is what to study next"]}),
+   X("Build a tiny thing with a new tool",45,{tags:"tech",lo:2,en:3,g:["Pick one small, real problem","Use the new tool for every step","Write down what surprised you"]}),
+   X("Explain one AI idea in plain words",15,{tags:"tech",lo:1,en:2,g:["Pick a term: embeddings, agents, fine-tuning…","Write 5 sentences a non-expert would understand","Check them against a good source"]}),
+   X("Listen and learn on the move",20,{tags:"any",place:"any",en:1,travel:true,g:["A podcast or lecture on your topic","Note one idea afterwards"]})]},
+ focus:{name:"Career focus",realm:"craft",about:"Deep work, career growth, side projects",hero:"Arjuna",heroDev:"अर्जुन",c:"var(--focus)",
+  q:"How focused is your work right now?",
+  levels:["I’m scattered most days","Some good days","Mostly focused","Deep work is a habit"],
+  tags:[["deepwork","Deep work"],["career","Career growth"],["side","Side project"],["habits","Phone and email habits"]],
+  skills:[
+   {n:"Lakshya",d:"लक्ष्य",s:"The target: know exactly what you’re aiming at.",perk:"swap"},
+   {n:"Gandiva",d:"गाण्डीव",s:"Arjuna’s bow: the right tool, kept ready.",perk:"xp",item:"Bow",itemName:"Gandiva"},
+   {n:"Ekagrata",d:"एकाग्रता",s:"One-pointed focus, like the bird’s eye.",perk:"shield"},
+   {n:"Savyasachi",d:"सव्यसाची",s:"Arjuna could shoot with either hand: range built by practice.",perk:"xp",item:"Shell",itemName:"Devadatta conch"},
+   {n:"Karma Yoga",d:"कर्मयोग",s:"Do the work well, and let go of the result.",perk:"all"}],
+  trials:[
+   {def:"Two 45 min deep-work blocks in one day, phone away"},
+   {def:"Finish the task you’ve been avoiding most"},
+   {def:"Ship something: a feature, report or post",career:"Ask a manager or mentor for specific feedback",side:"Publish a first version of your side project"},
+   {def:"A full week with deep work on every workday"},
+   {def:"Complete a milestone you set four weeks ago"}],
+  pool:[
+   X("Plan tomorrow in three lines",5,{en:1,g:["The one thing that matters most","Two things that would be nice","Put the first one in your calendar"]}),
+   X("Deep-work block, 45 min",45,{tags:"deepwork|any",en:3,g:["One task, written down first","Phone in another room, notifications off","Stop at 45 min and note where you are"],tool:{type:"timer",sec:2700,label:"Focus timer"}}),
+   X("Hardest task first",30,{tags:"deepwork",lo:1,en:3,g:["Before email or chat","Just start: 30 minutes, then decide"],tool:{type:"timer",sec:1800}}),
+   X("Inbox to zero",15,{tags:"habits",en:1,g:["Reply in 2 minutes or schedule it","Archive the rest","Close the inbox when done"],tool:{type:"timer",sec:900}}),
+   X("Two hours with the phone away",5,{tags:"habits|deepwork",en:1,g:["Put the phone in another room","Tick this when the two hours are done"]}),
+   X("Learn one skill for your role",30,{tags:"career",lo:1,en:2,g:["Pick a skill your next role needs","One tutorial, then try it on real work"]}),
+   X("Update your CV or LinkedIn",20,{tags:"career",en:1,g:["Add one recent result with a number","Remove one outdated line"]}),
+   X("30 min on your side project",30,{tags:"side",en:2,g:["Pick the smallest next step","Ship something, even if it’s tiny"],tool:{type:"timer",sec:1800}}),
+   X("Weekly review",20,{lo:1,en:1,g:["What moved forward this week?","What got stuck, and why?","Choose next week’s one big thing"]}),
+   X("Say no to one thing",5,{tags:"habits|career",lo:1,en:1,g:["A meeting, a request or a habit that wastes time","Say no politely and briefly"]})]},
+ calm:{name:"Meditation",realm:"peace",about:"Stillness, meditation, mantra",hero:"Dhruva",heroDev:"ध्रुव",c:"var(--calm)",
+  q:"How is your inner calm?",
+  levels:["I rarely sit still","I’ve tried meditation","I meditate sometimes","I meditate most days"],
+  tags:[["silent","Silent sitting"],["mantra","Mantra"],["guided","Guided"],["gratitude","Gratitude"]],
+  skills:[
+   {n:"Sankalpa",d:"संकल्प",s:"Dhruva’s resolve: decide once, then keep going.",perk:"swap"},
+   {n:"Japa",d:"जप",s:"Repeating a mantra, bead by bead.",perk:"xp",item:"Mala",itemName:"Japa mala"},
+   {n:"Dhriti",d:"धृति",s:"Steadiness through cold, hunger and doubt.",perk:"shield"},
+   {n:"Dhyana",d:"ध्यान",s:"Meditation that flows without effort.",perk:"xp",item:"Star",itemName:"Pole star"},
+   {n:"Achala",d:"अचल",s:"Unmoving, like the pole star others steer by.",perk:"all"}],
+  trials:[
+   {def:"Sit still for 10 minutes without your phone",mantra:"108 repetitions of a mantra with a mala"},
+   {def:"Meditate on 7 days in a row"},
+   {def:"Sit for 20 minutes without moving"},
+   {def:"Half a day with no screens: quiet practice only"},
+   {def:"Meditate on 30 days in a row"}],
+  pool:[
+   X("Three minutes of breath",3,{tags:"any",en:1,g:["Sit or stand still","Breathe in 4, out 6","Count 10 breaths; start again if you lose count"],tool:{type:"breath",in:4,hold:0,out:6}}),
+   X("10 min silent sitting",10,{tags:"silent",en:1,quiet:true,g:["Sit upright, eyes closed or lowered","Notice the breath at the nostrils","When the mind wanders, come back. That is the practice"],tool:{type:"timer",sec:600}}),
+   X("20 min sitting",20,{tags:"silent",lo:2,en:2,g:["Same as the 10 min sit, just longer","Don’t move for the first 10 minutes"],tool:{type:"timer",sec:1200}}),
+   X("Mantra with a mala",12,{tags:"mantra",en:1,g:["Choose a short mantra, for example Om Namah Shivaya or Om","One bead per repetition, 108 beads","Tap the counter after each quarter round of 27"],tool:{type:"counter",target:4,label:"quarter rounds"}}),
+   X("Guided meditation",10,{tags:"guided",en:1,g:["Use any meditation app or recording you trust","Headphones, eyes closed"],tool:{type:"timer",sec:600}}),
+   X("Body scan",15,{tags:"guided|silent",en:1,quiet:true,g:["Lie down","Move attention slowly from toes to head","Notice each area without changing it"],tool:{type:"timer",sec:900}}),
+   X("Three things I’m grateful for",5,{tags:"gratitude|any",en:1,g:["Write them down","Be specific: not “family” but what someone did today"]}),
+   X("Walking meditation",15,{tags:"silent",place:"out",en:1,load:["cardio"],g:["Walk slowly, no earphones","Feel each step: lift, move, place"],tool:{type:"timer",sec:900}}),
+   X("Candle gazing (trataka)",5,{tags:"silent",lo:1,place:"home",en:1,quiet:true,g:["Candle at eye level, an arm’s length away","Gaze softly at the flame for 1–2 min","Close your eyes and watch the after-image"],tool:{type:"timer",sec:300}}),
+   X("No screens after 21:00",5,{tags:"any",lo:1,en:1,quiet:true,g:["Phone on charge outside the bedroom","Read, talk or sit instead"]})]}
+
 };
-const ORDER=["body","bonds","music"];
+const ORDER=["body","flex","bonds","love","learn","focus","music","calm"];
+const REALMS=[
+ {id:"body",n:"Body",s:"Sharira",d:"शरीर",about:"Health and strength"},
+ {id:"bonds",n:"Bonds",s:"Dharma",d:"धर्म",about:"Duty and people"},
+ {id:"craft",n:"Craft",s:"Artha",d:"अर्थ",about:"Work and prosperity"},
+ {id:"joy",n:"Joy",s:"Kama",d:"काम",about:"Beauty and expression"},
+ {id:"peace",n:"Peace",s:"Moksha",d:"मोक्ष",about:"Inner freedom"}];
+// Paths that build on each other, used for "ready to expand?" suggestions
+const RELATED={body:["flex"],flex:["calm","body"],bonds:["love"],love:["bonds"],learn:["focus","music"],focus:["learn"],music:["learn"],calm:["flex"]};
 [["Send 5 problems at your current grade in one session","Swim 200 m without stopping"],["Send your first problem one grade harder","Swim 500 m without stopping"],["Flash a problem at your project grade","Swim 1 km without stopping"],["Send a problem two grades above where you started","Swim 1.5 km in under 40 min"],["Send your hardest problem yet, in front of friends","Swim 2 km without stopping"]].forEach(([c,w],k)=>{PATHS.body.trials[k].climb=c;PATHS.body.trials[k].swim=w});
 const KIT=[["gym","Gym"],["pool","Pool"],["wall","Climbing wall"],["park","Park or outdoors"],["dumbbells","Dumbbells"],["bands","Resistance bands"],["pullup","Pull-up bar"],["hangboard","Hangboard"],["mat","Yoga mat"]];
 const ACTS=[
@@ -139,15 +285,18 @@ const ACTS=[
  {id:"climb",pid:"body",n:"Bouldering",m:75,load:["pull","grip"],place:"wall"},
  {id:"swim",pid:"body",n:"Swimming",m:45,load:["cardio","pull"],place:"pool"},
  {id:"run",pid:"body",n:"Running",m:40,load:["cardio","legs"],place:"out"},
- {id:"yoga",pid:"body",n:"Yoga class",m:60,load:["mobility"],place:"any"},
+ {id:"yoga",pid:"flex",n:"Yoga class",m:60,load:["mobility"],place:"any"},
  {id:"guitar",pid:"music",n:"Guitar practice or lesson",m:45,load:[],place:"any"},
- {id:"family",pid:"bonds",n:"Family call",m:30,load:[],place:"any"}];
+ {id:"family",pid:"bonds",n:"Family call",m:30,load:[],place:"any"},
+ {id:"study",pid:"learn",n:"Course or class",m:60,load:[],place:"any"},
+ {id:"sit",pid:"calm",n:"Meditation group",m:30,load:[],place:"any"},
+ {id:"date",pid:"love",n:"Date night",m:90,load:[],place:"any"}];
 const SONGS=[
  [["A Horse with No Name","America"],["Knockin’ on Heaven’s Door","Bob Dylan"],["Leaving on a Jet Plane","John Denver"]],
  [["Stand by Me","Ben E. King"],["Tum Hi Ho","Aashiqui 2"],["Let Her Go","Passenger"]],
  [["Wonderwall","Oasis"],["Agar Tum Saath Ho","Tamasha"],["Wish You Were Here","Pink Floyd"]],
  [["Tears in Heaven","Eric Clapton"],["Blackbird","The Beatles"],["Hotel California","Eagles"]]];
-const SOON=[["Spirit","Meditation, study, inner practice"],["Craft","Data, AI and career skills"]];
+const SOON=[["Friendship","Krishna","bonds"],["Money","Lakshmi","craft"],["Making","Vishwakarma","craft"],["Art and writing","Valmiki","joy"],["Courage","Durga","body"],["Wisdom","Nachiketa","peace"],["Gratitude","Shabari","peace"]];
 const SYN=[
  {id:"prana",p:["body","music"],req:2,n:"Prana and Nada",d:"प्राण-नाद",s:"Breath feeds sound. A strong, steady body holds the instrument longer and plays calmer.",q:"5 min breathing, then 10 min of music"},
  {id:"seva",p:["body","bonds"],req:2,n:"Seva",d:"सेवा",s:"Hanuman’s strength was always in service of Rama. Share your strength with people you love.",q:"Walk or train with family or a friend"},
@@ -157,15 +306,25 @@ const SYN=[
 const TIMES=[[15,"15 min"],[30,"30 min"],[45,"45 min"],[75,"60+ min"]];
 
 
-const CHAR={body:"hanuman",bonds:"rama",music:"narada"};
+const CHAR={body:"hanuman",flex:"patanjali",bonds:"rama",love:"savitri",learn:"saraswati",focus:"arjuna",music:"narada",calm:"dhruva"};
 const PEOPLE={
- hanuman:{n:"Hanuman",d:"हनुमान",pid:"body",bio:"Son of the wind and Rama’s devoted friend. He leapt the ocean, carried a mountain, and never forgot to serve."},
- rama:{n:"Rama",d:"राम",pid:"bonds",bio:"Prince of Ayodhya and the ideal of duty. He kept every promise: to his father, his friends and his people."},
- narada:{n:"Narada",d:"नारद",pid:"music",bio:"The wandering sage with the veena. He carries music and stories between the worlds, always chanting Narayana."}
+ hanuman:{n:"Hanuman",d:"हनुमान",pid:"body",pr:"he",bio:"Son of the wind and Rama’s devoted friend. He leapt the ocean, carried a mountain, and never forgot to serve."},
+ rama:{n:"Rama",d:"राम",pid:"bonds",pr:"he",bio:"Prince of Ayodhya and the ideal of duty. He kept every promise: to his father, his friends and his people."},
+ narada:{n:"Narada",d:"नारद",pid:"music",pr:"he",bio:"The wandering sage with the veena. He carries music and stories between the worlds, always chanting Narayana."},
+ patanjali:{n:"Patanjali",d:"पतञ्जलि",pid:"flex",pr:"he",bio:"The sage who gathered yoga into the Yoga Sutras. Legend says he was the great serpent Adishesha, born into a mother’s folded hands."},
+ savitri:{n:"Savitri",d:"सावित्री",pid:"love",pr:"she",bio:"A princess who chose her own husband, Satyavan, knowing he was fated to die. With calm and wisdom she won his life back from Yama."},
+ saraswati:{n:"Saraswati",d:"सरस्वती",pid:"learn",pr:"she",bio:"Goddess of knowledge, speech and music. She holds a veena and a book, and her white swan stands for telling true from false."},
+ arjuna:{n:"Arjuna",d:"अर्जुन",pid:"focus",pr:"he",bio:"The great archer of the Mahabharata, famous for focus. When doubt stopped him at Kurukshetra, Krishna’s answer became the Bhagavad Gita."},
+ dhruva:{n:"Dhruva",d:"ध्रुव",pid:"calm",pr:"he",bio:"A five-year-old prince who walked into the forest after being pushed away. His steady practice made him the pole star."}
 };
 const GUIDE_LINES={
  body:["Strength grows the way I crossed the ocean: one push, then the next.","You are stronger than you remember. Jambavan reminded me, so let me remind you.","Rest is part of training. Even I sat still before the leap.","Strength is best used for someone else. Help someone today.","Breathe like the wind, and move every day."],
  bonds:["A promise kept is a bridge built, one stone at a time.","Call the people who raised you. Exile taught me what they mean.","Duty is lighter when shared with friends.","Listen first, then speak with care.","Small acts of care hold a family together."],
+ flex:["Steady and easy: that is a good posture, and a good life.","Lengthen the breath and the mind follows.","Practice, kept up for a long time, takes root.","Stiffness is only a habit. Habits can change.","Stillness is also a practice."],
+ love:["Love begins with knowing what you want.","Speak calmly, even when it matters most. Especially then.","Small, daily care outlasts grand gestures.","Choose again, every day, the person you chose.","Respect for yourself makes love steady."],
+ learn:["Every learner starts with one letter.","What you revisit, stays.","Ask, then listen. Knowledge flows like a river.","Teach what you learned today, and it becomes yours.","Tell true from false, the way the swan separates milk from water."],
+ focus:["See only the bird’s eye. One target today.","Do the work well. Let the result go.","When your hands shake, sit down, breathe, and stand up again.","Practise even in the dark. Skill grows from habit.","The right tool, kept ready, saves the day."],
+ calm:["Decide once. Then sit, again and again.","When the mind runs, come back. That is the practice.","Steadiness is quiet, but it guides others.","Cold, hunger, doubt: they pass. You stay.","Find the still point, and steer by it."],
  music:["Listen before you play. The ear opens first.","Narayana, Narayana. Keep the rhythm, even on slow days.","A song is complete only when someone hears it.","Play slowly and cleanly. Speed will come.","Every raga carries a mood. What does yours feel like today?"]
 };
 
@@ -252,7 +411,32 @@ const CHAPTERS={
   {dest:"A forest road",charm:["Anthill clay","A life can turn on one question."],scenes:[{bg:"forest",chars:one("narada"),cap:"In a later legend, a robber named Ratnakara stops Narada on a forest road."},{bg:"glow",chars:one("narada","rise"),cap:"Narada asks him who will share the weight of his deeds. The answer changes his life. He becomes Valmiki."}]},
   {dest:"Tumburu’s court",charm:["Tumburu’s note","There is always more to learn."],scenes:[{bg:"clouds",chars:one("narada"),cap:"In a folk tale, the gandharva Tumburu is praised as the finest singer."},{bg:"glow",chars:one("narada","float"),cap:"Narada sees how much he still has to learn, and starts practising again from the beginning."}]},
   {dest:"Kailasa",charm:["The golden mango","Your whole world is close to home."],scenes:[{bg:"hills",chars:one("narada"),cap:"In a Tamil telling, Narada brings a special mango to Shiva’s family on Kailasa."},{bg:"glow",chars:one("narada","float"),cap:"Ganesha wins it by walking around his parents, who are his whole world."}]},
-  {dest:"Everywhere",charm:["Traveller’s mala","Music goes where you go."],scenes:[{bg:"clouds",chars:one("narada"),cap:"Narada never settles. He carries news, songs and questions between gods and people."},{bg:"glow",chars:one("narada","float"),cap:"Wherever he goes, music goes with him."}]}]
+  {dest:"Everywhere",charm:["Traveller’s mala","Music goes where you go."],scenes:[{bg:"clouds",chars:one("narada"),cap:"Narada never settles. He carries news, songs and questions between gods and people."},{bg:"glow",chars:one("narada","float"),cap:"Wherever he goes, music goes with him."}]}],
+ patanjali:[
+  {dest:"Gonika’s folded hands",charm:["Anjali leaf","Fallen into open hands."],scenes:[{bg:"river",chars:one("patanjali"),cap:"A legend says Patanjali fell as a tiny serpent into the cupped hands of Gonika, praying by a river."},{bg:"glow",chars:one("patanjali","float"),cap:"So he was named Pata-anjali: fallen into folded hands."}]},
+  {dest:"Chidambaram",charm:["Nataraja’s ember","Where movement meets stillness."],scenes:[{bg:"city",chars:one("patanjali"),cap:"In one telling, Patanjali waits at Chidambaram to see Shiva’s cosmic dance."},{bg:"glow",chars:one("patanjali","float"),cap:"Watching the dance, he sees how movement and stillness belong together."}]},
+  {dest:"The Yoga Sutras",charm:["Sutra thread","Short threads of meaning."],scenes:[{bg:"scroll",chars:one("patanjali"),cap:"He gathers yoga into short threads of meaning: the Yoga Sutras."},{bg:"glow",chars:one("patanjali","rise"),cap:"An early sutra says yoga is the stilling of the mind’s restless movements."}]},
+  {dest:"Behind the screen",charm:["Adishesha’s coil","Some truths need patience."],scenes:[{bg:"forest",chars:one("patanjali"),cap:"A legend says he taught a thousand students at once from behind a screen."},{bg:"glow",chars:one("patanjali","float"),cap:"One student peeked and saw the great serpent Adishesha. Some truths need patience to be seen."}]}],
+ savitri:[
+  {dest:"Madra",charm:["Svayamvara flower","Choosing for yourself."],scenes:[{bg:"city",chars:one("savitri"),cap:"Princess Savitri of Madra is free to choose her own husband."},{bg:"forest",chars:one("savitri","float"),cap:"She chooses Satyavan, a prince living in exile in the forest."}]},
+  {dest:"Narada’s warning",charm:["Forest garland","A choice kept."],scenes:[{bg:"glow",chars:two("narada","savitri"),cap:"Narada warns her: Satyavan will die within a year."},{bg:"glow",chars:one("savitri","rise"),cap:"Savitri does not change her choice. Love, once given, is kept."}]},
+  {dest:"The forest year",charm:["Three-night vow","Patience made visible."],scenes:[{bg:"forest",chars:one("savitri"),cap:"She lives simply with Satyavan and cares for his blind parents."},{bg:"stars",chars:one("savitri","float"),cap:"Before the fated day, she keeps a fast for three nights."}]},
+  {dest:"Following Yama",charm:["Yama’s boon","Calm words change fate."],scenes:[{bg:"forest",chars:one("savitri"),cap:"Yama comes for Satyavan. Savitri follows, speaking with wisdom and calm."},{bg:"glow",chars:one("savitri","rise"),cap:"Pleased, Yama grants her wishes, and her last wish brings Satyavan back to life."}]}],
+ saraswati:[
+  {dest:"The lotus",charm:["White lotus petal","Clarity rising from water."],scenes:[{bg:"glow",chars:one("saraswati"),cap:"Saraswati is the goddess of knowledge, speech and music."},{bg:"river",chars:one("saraswati","float"),cap:"She is also a river, said to flow unseen beneath the earth."}]},
+  {dest:"The veena and the book",charm:["Veena string","Art and learning together."],scenes:[{bg:"clouds",chars:one("saraswati"),cap:"She holds a veena, a book and a mala: art, learning and focus."},{bg:"glow",chars:one("saraswati","rise"),cap:"Her white swan is said to separate milk from water: telling true from false."}]},
+  {dest:"Vasant Panchami",charm:["Yellow flower","The first letter."],scenes:[{bg:"hills",chars:one("saraswati"),cap:"On Vasant Panchami, many children write their first letters in her honour."},{bg:"glow",chars:one("saraswati","float"),cap:"Every learner starts with one letter."}]},
+  {dest:"The hidden river",charm:["River pebble","What you learn quietly shows up later."],scenes:[{bg:"river",chars:one("saraswati"),cap:"The Saraswati river is said to join the Ganga and Yamuna unseen at Prayag."},{bg:"rivers",chars:one("saraswati","rise"),cap:"Learning works the same way: what you studied quietly shows up later."}]}],
+ arjuna:[
+  {dest:"Practice in the dark",charm:["Practice arrow","Skill grows from habit."],scenes:[{bg:"stars",chars:one("arjuna"),cap:"In a popular telling, the lamp blows out at dinner and Arjuna keeps eating easily in the dark."},{bg:"forest",chars:one("arjuna","rise"),cap:"He realises habit guides his hands, so he starts practising archery at night too."}]},
+  {dest:"Drona’s test",charm:["Clay bird","One target."],scenes:[{bg:"forest",chars:one("arjuna"),cap:"Drona asks his students what they see in the tree."},{bg:"glow",chars:one("arjuna","float"),cap:"Only Arjuna answers: just the bird’s eye."}]},
+  {dest:"Draupadi’s svayamvara",charm:["Fish-eye target","Calm hands, still mind."],scenes:[{bg:"city",chars:one("arjuna"),cap:"The test is to hit a turning fish above, looking only at its reflection below."},{bg:"glow",chars:one("arjuna","rise"),cap:"Arjuna strings the great bow and hits the mark."}]},
+  {dest:"Kurukshetra",charm:["Gandiva string","Doubt, then action."],scenes:[{bg:"hills",chars:one("arjuna"),cap:"Before the battle, Arjuna’s hands shake and he sets down his bow."},{bg:"glow",chars:one("arjuna","rise"),cap:"Krishna’s answer becomes the Gita, and Arjuna stands up to do his work."}]}],
+ dhruva:[
+  {dest:"The king’s lap",charm:["Forest stone","Something no one can take."],scenes:[{bg:"city",chars:one("dhruva"),cap:"Young Dhruva is pushed off his father’s lap by his stepmother."},{bg:"forest",chars:one("dhruva","float"),cap:"Hurt, he walks into the forest looking for something no one can take away."}]},
+  {dest:"Narada’s mantra",charm:["Mantra bead","A method, and the work."],scenes:[{bg:"forest",chars:two("narada","dhruva"),cap:"Narada tests his resolve, then gives him a mantra."},{bg:"stars",chars:one("dhruva","float"),cap:"Dhruva sits and repeats it, day after day."}]},
+  {dest:"Madhuvana",charm:["Madhuvana leaf","Steadiness through doubt."],scenes:[{bg:"forest",chars:one("dhruva"),cap:"His practice deepens through cold and hunger. He does not move."},{bg:"glow",chars:one("dhruva","rise"),cap:"Vishnu appears before him, moved by his steadiness."}]},
+  {dest:"The pole star",charm:["Dhruva’s light","A fixed point to steer by."],scenes:[{bg:"stars",chars:one("dhruva"),cap:"Dhruva is given a place that never moves: the pole star."},{bg:"stars",chars:one("dhruva","float"),cap:"Travellers still find their way by him."}]}]
 };
 
 const STORIES={

@@ -112,15 +112,13 @@ Add `approx:true` if the date isn't confirmed. The `bg` options are `hills`, `gl
 
 **Quotes and guide lines.** Edit `QUOTES` and `GUIDE_LINES`.
 
-### Adding a new path (for example Spirit, with Dhruva)
+### Adding a new path (for example Friendship, with Krishna)
 
-This touches a little more than content:
-1. In `content.js`, add a `PATHS.spirit` entry shaped like `PATHS.body` (levels, tags, skills, trials, pool), add `"spirit"` to `ORDER`, and remove Spirit from `SOON`.
-2. Add a guide to `CHAR` and `PEOPLE`, add lines to `GUIDE_LINES` and chapters to `CHAPTERS`. Bridges go in `SYN` and their stories in `STORIES`.
-3. In `app.js`, add a portrait for the new guide in `portraitG()`, an icon in `ICO`, a colour token in `css/app.css` (like `--body`), and optionally a gift in `avatar()`.
+Paths sit inside five realms (`REALMS`): Body, Bonds, Craft, Joy and Peace. Users focus on up to 5 paths at a time.
+1. In `content.js`, add a `PATHS.friend` entry shaped like the others, with `realm:"bonds"`, plus levels, tags, skills, trials and a pool. Add `"friend"` to `ORDER` and remove it from `SOON`.
+2. Add the guide to `CHAR` and `PEOPLE` (with `pr:"he"` or `pr:"she"`), add 5 lines to `GUIDE_LINES` and about 4 entries to `CHAPTERS`. Optionally add it to `RELATED` so the app can suggest it as a next step.
+3. In `app.js`, add a portrait for the guide in `portraitG()` and an icon in `ICO`. In `css/app.css`, add a colour token like `--friend` in both the light and dark blocks.
 4. Bump the version as `1.x.0`.
-
-The skill tree spaces paths evenly, so a fourth path fits on its own.
 
 ## 6. Your data
 
