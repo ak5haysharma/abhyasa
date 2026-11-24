@@ -696,3 +696,19 @@ html.exlock,html.exlock body{overflow:hidden}
 .fm-bar{position:relative;display:flex;gap:10px;padding:12px max(20px,env(safe-area-inset-left,0px)) calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
 .fm-bar .cta{flex:1}
 .fmdone{background:var(--c)!important;color:#fff!important}
+
+.lp-ico{width:100%;aspect-ratio:360/150;border-radius:14px;background:radial-gradient(circle at 50% 50%,var(--gold-bg),var(--surface2));display:grid;place-items:center;color:var(--gold)}
+.lp-ico svg{width:56px;height:56px;stroke-width:1.6}
+.lhub{display:grid;gap:8px;margin-top:8px}
+.lh{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.lh b{display:block;font-weight:600}
+.lh small{display:block;font-size:13px;color:var(--mute)}
+.lhi{width:38px;height:38px;flex:none;border-radius:50%;background:var(--gold-bg);color:var(--gold);display:grid;place-items:center}
+.lhi svg{width:20px;height:20px}
+.lh.done .lhi{background:var(--gold);color:#fff}
+.whol{display:grid;gap:6px}
+.who{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.who b{display:block;font-weight:600;font-size:15px}
+.who b .dev{color:var(--mute);font-weight:400;font-size:14px}
+.who small{display:block;font-size:13px;color:var(--mute);line-height:1.4}
+.wdot{width:10px;height:10px;border-radius:50%;background:var(--gold);flex:none;margin:6px 10px 0 10px}

@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.7.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.8.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -41,7 +41,7 @@ function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.learned=o.learned||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -624,6 +624,22 @@ function fmCmd(v,ev){if(!FM)return;
  if(v==="done"){const id=FM.id;fmClose();complete(id,ev);return}
  if(v.startsWith("step|")){const i=+v.split("|")[1];FM.ck[i]=!FM.ck[i];if(FM.ck[i])beep(1180,.05,.12);fmPaint()}}
 
+
+/* ================= explainer pack ================= */
+function playPack(id,after){const L=LEARN.find(x=>x.id===id);if(!L)return;
+ const cards=L.cards.map(c=>({kick:c.kick,svg:c.bg?sceneInner({bg:c.bg,chars:c.chars||[]}):"",html:c.bg?"":`<div class="lp-ico">${ic(c.ico||L.ico)}</div>`,cap:c.cap}));
+ cards[cards.length-1].html=(cards[cards.length-1].html||"")+"";
+ openPlayer({label:L.t,title:L.t,sub:L.sub,cast:[],cards,auto:false,after:()=>{if(!S.learned.includes(id)){S.learned.push(id);save();toast(`“${L.t}” done`)}render();if(after)after()}})}
+function learnHub(){const n=S.learned.filter(id=>LEARN.some(x=>x.id===id)).length;
+ sheet("var(--gold)",`<div class="kick">Learn</div><h2>Start here</h2><p class="sub">Short swipe guides to the app and the stories behind it. Each takes about two minutes. ${n} of ${LEARN.length} done.</p>
+ <div class="lhub">${LEARN.map(L=>{const d=S.learned.includes(L.id);return `<button class="lh${d?" done":""}" data-pack="${L.id}"><span class="lhi">${ic(d?"check":L.ico)}</span><span><b>${L.t}</b><small>${L.sub} · ${L.cards.length} cards</small></span></button>`}).join("")}
+ <button class="lh" data-who="1"><span class="lhi">${ic("hero")}</span><span><b>Who’s who</b><small>Gods, heroes and sages in one line each</small></span></button>
+ <button class="lh" data-gloss="1"><span class="lhi">${ic("learn")}</span><span><b>Glossary</b><small>Every term used in the app</small></span></button></div>`)}
+function whoSheet(){sheet("var(--gold)",`<div class="kick">Learn</div><h2>Who’s who</h2><p class="sub">The figures you’ll meet in Abhyasa. Tap a guide to learn more.</p>
+ ${WHO.map(([h,L])=>`<div class="ptitle">${h}</div><div class="whol">${L.map(([n,d,t,pid])=>pid?`<button class="who" data-person="${CHAR[pid]}" style="--c:${PATHS[pid].c}">${medal(pid,"xs")}<span><b>${n} <span class="dev">${d}</span></b><small>${t}</small></span></button>`:`<div class="who"><span class="wdot"></span><span><b>${n} <span class="dev">${d}</span></b><small>${t}</small></span></div>`).join("")}</div>`).join("")}`)}
+function glossSheet(){sheet("var(--gold)",`<div class="kick">Learn</div><h2>Glossary</h2>${GLOSSARY.map(([h,L])=>`<div class="ptitle">${h}</div>${L.map(([t,d])=>`<div class="gl"><b>${t}</b><span>${d}</span></div>`).join("")}`).join("")}`)}
+const learnLeft=()=>LEARN.filter(x=>!S.learned.includes(x.id)).length;
+
 /* ================= starter pack ================= */
 const enLine=n=>EN[n]?`<p class="en">${EN[n]}</p>`:"";
 const wantIntros=()=>S.lore!=="well";
@@ -810,6 +826,7 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  const pid=companionPid(t);if(pid){const g=CHAR[pid],J=S.journey,trav=J&&J.d===t&&!J.back,C=CHAPTERS[g][trav?J.ch:nextCh(g)],ret=J&&J.back&&J.ret===t;
   out.push(card("",ret?`data-chap="${J.g}:${J.ch}"`:S.days[t]&&S.days[t].a&&S.closed!==t?'data-eve="1"':`data-person="${g}"`,medal(pid,"sm"),`Companion · ${PEOPLE[g].n}`,ret?`Back from ${CHAPTERS[J.g][J.ch].dest}`:trav?`On the way to ${C.dest}`:`Waiting to travel to ${C.dest}`,ret?"Watch the chapter again":trav?"Back tomorrow morning":"One task, then close your day"))}
  const n=nudges()[0];if(n)out.push(card("",`data-nudge-act="${n.pid}:${n.act}"`,medal(n.pid,"sm"),n.t,n.act==="add"?`Add ${PATHS[n.pid].name}?`:`Pause ${PATHS[n.pid].name}?`,n.s.split(". ")[0]+".",`<button class="scx" data-nudge-x="${n.k}" aria-label="Not now">×</button>`));
+ if(S.lore!=="well"&&learnLeft()){const nx=LEARN.find(x=>!S.learned.includes(x.id));out.splice(Math.min(out.length,1),0,card("gold",'data-learn="1"',`<span class="sci gold">${ic("learn")}</span>`,"New to these stories?","Start here",`Next: ${nx.t}`))}
  out.push(card("",'data-today-cal="1"',`<span class="sci gold">${ic("calm")}</span>`,cal.fest?"Today’s festival":"Story for today",cal.n,cal.t));
  if(c.d===t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in",`${E_L[c.energy]} energy`,`${c.sore.length?"Sore "+c.sore.map(k=>SORE_L[k]).join(", "):"No soreness"} · tap to change`));
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
@@ -884,7 +901,7 @@ function heroView(){const sg=segOf("hero","hero");let body="";
   body=`<div class="block" style="margin-top:4px"><h2>Your guides</h2><div class="guides" style="margin-top:10px">${sel().map(pid=>{const c=CHAR[pid];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${PEOPLE[c].n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
- if(sg==="more")body=`<div class="block" style="margin-top:4px"><h2>Stories and glossary</h2>${glossaryView()}</div><div class="block"><h2>App</h2>${appCard()}</div>
+ if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><div class="block"><h2>App</h2>${appCard()}</div>
   <div class="links"><button class="mini" data-act="routine">Edit kit and routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div><p class="sub" style="text-align:center;margin-bottom:30px">Abhyasa ${APP_VERSION}</p>`;
  return header("Hero")+tipCard()+`<div class="wrap">${seg("hero",[["hero","Hero"],["stats","Stats"],["coll","Collection"],["more","More"]])}<div class="segbody">${body}</div></div>`}
 
@@ -926,7 +943,7 @@ function finishQuiz(){
  S.paths.forEach(p=>{const k=Q.level[p]||0;if(S.prog[p].m<k)S.prog[p]={m:k,xp:0}});
  S.syn=S.syn.filter(id=>SYN.find(s=>s.id===id).p.every(p=>S.paths.includes(p)));
  SYN.forEach(s=>{if(!S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=s.req))S.syn.push(s.id)});
- S.seen=Math.max(S.seen,stage());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();if(wantIntros())setTimeout(()=>playIntro(sel()),400);window.scrollTo(0,0);
+ S.seen=Math.max(S.seen,stage());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();if(S.lore==="new")setTimeout(()=>playPack("tour",()=>playIntro(sel())),400);else if(wantIntros())setTimeout(()=>playIntro(sel()),400);window.scrollTo(0,0);
  toast(redo?"Your plan is updated":"Your first tasks are ready");
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 }
@@ -999,13 +1016,17 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
+ if(d.learn){learnHub();return}
+ if(d.pack){closeLayer();playPack(d.pack,()=>learnHub());return}
+ if(d.who){whoSheet();return}
+ if(d.gloss){glossSheet();return}
  if(d.focus){focusStart(d.focus);return}
  if(d.fm){fmCmd(d.fm,e);return}
  if(d.x){const v=d.x;if(!EX){exOpen(v==="open"?null:v);if(v==="open")setTimeout(()=>EX&&exOverview(),520)}else if(v!=="open")exSelect(v);return}

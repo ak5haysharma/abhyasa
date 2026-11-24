@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.0 · 24.11.2026
+- Explainer pack: a Learn hub with 5 two-minute swipe guides (How Abhyasa works, The Ramayana, The Mahabharata, The old texts, Living the journey), a Who's who of about 35 figures, and the glossary. A Start here card sits on Today until you've finished the guides, and new users get the tour after setup.
+
 ## 1.7.0 · 24.11.2026
 - Focus mode: start any task full screen, with a countdown ring around your guide, steps to tick off, the task's tool, a new guide line every 45 seconds, pause and resume, the screen kept awake, a chime at the end, and +5 min or Mark done.
 
