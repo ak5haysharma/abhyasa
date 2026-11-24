@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.10.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.11.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -41,7 +41,7 @@ function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.learned=o.learned||[];o.trialLog=o.trialLog||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.shown=o.shown||{};o.learned=o.learned||[];o.trialLog=o.trialLog||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -119,8 +119,9 @@ function score(x,pid,C,r){
  if((rl.includes("pull")||rl.includes("grip"))&&x.load.includes("push")&&!rl.includes("push")){s+=3;why.push(`Balances the pulling from ${srcOf(C,["pull","grip"])}`)}
  if(heavy.length&&x.load.length===1&&x.load[0]==="mobility"){const hit=x.rec?x.rec.filter(l=>heavy.includes(l)):heavy;if(hit.length){s+=x.rec?2:1;why.push(`Recovery after ${srcOf(C,hit)}`)}}
  if(C.c.sore.length&&x.load.includes("mobility")){s+=2;why.unshift(`Gentle on your sore ${C.c.sore.map(k=>SORE_L[k]).join(" and ")}`)}
- const last=(S.log||[]).filter(l=>l.t===x.t).map(l=>l.d).sort().pop();
- if(last===C.yd)s-=1.5;else if(!last||diff(last,td())>3)s+=.5;
+ const last=(S.log||[]).filter(l=>l.t===x.t).map(l=>l.d).sort().pop(),sh=(S.shown[x.t]||[]).filter(d=>d<td()&&diff(d,td())<=7);
+ if(last===C.yd||sh.includes(C.yd))s-=1.5;else if(!last||diff(last,td())>3)s+=.5;
+ s-=1.1*sh.length;if(x.m<=5&&sh.length)s-=1;if(!sh.length&&!last)s+=.6;
  if(C.c.energy==="high"&&x.en===3){s+=1;why.push("You have energy today")}
  if(C.c.energy==="low"&&x.en===1){s+=1;why.push("Low energy, so a light one")}
  if((C.dow===0||C.dow===6)&&x.m>=30){s+=1;why.push("Weekend: room for something longer")}
@@ -139,7 +140,7 @@ function score(x,pid,C,r){
 function ranked(pid,C,seed,exclude){
  const P=PATHS[pid],tier=Math.min(4,S.prog[pid].m),r=rng(seed),tags=S.tags[pid]||[];
  const famCall=anchorsToday(C.c).some(a=>a.id==="family");
- let c=P.pool.map((x,i)=>({x,i})).filter(({x})=>tier>=x.lo&&tier<=x.hi&&fit(x,pid,C)&&!exclude.includes(x.t)&&!(famCall&&x.call));
+ let c=P.pool.map((x,i)=>({x,i})).filter(({x})=>tier>=x.lo&&tier<=x.hi&&fit(x,pid,C)&&!exclude.includes(x.t)&&!(famCall&&x.call)&&!(x.m<=5&&(S.shown[x.t]||[]).some(d=>d<td()&&diff(d,td())<=3)));
  const f=c.filter(({x})=>x.tags.includes("any")||x.tags.some(g=>tags.includes(g)));if(f.length>=2)c=f;
  return c.map(o=>Object.assign(o,score(o.x,pid,C,r))).sort((a,b)=>b.s-a.s);
 }
@@ -162,7 +163,7 @@ function buildPlan(keep){
  const rank={trial:0,anchor:1,task:2,bridge:3};
  return items.sort((a,b)=>rank[a.kind]-rank[b.kind]||ps.indexOf(a.pid)-ps.indexOf(b.pid));
 }
-function ensurePlan(){if(S.plan.d!==td()){recordHist();S.plan={d:td(),items:[],swaps:0,closed:false};S.plan.items=buildPlan([]);S.plan.items.forEach(x=>{if(x.kind==="task")L_(x.t).sh++})}}
+function ensurePlan(){if(S.plan.d!==td()){recordHist();S.plan={d:td(),items:[],swaps:0,closed:false};S.plan.items=buildPlan([]);S.plan.items.forEach(x=>{if(x.kind==="task"){L_(x.t).sh++;const a=S.shown[x.t]=(S.shown[x.t]||[]).filter(d=>diff(d,td())<=14);if(!a.includes(td()))a.push(td())}})}}
 
 /* ================= tools ================= */
 let TOOL=null,AC=null,tick=null,metro=null,OPEN=null;

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.11.0 · 24.11.2026
+- Task library nearly doubled (109 to 203), with every path now at 22 or more tasks with guides and tools. The planner remembers the last 7 days to avoid repeats, and short tasks rest for 3 days after appearing.
+
 ## 1.10.0 · 24.11.2026
 - Reliability: fonts bundled in the app (no Google requests, fully offline), a Send feedback sheet (Share, Copy, optional Email), a weekly backup reminder and iPhone-friendly backup via the share sheet, colour contrast raised to accessibility standard, and better keyboard and screen-reader focus in sheets.
 

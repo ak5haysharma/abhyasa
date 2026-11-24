@@ -578,3 +578,115 @@ const WHO=[
 /* ================= feedback ================= */
 // Put your email here to let testers send feedback by email. Leave empty to offer only Share and Copy.
 const FEEDBACK_EMAIL="";
+
+/* ================= task library, batch 2 (v1.11) ================= */
+// Added after the main definitions so each path's pool grows without touching the originals.
+PATHS.body.pool.push(
+ X("Core: hollow body and dead bugs",12,{tags:"strength|climb|any",en:2,load:["mobility"],g:["Dead bugs, 3 × 10 slow, lower back pressed down","Hollow body hold, 3 × 20 sec","Side plank, 30 sec per side"],tool:{type:"intervals",work:30,rest:20,rounds:6}}),
+ X("Pull-up practice",15,{tags:"strength|climb",lo:1,needs:["pullup"],place:"home",en:3,load:["pull","grip"],g:["Dead hang, 20 sec, to warm up","Sets of 2–5 pull-ups, or slow negatives if you can’t do one yet","Rest 2 min between sets, 5 sets"],tool:{type:"timer",sec:120,label:"Rest timer"}}),
+ X("Band work for climbers",12,{tags:"climb|strength",needs:["bands"],place:"any",en:1,load:["push","mobility"],rec:["pull","grip"],g:["Band chest press, 2 × 15","Band pull-aparts, 2 × 15","Finger extensions with a rubber band, 2 × 20"],tool:{type:"timer",sec:720}}),
+ X("Bouldering: technique laps",45,{tags:"climb",lo:1,needs:["wall"],place:"wall",en:2,load:["pull","grip"],g:["Pick 6 problems two grades below your max","Climb each 3 times: quiet feet, straight arms, smooth hips","Rest 2 min between laps"]}),
+ X("Swim: kick sets",20,{tags:"swim",needs:["pool"],place:"pool",en:2,load:["legs","cardio"],g:["Warm up 100 m easy","6 × 25 m kick with a board, 30 sec rest","Cool down 100 m easy"],tool:{type:"intervals",work:60,rest:30,rounds:6}}),
+ X("Swim: breathe every 3 strokes",25,{tags:"swim",lo:1,needs:["pool"],place:"pool",en:2,load:["cardio","pull"],g:["Warm up 100 m","8 × 50 m breathing every third stroke, 20 sec rest","Exhale fully under water before you turn to breathe"],tool:{type:"intervals",work:75,rest:20,rounds:8}}),
+ X("Recovery swim",20,{tags:"swim",needs:["pool"],place:"pool",en:1,load:["cardio"],rec:["legs","pull"],g:["20 minutes at an easy pace","Mix strokes if you like","Long, relaxed glides"],tool:{type:"timer",sec:1200}}),
+ X("Stairs or hill walk",20,{tags:"walk|run",place:"out",en:2,load:["legs","cardio"],travel:true,g:["Find stairs or a hill","Walk up at a strong pace, walk down slowly","Repeat for 20 minutes"],tool:{type:"timer",sec:1200}}),
+ X("Run drills and strides",20,{tags:"run",lo:1,place:"out",en:2,load:["legs","cardio"],g:["5 min easy jog","High knees, butt kicks and skips, 2 × 20 m each","4 × 80 m strides at 80% effort, walk back"],tool:{type:"timer",sec:1200}}),
+ X("Ankle and balance work",8,{tags:"run|walk|any",en:1,load:["mobility"],g:["Stand on one leg, 30 sec each, then with eyes closed","20 slow calf raises per leg","Ankle circles, 10 each way"],tool:{type:"timer",sec:480}}),
+ X("Towel grip hangs",10,{tags:"climb|strength",lo:2,needs:["pullup"],place:"home",en:3,load:["grip"],g:["Hang a towel over the bar","Hold for 10–20 sec, 5 times","Stop at any finger or elbow pain"],tool:{type:"intervals",work:15,rest:45,rounds:5}})
+);
+PATHS.flex.pool.push(
+ X("Morning wake-up flow",7,{tags:"yoga|mobility|any",en:1,load:["mobility"],g:["Cat-cow, 8 rounds","Downward dog, pedal the feet, 1 min","Low lunge each side, 45 sec","Stand tall and take 5 long breaths"],tool:{type:"timer",sec:420}}),
+ X("Bhramari, humming bee breath",5,{tags:"breath",en:1,quiet:true,g:["Sit comfortably, eyes closed","Breathe in through the nose","Breathe out with a soft humming sound, like a bee","Repeat 7 times and notice the quiet after"],tool:{type:"counter",target:7,label:"breaths"}}),
+ X("Kapalabhati, gentle",5,{tags:"breath",lo:1,en:2,g:["Sit tall. Short, active breaths out through the nose, letting the breath in happen by itself","3 rounds of 20 breaths, rest between","Skip it if you’re pregnant, have high blood pressure or feel dizzy"],tool:{type:"counter",target:3,label:"rounds"}}),
+ X("Wrist and forearm care",6,{tags:"posture|mobility",en:1,load:["mobility"],rec:["grip"],g:["Wrist circles, 10 each way","Prayer stretch, 30 sec","Reverse prayer, 30 sec","Make fists and spread fingers, 20 times"],tool:{type:"timer",sec:360}}),
+ X("Thoracic opener over a towel",8,{tags:"posture|mobility",place:"home",en:1,load:["mobility"],g:["Roll a towel and lie on it across your upper back","Arms overhead, breathe slowly, 2 min","Move the towel a little lower, 2 more min","Open book stretch, 5 per side"],tool:{type:"timer",sec:480}}),
+ X("Couch stretch for tight hips",8,{tags:"mobility|posture",place:"home",en:1,load:["mobility"],rec:["legs"],g:["Back knee on a cushion near a wall or sofa, shin up against it","Squeeze the glute of that leg, stay tall","90 sec per side, twice"],tool:{type:"timer",sec:480}}),
+ X("Yoga for the lower back",15,{tags:"yoga|posture",place:"home",en:1,load:["mobility"],g:["Knees to chest, rock gently, 1 min","Supine twist, 1 min per side","Sphinx pose, 2 min","Child’s pose, 2 min"],tool:{type:"timer",sec:900}}),
+ X("Warrior three holds",8,{tags:"yoga",lo:1,en:2,load:["legs","mobility"],g:["Hinge forward on one leg, arms forward","Hold 20 sec per side, 3 rounds","Keep hips level, eyes on one point"],tool:{type:"intervals",work:20,rest:10,rounds:6}}),
+ X("Hourly posture check",3,{tags:"posture",en:1,g:["Each hour today: stand, roll your shoulders back, look far away for 20 sec","Tap the counter each time"],tool:{type:"counter",target:6,label:"checks"}}),
+ X("Supported shavasana",10,{tags:"yoga|breath",place:"home",en:1,quiet:true,g:["Lie down with a cushion under your knees","Let the floor hold you","Breathe slowly and scan the body from feet to head"],tool:{type:"timer",sec:600}}),
+ X("Count 21 breaths",5,{tags:"breath|any",en:1,g:["Count each breath out, from 1 to 21","Lost count? Start again at 1, kindly","That restarting is the practice"],tool:{type:"counter",target:21,label:"breaths"}})
+);
+PATHS.bonds.pool.push(
+ X("Send your parents a short video",5,{tags:"parents|abroad",en:1,g:["30 seconds of your day: your street, your meal, your view","Add one line about how you are"]}),
+ X("Ask your parents about their health, properly",15,{tags:"parents",lo:1,en:1,call:true,g:["Ask about sleep, medicines and check-ups","Listen without fixing","Offer one concrete help, like booking an appointment"]}),
+ X("Book the next family call",3,{tags:"abroad|family",en:1,g:["Pick a day and time that suits both time zones","Put it in everyone’s calendar"]}),
+ X("Learn 5 words in your mother tongue",10,{tags:"roots",en:1,g:["Pick words you’d use with family: love, home, tired, proud, food","Say each aloud 3 times","Use one on your next call"]}),
+ X("Listen to a song from your region",10,{tags:"roots",en:1,g:["A bhajan, a folk song or an old film song your family loves","Look up the meaning of one line","Send it to someone at home"]}),
+ X("Share one old family photo",5,{tags:"family|parents",en:1,g:["Find an old photo on your phone or in an album","Send it with a question: who took this, and when?"]}),
+ X("Write down one family recipe",20,{tags:"roots|family",lo:1,en:1,g:["Ask the person who makes it best","Write the steps as they speak, including the “a little of this”","Save it somewhere you’ll keep"]}),
+ X("Check in on a friend having a hard time",10,{tags:"friends",en:1,g:["A short message: “Thinking of you. How are you really?”","No advice unless they ask"]}),
+ X("Invite someone for chai or coffee",5,{tags:"friends",en:1,g:["Name a day and a place","Keep it simple: one hour is enough"]}),
+ X("Thank an elder for something specific",10,{lo:1,en:1,g:["Name one thing they did that shaped you","Tell them by call, voice note or letter"]}),
+ X("Plan your next visit home",20,{tags:"abroad",lo:2,en:1,g:["Look at dates and prices","Ask family what would make the visit special","Book it, or set a date to decide"]}),
+ X("Draw a family tree with an elder",30,{tags:"roots|parents",lo:2,en:1,call:true,g:["Start with grandparents on both sides","Ask one story for each name","Keep the notes and photos together"]})
+);
+PATHS.love.pool.push(
+ X("Ask about their week, then just listen",15,{tags:"partner",en:1,g:["Ask: what was the hardest and the best part of your week?","Don’t fix anything","Repeat back one thing you heard"]}),
+ X("Make them tea, unasked",5,{tags:"partner",en:1,g:["Just the way they like it","No reason needed"]}),
+ X("Write a short note",5,{tags:"partner",en:1,g:["Two lines on paper, left somewhere they’ll find it","Something specific you noticed this week"]}),
+ X("Ask what makes them feel loved",15,{tags:"partner",lo:1,en:1,g:["Ask: when did you feel most loved by me recently?","Listen for the pattern: words, time, help, touch or small gifts","Do more of that this week"]}),
+ X("Tell the story of how you met",10,{tags:"partner",en:1,g:["Each of you tells it from your side","Notice the details you remember differently"]}),
+ X("Set one shared goal for the month",20,{tags:"partner",lo:2,en:2,g:["Something small and fun: a trip, a skill, a habit","Write it down where you both see it"]}),
+ X("Update your dating profile honestly",20,{tags:"dating",en:1,g:["Use a recent photo that looks like you today","Write one line about what you love doing, not a list","Say what you’re looking for, kindly and clearly"]}),
+ X("Message one match with a real question",5,{tags:"dating",en:1,g:["Ask about something in their profile","Skip “hey”: ask what got them into it"]}),
+ X("Go somewhere new on your own",45,{tags:"selflove|dating",lo:1,en:2,g:["A café, a museum, a class or a walk somewhere new","Notice what you enjoy when no one else decides"]}),
+ X("Three things you like about yourself",5,{tags:"selflove",en:1,quiet:true,g:["Write them down","Not achievements: qualities, like patience or humour"]}),
+ X("Set one boundary, kindly",10,{tags:"selflove|partner",lo:2,en:2,g:["Pick one small thing that drains you","Say it simply: “I need… because…”","Keep it short and warm"]})
+);
+PATHS.learn.pool.push(
+ X("Read 10 pages before bed",15,{tags:"reading",en:1,quiet:true,g:["A paper book or e-reader, not your phone","Stop at 10 pages, even if you want more"],tool:{type:"timer",sec:900}}),
+ X("Summarise a chapter in 5 bullets",15,{tags:"reading|course",lo:1,en:2,g:["Close the book first","Write 5 bullets from memory","Then check what you missed"]}),
+ X("Watch one lecture and take notes",30,{tags:"course",en:2,g:["Normal speed, not 2×","Pause every 10 min and write the main idea","End with one question you still have"],tool:{type:"timer",sec:1800}}),
+ X("Practise problems, not just reading",30,{tags:"course|tech",lo:1,en:3,g:["Do 3–5 exercises without looking at the answer","Mark where you got stuck","That’s tomorrow’s study topic"],tool:{type:"timer",sec:1800}}),
+ X("Speak for 2 minutes in the language",5,{tags:"language",lo:1,en:2,g:["Record yourself describing your day","Listen back and note 2 missing words","Look them up"],tool:{type:"timer",sec:120}}),
+ X("Watch a short video in the language",15,{tags:"language",en:1,g:["Subtitles in the same language, not English","Pause and repeat one sentence aloud"]}),
+ X("Write 5 sentences in the language",10,{tags:"language",lo:1,en:2,g:["About today: what you did, ate and felt","Check them with a dictionary or a friend"]}),
+ X("Learn one tool trick",10,{tags:"tech",en:1,g:["One shortcut, command or feature you don’t use yet","Use it 5 times today"]}),
+ X("Read one paper abstract or tech article",15,{tags:"tech",lo:1,en:2,g:["Pick something in your field from this month","Write down one idea you could try at work"]}),
+ X("Run a small AI experiment",30,{tags:"tech",lo:1,en:2,g:["Take one real task from your work","Try two different prompts or tools on it","Note which worked better, and why"]}),
+ X("Ask a question in a community",10,{lo:2,en:2,g:["A forum, class group or colleague","Show what you tried first"]}),
+ X("Plan next week’s learning",5,{en:1,g:["Three lines: what, when, and how you’ll know you learned it"]})
+);
+PATHS.focus.pool.push(
+ X("Notifications off for the morning",3,{tags:"habits",en:1,g:["Turn on Focus or Do Not Disturb until noon","Close chat and email apps"]}),
+ X("Two focus sprints",55,{tags:"deepwork",lo:1,en:3,g:["One task, written down","25 min work, 5 min break, twice","Stand up and move in the breaks"],tool:{type:"intervals",work:1500,rest:300,rounds:2}}),
+ X("Clear your desk and desktop",10,{tags:"habits",en:1,g:["Clear everything off the desk except today’s things","Close every tab you don’t need","Empty your downloads folder"]}),
+ X("Write a one-page plan",25,{tags:"deepwork|side",lo:1,en:2,g:["Goal, why it matters, three steps, first step this week","Keep it to one page"]}),
+ X("Message someone in your field",10,{tags:"career",en:1,g:["Someone you admire or worked with","Ask one specific question, or share something useful"]}),
+ X("Read one industry article",15,{tags:"career",en:1,g:["Pick from a source you trust","Note one idea you could use at work"]}),
+ X("Explain your work in 60 seconds",10,{tags:"career",lo:1,en:2,g:["What you do, for whom, and one recent result","Say it aloud, then trim it","Use it next time someone asks"],tool:{type:"timer",sec:60}}),
+ X("Fix one small annoying thing",15,{tags:"side|deepwork",en:2,g:["A bug, a form or a messy file you keep putting off","Finish it completely"]}),
+ X("Ship a tiny update",30,{tags:"side",lo:2,en:3,g:["The smallest improvement users would notice","Push it today"]}),
+ X("Shutdown routine",5,{tags:"habits",en:1,g:["Write down where you stopped","List tomorrow’s first task","Close the laptop and say “done for today”"]}),
+ X("Block focus time in your calendar",5,{tags:"habits|deepwork",en:1,g:["Two blocks of 90 min this week","Name them after the task, not “focus”"]}),
+ X("Batch your email",20,{tags:"habits",lo:1,en:2,g:["One slot today for all email","Reply, schedule or archive each one","Close it when the slot ends"],tool:{type:"timer",sec:1200}})
+);
+PATHS.music.pool.push(
+ X("Travis picking basics",15,{tags:"guitar",lo:2,en:2,g:["Thumb alternates between two bass strings","Add the index finger on the off-beats","Start at 60 bpm on a C chord"],tool:{type:"metronome",bpm:60}}),
+ X("Barre chord practice",15,{tags:"guitar",lo:1,hi:3,en:2,g:["F at the first fret, then Bm at the second","Press with the side of your index finger","Play each string one by one, fix the muted ones"],tool:{type:"timer",sec:900}}),
+ X("Learn the chords of one Bollywood song",20,{tags:"guitar|keys",lo:1,hi:3,songs:true,g:["Search the song name plus “chords”","Learn the chorus first","Strum it along with the recording"]}),
+ X("Learn one new chord",10,{tags:"guitar|keys",hi:2,en:1,g:["Pick a chord from a song you like","Switch between it and a chord you know, 20 times"]}),
+ X("Play a song slower than you like",15,{lo:1,en:1,g:["Set the metronome 20 bpm below the real tempo","Play it with no mistakes","Then go up 5 bpm"],tool:{type:"metronome",bpm:60}}),
+ X("Clean up one tricky bar",10,{lo:2,en:2,g:["Find the bar where you always slip","Loop just that bar 10 times slowly","Then play the bars before and after it"],tool:{type:"metronome",bpm:55}}),
+ X("Hold Sa with a drone",10,{tags:"singing",en:1,g:["Play a tanpura drone","Sing a long, steady Sa, 5 times","Then Pa, then the upper Sa"],tool:{type:"timer",sec:600}}),
+ X("Breathing for singers",6,{tags:"singing",en:1,g:["Breathe low into your belly, shoulders still","Let the air out on a long “ssss” for as long as you can","Try to beat your time each round"],tool:{type:"breath",in:4,hold:0,out:12}}),
+ X("Count and clap in 3 and 4",10,{tags:"theory|any",en:1,g:["Clap on the first beat, tap on the others","4 bars in 4/4, then 4 bars in 3/4","Now switch without stopping"],tool:{type:"metronome",bpm:80}}),
+ X("Transcribe a melody by ear",20,{tags:"theory",lo:2,en:2,g:["A short, simple tune you know well","Find the first note on your instrument","Work it out note by note, then write it down"]}),
+ X("Write four lines of lyrics",15,{lo:2,en:2,g:["About something that happened this week","Make lines 2 and 4 rhyme","Hum a tune for them"]}),
+ X("A raga phrase: Yaman",15,{tags:"singing|guitar|keys",lo:2,en:2,raga:true,g:["Yaman uses a sharp Ma (the raised fourth)","Ascent: Ni Re Ga Ma Dha Ni Sa","Play or sing it slowly over a drone"]})
+);
+PATHS.calm.pool.push(
+ X("Five-minute morning sit",5,{tags:"silent|any",en:1,g:["Before your phone","Sit, feel the breath, nothing else"],tool:{type:"timer",sec:300}}),
+ X("Loving-kindness for one person",10,{tags:"guided|gratitude",en:1,g:["Picture someone you love","Silently wish: may you be well, may you be happy, may you be at peace","Then the same wish for yourself"],tool:{type:"timer",sec:600}}),
+ X("Om, 21 times",6,{tags:"mantra",en:1,g:["Sit tall","Chant a long Om on each breath out","Feel the vibration in your chest"],tool:{type:"counter",target:21,label:"chants"}}),
+ X("Gayatri mantra, 3 times with meaning",8,{tags:"mantra",lo:1,en:1,g:["Read the meaning first: a prayer for a clear, awakened mind","Recite it slowly three times","Sit quietly for one minute after"],tool:{type:"counter",target:3,label:"recitations"}}),
+ X("One worry, one action",10,{tags:"gratitude|any",en:1,g:["Write down one worry","Write the smallest action that would help","Do it, or schedule it"]}),
+ X("Mindful tea or coffee",5,{tags:"any",en:1,g:["No phone","Notice the warmth, smell and taste","Finish the cup before you do anything else"]}),
+ X("Sit with sounds",10,{tags:"silent",en:1,g:["Eyes closed","Notice every sound, near and far, without naming it","Let them come and go"],tool:{type:"timer",sec:600}}),
+ X("Write a thank-you",10,{tags:"gratitude",en:1,g:["To someone who helped you, recently or long ago","Be specific about what changed for you"]}),
+ X("Breath awareness on the way",10,{tags:"any",place:"any",en:1,travel:true,g:["On your commute or a walk","Count 10 breaths, then start again","Earphones out"]}),
+ X("Evening review: three good things",5,{tags:"gratitude",en:1,quiet:true,g:["Write three things that went well today","Add why each one happened"]}),
+ X("Yoga nidra",20,{tags:"guided",lo:1,en:1,quiet:true,g:["Lie down, use a guided recording you trust","Stay awake and follow the voice","Rest a minute before getting up"],tool:{type:"timer",sec:1200}}),
+ X("Thirty-minute sit",30,{tags:"silent",lo:3,en:2,g:["Same as your usual sit, just longer","Don’t move for the first 15 minutes"],tool:{type:"timer",sec:1800}})
+);
