@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.17.0 · 24.11.2026
+- Epics are now goal-based (MVP). Journey > Epic suggests 3 goals from your paths, level and last 14 days. Set the goal number, where you are now, a 4/8/12-week deadline and up to 3 obstacles. The goal splits into 7 milestones; logging progress opens the next book. Hero rank is now one lifelong progression (7 titles by total trials) that also drives your avatar's look. Old trial-based epics are cleared.
+
 ## 1.16.0 · 24.11.2026
 - Hero gear: tap your hero to open a full gear screen. All 30 skill gifts (2 per path) plus 3 rank gifts are now real items on your hero, in 8 slots (hand, back, neck, arms, waist, head, aura, companion). Equip, swap or take off. Removed the cut-off speech bubble. The epic moved off Today into its own Epic tab under Journey, with a short explainer; Today keeps one small card.
 

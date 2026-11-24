@@ -1215,3 +1215,30 @@ const EPICS={
  devi:{n:"Devi Mahatmya",d:"देवी माहात्म्य",about:"Courage and breaking old patterns.",best:["courage","body","calm"],foe:"Mahishasura",soon:true},
  katha:{n:"Nachiketa’s quest",d:"कठ",about:"Calm, meaning and learning.",best:["calm","learn","wisdom","gratitude"],foe:"Yama’s temptations",soon:true}
 };
+
+/* ================= epic goals (v1.17): one template per path, 3 sizes ================= */
+// t: text with {n}; u: unit; st: step for +/-; n: [starter, stretch, mastery]; w: default weeks per size
+const EGOALS={
+ body:{t:"Run {n} km without stopping",u:"km",st:.5,n:[2,5,10],w:[4,8,12]},
+ flex:{t:"Do a 10-minute yoga flow on {n} days",u:"days",st:1,n:[14,30,60],w:[4,8,12]},
+ bonds:{t:"Call or meet family {n} times",u:"times",st:1,n:[8,16,30],w:[4,8,12]},
+ love:{t:"Plan {n} quality evenings together",u:"evenings",st:1,n:[4,8,12],w:[4,8,12]},
+ learn:{t:"Finish {n} books",u:"books",st:1,n:[1,3,6],w:[4,8,12]},
+ focus:{t:"Do {n} deep-work sessions of 45 min",u:"sessions",st:1,n:[20,50,100],w:[4,8,12]},
+ music:{t:"Play {n} songs start to finish",u:"songs",st:1,n:[1,3,6],w:[4,8,12]},
+ calm:{t:"Meditate on {n} days",u:"days",st:1,n:[14,30,60],w:[4,8,12]},
+ friend:{t:"Reconnect with {n} friends",u:"friends",st:1,n:[3,6,12],w:[4,8,12]},
+ money:{t:"Track every expense for {n} days",u:"days",st:1,n:[14,30,60],w:[4,8,12]},
+ courage:{t:"Do {n} things that scare you a little",u:"things",st:1,n:[5,12,25],w:[4,8,12]},
+ wisdom:{t:"Write {n} journal reflections",u:"entries",st:1,n:[10,30,60],w:[4,8,12]},
+ making:{t:"Finish {n} build projects",u:"projects",st:1,n:[1,3,6],w:[4,8,12]},
+ art:{t:"Make {n} finished pieces",u:"pieces",st:1,n:[4,10,20],w:[4,8,12]},
+ gratitude:{t:"Write 3 gratitudes on {n} days",u:"days",st:1,n:[14,30,60],w:[4,8,12]}};
+const GSIZE=["Starter","Stretch","Mastery"];
+// milestone wording in scenes
+EPICS.ramayana.stages[0].scenes[2].cap="Book 1 asks one thing: show up. Reach your first milestone and you leave home.";
+EPICS.ramayana.stages[1].scenes[1].cap="You reached your first milestone. Like Rama, you have stepped out of your comfort.";
+EPICS.ramayana.stages[5].scenes[1].cap="Your {FOE} has lost most of its heads. Now it fights hardest.";
+EPICS.ramayana.stages[5].scenes[2].cap="Book 6 asks: do not slip at the end. One more milestone, then the goal itself.";
+EPICS.ramayana.stages[6].scenes[1].cap="You are almost home to your Ayodhya: {DEST}.";
+EPICS.ramayana.stages[6].scenes[2].cap="One last step. Reach your goal and the city lights every lamp for you.";
