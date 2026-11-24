@@ -1427,3 +1427,31 @@ Object.assign(CHAPTERS,{
   {dest:"Dwarka",charm:["Peacock feather","Good teachers shape courage."],scenes:[{bg:"city",chars:one("abhimanyu"),cap:"He grows up in Dwarka, trained by Krishna’s family."},{bg:"glow",chars:one("abhimanyu","rise"),cap:"By sixteen he is a warrior his elders trust."}]},
   {dest:"The thirteenth day",charm:["Conch shell","Go in when it matters."],scenes:[{bg:"hills",chars:one("abhimanyu"),cap:"On the thirteenth day of the war, only Abhimanyu knows how to break the chakravyuha."},{bg:"glow",chars:one("abhimanyu","rise"),cap:"He enters alone, knowing he may not find the way out."}]},
   {dest:"The chariot wheel",charm:["Wheel spoke","Fight on with what you have."],scenes:[{bg:"hills",chars:one("abhimanyu"),cap:"Surrounded, with his weapons broken, he lifts a chariot wheel and fights on."},{bg:"stars",chars:one("abhimanyu","float"),cap:"He falls, but his courage is remembered as the brightest of the war."}]}]});
+
+/* ================= identity lines (v1.23) ================= */
+const IDLINES={
+ hanuman:["someone who trains for the people who rely on me","strong, steady and useful","someone who moves every day"],
+ bhima:["strong enough to protect my people","someone who lifts heavy and eats well","fearless in my body"],
+ patanjali:["steady and easy in body and breath","someone who stretches every day","calm in my body"],
+ shiva:["still inside and free in movement","someone who breathes before reacting","flexible in body and mind"],
+ rama:["someone my family can rely on","a person who keeps every promise","someone who calls home every week"],
+ lakshmana:["someone who shows up for family","loyal in small, daily ways","the one who helps without being asked"],
+ savitri:["a calm, wise partner","someone who chooses love deliberately","someone who speaks gently when it matters"],
+ parvati:["patient and devoted in love","an equal partner","someone whose love grows through effort"],
+ saraswati:["someone who learns every day","clear-minded and curious","someone who finishes what I study"],
+ ganesha:["someone who starts before I feel ready","someone who writes things down","a learner who clears my own obstacles"],
+ arjuna:["someone who gives full attention to one thing","disciplined in deep work","someone who does the work and lets go of the result"],
+ ekalavya:["self-taught and unstoppable","someone who practises without being watched","focused without needing permission"],
+ narada:["someone who plays music every day","a musician who shares songs with others","someone who fills a room with music"],
+ dhruva:["steady, whatever happens","someone who sits in stillness every day","calm and clear-minded"],
+ krishna:["a friend people can count on","light-hearted and loyal","someone who keeps old friendships alive"],
+ lakshmi:["calm and generous with money","someone whose money has order","content with enough"],
+ kubera:["someone who saves and builds wealth","a careful steward of what I earn","financially free"],
+ durga:["someone who faces what scares me","brave in small ways every week","fierce when it matters"],
+ abhimanyu:["someone who steps in before I feel ready","brave in new places","someone who fights on"],
+ nachiketa:["someone who asks the big questions","wise, not just busy","someone who chooses the good over the easy"],
+ vishwakarma:["someone who builds real things","handy and resourceful","someone who finishes projects"],
+ valmiki:["someone who creates every week","an artist who shares my work","someone who turns feelings into art"],
+ shabari:["grateful for what I have","someone who thanks people often","patient and content"]};
+const PVALUE={body:"Active and healthy",flex:"Takes care of their body",bonds:"Close to family",love:"Emotionally mature",learn:"Curious about the world",focus:"Driven",music:"Loves music",calm:"Calm and steady",friend:"Warm and social",money:"Sensible with money",courage:"Brave and honest",wisdom:"Thoughtful",making:"Practical",art:"Creative",gratitude:"Kind and grateful"};
+const PVALUE_ALL=["Keeps growing","Shares my roots","Open to the world","Good sense of humour","Kind to others"];

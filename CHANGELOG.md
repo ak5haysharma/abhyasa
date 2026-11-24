@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.23.0 · 24.11.2026
+- Who you are becoming: add an 'I am becoming...' line to each path (3 ideas from each mentor, or write your own) from the path page. Your lines show in the morning cards and the weekly review asks 'Did you live like this?'. New Life card on the Hero tab: the life you are building, who you walk with, and a private 'In a partner I value' line. Share it as an image.
+
 ## 1.22.0 · 24.11.2026
 - Mentor marks: when a mentor is awake in you (skill 2 on a path), their symbol appears on your hero as an outline tattoo; at One with you (skill 5) it is fully inked. 23 symbols, never faces of gods. Marks stay for life, even if you change mentor, and fill body spots in the order you earn them. See them on the gear screen, with a setting to hide them.
 
