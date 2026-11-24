@@ -8,7 +8,7 @@
 /* ================= content ================= */
 const NEED=[80,150,240,360,500];
 const RANKS=[["Bālak","बालक"],["Shishya","शिष्य"],["Sādhaka","साधक"],["Yodha","योद्धा"],["Āchārya","आचार्य"],["Purushottam","पुरुषोत्तम"]];
-const PERK={swap:()=>"+1 task swap each day",xp:n=>`+10% growth on ${n}`,shield:()=>"1 streak shield each week",all:()=>"+5% growth on every path"};
+const PERK={swap:()=>"+1 streak shield each week",xp:n=>`+10% growth on ${n}`,shield:()=>"1 streak shield each week",all:()=>"+5% growth on every path"};
 const QUOTES=[
  ["Lift yourself by your own effort. Do not let yourself sink.","Bhagavad Gita 6.5"],
  ["You have a right to your work, never to its fruits.","Bhagavad Gita 2.47"],

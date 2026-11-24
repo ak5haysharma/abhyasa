@@ -467,3 +467,17 @@ nav.tabs button[aria-current="page"] svg{transform:translateY(-1px)}
 .nacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .wheel{display:block;width:100%;max-width:340px;margin:8px auto 0;height:auto}
 .qrealm .opts{gap:8px}
+
+.reasons{display:grid;gap:8px;margin-top:6px}
+.reason{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.reason b{font-weight:600}
+.reason small{font-size:12px;color:var(--mute);text-align:right}
+.otherbtn{width:100%;margin-top:10px;padding:12px;border:1.5px dashed var(--line);border-radius:14px;background:none;font-weight:600;color:var(--mute)}
+.savebox{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left;font-size:14px}
+.savebox .tick{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--bg);flex:none}
+.savebox .tick svg{width:14px;height:14px;opacity:0}
+.savebox[aria-pressed="true"] .tick{background:var(--ink);border-color:var(--ink)}
+.savebox[aria-pressed="true"] .tick svg{opacity:1}
+.lrow{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.lrow b{display:block;font-weight:500;font-size:15px}
+.lrow small{display:block;font-size:12px;color:var(--mute)}

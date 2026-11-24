@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0 · 24.11.2026
+- Adaptive swaps: unlimited swaps with a reason, 'I did something else' (keeps your streak, can be saved as a task), suggestions that learn from what you finish and skip, and a 'What Abhyasa has learned' section on the Hero tab. The swap skill perk is now an extra streak shield.
+
 ## 1.1.1 · 24.11.2026
 - Locked the app to the screen: no pinch or double-tap zoom, no sideways scrolling.
 

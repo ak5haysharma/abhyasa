@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.1.1";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.2.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,14 +32,16 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
+try{injectCustom()}catch(e){}
 function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
+ o.learn=o.learn||{};o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -50,7 +52,7 @@ const sel=()=>ORDER.filter(p=>S.paths.includes(p));
 const has=(pid,k)=>S.paths.includes(pid)&&S.prog[pid].m>k;
 const countPerk=(perk,pid)=>sel().reduce((a,p)=>a+(pid&&p!==pid?0:PATHS[p].skills.filter((s,k)=>s.perk===perk&&has(p,k)).length),0);
 const mult=pid=>1+.1*countPerk("xp",pid)+.05*countPerk("all")+.1*S.syn.filter(id=>SYN.find(s=>s.id===id).p.includes(pid)).length;
-const swapsAllowed=()=>1+countPerk("swap");
+const shieldsAllowed=()=>countPerk("shield")+countPerk("swap");
 const stage=()=>{const p=sel();return p.length?Math.min(5,Math.floor(p.reduce((a,k)=>a+S.prog[k].m,0)/p.length)):0};
 const msTotal=()=>sel().reduce((a,k)=>a+S.prog[k].m,0);
 const synOpen=()=>SYN.filter(s=>S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)));
@@ -61,7 +63,7 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 (function(){
  if(!S.last)return;const g=diff(S.last,td());if(g<=1)return;
  const wk=weekKey();if(S.shieldUsed.w!==wk)S.shieldUsed={w:wk,n:0};
- if(g===2&&S.shieldUsed.n<countPerk("shield")){S.shieldUsed.n++;const y=new Date();y.setDate(y.getDate()-1);S.last=y.toLocaleDateString("en-CA");setTimeout(()=>toast("A streak shield saved your streak"),700)}
+ if(g===2&&S.shieldUsed.n<shieldsAllowed()){S.shieldUsed.n++;const y=new Date();y.setDate(y.getDate()-1);S.last=y.toLocaleDateString("en-CA");setTimeout(()=>toast("A streak shield saved your streak"),700)}
  else S.streak=0;save();
 })();
 
@@ -93,7 +95,14 @@ function ctx(){
  return{h:now.getHours(),dow:now.getDay(),c,ist,ih:ist.getHours(),yd,recent};
 }
 const srcOf=(C,loads)=>{const f=C.recent.find(a=>loads.includes(a[0]));return f?f[1].toLowerCase():"recent training"};
+/* ---- learning (on this device only) ---- */
+const L_=t=>S.learn[t]=S.learn[t]||{sh:0,dn:0,sw:0,dw:[0,0,0,0,0,0,0]};
+const dctx=()=>S.dayCtx&&S.dayCtx.d===td()?S.dayCtx:(S.dayCtx={d:td(),short:false,tired:false,noPlace:[],noNeed:[]});
+function injectCustom(){ORDER.forEach(pid=>{const P=PATHS[pid];P.pool=P.pool.filter(x=>!x.custom);(S.custom[pid]||[]).forEach(c=>P.pool.push(X(c.t,c.m,{custom:true,g:["Your own task, saved from a day you did something else"]})))})}
 function fit(x,pid,C){
+ const L=S.learn[x.t];if(L&&L.never)return false;if(L&&L.space&&L.space>td())return false;
+ const D=dctx();if(D.noPlace.includes(x.place)&&x.place!=="any")return false;if(x.needs.some(n=>D.noNeed.includes(n)))return false;
+ if(D.tired&&x.en>=3)return false;
  if(!x.needs.every(k=>S.kit.includes(k)))return false;
  const w=C.c.where;
  if(w==="travel"&&(x.needs.length||!["any","out"].includes(x.place)))return false;
@@ -119,6 +128,12 @@ function score(x,pid,C,r){
  if(x.call&&tags.includes("abroad")){if(C.ih>=18&&C.ih<=22){s+=2.5;why.unshift(`It’s ${hhmm(C.ist)} in India, a good time to call`)}else if(C.ih>=23||C.ih<7)s-=3}
  if(C.c.where==="travel"&&x.travel){s+=3;why.push("Made for travel days")}
  if(x.raga)why.push(ragaNow(C.h));
+ const L=S.learn[x.t],D=dctx();
+ if(L&&L.sh>=3){const rt=L.dn/L.sh;s+=2*(rt-.5);if(rt>=.7&&L.dn>=3)why.push("You usually finish this one");if(L.sw>=3&&L.sw>L.dn)s-=1.5}
+ if(L&&L.dw[C.dow]>=2){s+=.8;why.push(`You often do this on ${DAYS[C.dow]}s`)}
+ if(D.short)s-=x.m/12;
+ if(D.tired&&x.en===1){s+=1;why.push("Lighter, since you’re tired")}
+ if(x.custom){s+=.5;why.push("Your own task")}
  return{s,why:why[0]||""};
 }
 function ranked(pid,C,seed,exclude){
@@ -147,12 +162,12 @@ function buildPlan(keep){
  const rank={trial:0,anchor:1,task:2,bridge:3};
  return items.sort((a,b)=>rank[a.kind]-rank[b.kind]||ps.indexOf(a.pid)-ps.indexOf(b.pid));
 }
-function ensurePlan(){if(S.plan.d!==td()){recordHist();S.plan={d:td(),items:[],swaps:0,closed:false};S.plan.items=buildPlan([])}}
+function ensurePlan(){if(S.plan.d!==td()){recordHist();S.plan={d:td(),items:[],swaps:0,closed:false};S.plan.items=buildPlan([]);S.plan.items.forEach(x=>{if(x.kind==="task")L_(x.t).sh++})}}
 
 /* ================= tools ================= */
 let TOOL=null,AC=null,tick=null,metro=null,OPEN=null;
 function beep(f,d,v){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;d=d||.06;o.frequency.value=f||880;o.connect(g);g.connect(AC.destination);g.gain.setValueAtTime(v||.25,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.start(t);o.stop(t+d+.02)}catch(e){}}
-const poolItem=it=>it&&it.kind==="task"&&it.ref!==undefined?PATHS[it.pid].pool[it.ref]:null;
+const poolItem=it=>{if(!it||it.kind!=="task"||it.ref===undefined)return null;const P=PATHS[it.pid].pool,x=P[it.ref];return x&&x.t===it.t?x:P.find(y=>y.t===it.t)||null};
 const fmtT=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 const BPH=c=>[["Breathe in",c.in,1],["Hold",c.hold,1],["Breathe out",c.out,.55]].filter(p=>p[1]>0);
 const TOOLNAME={metronome:"metronome",timer:"timer",intervals:"interval timer",breath:"breath guide",counter:"counter"};
@@ -223,8 +238,8 @@ function grow(pid,amount){const pr=S.prog[pid],from=pr.m<5?Math.min(1,pr.xp/NEED
  if(pr.m<5&&pr.xp>=NEED[pr.m]&&!S.plan.items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done)){S.plan.items.unshift({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});setTimeout(()=>toast(`${PATHS[pid].name} meter is full. Your trial is ready.`),900)}}
 function complete(id,ev){
  const it=S.plan.items.find(x=>x.id===id);if(!it||it.kind==="trial")return;
- if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);save();render();return}
- it.done=true;activity();burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
+ if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);if(it.kind==="task"&&S.learn[it.t]){const L=S.learn[it.t];L.dn=Math.max(0,L.dn-1);L.dw[new Date().getDay()]=Math.max(0,L.dw[new Date().getDay()]-1)}save();render();return}
+ it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
  S.log.push({id:it.id,d:td(),t:it.t,load:it.load||[],pid:it.pid||"bridge"});S.log=S.log.filter(l=>diff(l.d,td())<=30);
  if(it.kind==="bridge"){const s=SYN.find(x=>x.id===it.sid);it.g=8;s.p.forEach(p=>grow(p,Math.round(8*mult(p))));popAt("+ growth","var(--gold)",ev)}
  else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
@@ -233,14 +248,41 @@ function complete(id,ev){
  if(!left&&!S.plan.closed){S.plan.closed=true;setTimeout(()=>toast("Today’s practice is done. Rest well."),1000)}
  save();render();
 }
-function swap(id){
- const it=S.plan.items.find(x=>x.id===id);if(!it||it.done)return;
- if(S.plan.swaps>=swapsAllowed()){toast("No swaps left today. Some skills add more.");return}
- const list=ranked(it.pid,ctx(),td()+"swap"+S.plan.swaps,S.plan.items.map(y=>y.t)).filter(o=>Math.abs(o.x.m-it.m)<=15);
- if(!list.length){toast("No other task fits this slot right now");return}
- const o=list[0];if(TOOL&&TOOL.id===it.id)stopTool();Object.assign(it,{t:o.x.t,m:o.x.m,ref:o.i,load:o.x.load,why:o.why});S.plan.swaps++;save();render();
- const l=swapsAllowed()-S.plan.swaps;toast(`Swapped. ${l} swap${l===1?"":"s"} left today.`);
+const REASONS=[["time","No time today","Shorter tasks for the rest of today"],["place","Can’t do it here","Skips this place or kit today"],["tired","Too tired","Lighter tasks today"],["nope","Not for me","Never suggested again"],["recent","Did it recently","Spaced out more"]];
+function swapSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it||it.done)return;const P=PATHS[it.pid];
+ sheet(P.c,`<div class="kick">Swap</div><h2 style="font-size:22px">${esc(it.t)}</h2><p class="sub">Why doesn’t it fit today? One tap. Abhyasa learns from it.</p>
+ <div class="reasons">${REASONS.map(([k,l,h])=>`<button class="reason" data-why="${id}:${k}"><b>${l}</b><small>${h}</small></button>`).join("")}</div>
+ <button class="cta alt" style="width:100%;margin-top:12px" data-other="${id}">I did something else instead</button>`)}
+function swap(id,why){
+ const it=S.plan.items.find(x=>x.id===id);if(!it||it.done)return;const x=poolItem(it),L=L_(it.t),D=dctx();L.sw++;
+ let note="";
+ if(why==="time"){D.short=true;note="Shorter tasks for the rest of today."}
+ if(why==="place"&&x){if(x.place!=="any")D.noPlace.push(x.place);x.needs.forEach(n=>D.noNeed.push(n));note="Skipping that today."}
+ if(why==="tired"){D.tired=true;note="Lighter tasks today."}
+ if(why==="nope"){L.never=true;note="Won’t suggest it again. Undo on the Hero tab."}
+ if(why==="recent"){L.space=addD(td(),4);note="Spaced out for a few days."}
+ const list=ranked(it.pid,ctx(),td()+"swap"+S.plan.swaps,S.plan.items.map(y=>y.t)).filter(o=>why==="time"?o.x.m<it.m||o.x.m<=10:Math.abs(o.x.m-it.m)<=20);
+ closeLayer();
+ if(why==="time"||why==="tired"){S.plan.items.forEach(y=>{if(y.kind!=="task"||y.done||y.id===id)return;const yx=poolItem(y);if((why==="tired"&&yx&&yx.en>=3)||(why==="time"&&y.m>20)){const alt=ranked(y.pid,ctx(),td()+"adj"+y.id,S.plan.items.map(z=>z.t)).find(o=>why==="time"?o.x.m<y.m:o.x.en<3);if(alt){L_(alt.x.t).sh++;Object.assign(y,{t:alt.x.t,m:alt.x.m,ref:alt.i,load:alt.x.load,why:alt.why})}}})}
+ if(!list.length){save();render();toast(`${note} No other ${PATHS[it.pid].name} task fits right now. Try “I did something else”.`);return}
+ const o=list[0];if(TOOL&&TOOL.id===it.id)stopTool();if(OPEN===it.id)OPEN=null;L_(o.x.t).sh++;
+ Object.assign(it,{t:o.x.t,m:o.x.m,ref:o.i,load:o.x.load,why:o.why});S.plan.swaps++;save();render();toast(`Swapped. ${note}`);
 }
+const DURS=[10,20,30,45,60];let OTH=null;
+function otherSheet(replaceId){const ps=sel();OTH=OTH&&OTH.r===replaceId?OTH:{r:replaceId||"",pid:replaceId?(S.plan.items.find(x=>x.id===replaceId)||{}).pid||ps[0]:ps[0],m:20,t:"",save:false};
+ const P=PATHS[OTH.pid];
+ sheet(P.c,`<div class="kick">Your own task</div><h2>What did you do?</h2><p class="sub">Anything meaningful counts and keeps your streak, as long as it grows one of your paths.</p>
+ <div class="qlabel">Path</div><div class="cchips">${ps.map(p=>`<button class="chip" data-oth="pid:${p}" aria-pressed="${OTH.pid===p}">${PATHS[p].name}</button>`).join("")}</div>
+ <div class="qlabel">How long</div><div class="cchips">${DURS.map(m=>`<button class="chip" data-oth="m:${m}" aria-pressed="${OTH.m===m}">${m} min</button>`).join("")}</div>
+ <label class="qlabel" for="othname" style="display:block">What was it? (optional)</label><input class="name" id="othname" maxlength="60" placeholder="For example: played football with friends" value="${esc(OTH.t)}" style="font-size:16px">
+ <button class="savebox" data-oth="save:1" aria-pressed="${OTH.save}"><span class="tick">${ic("check")}</span>Suggest this to me again sometimes</button>
+ <button class="cta" style="width:100%;margin-top:12px" data-oth-go="1">Log it</button>`);
+ const i=$("#othname");if(i)i.addEventListener("input",e=>OTH.t=e.target.value)}
+function logOther(ev){const o=OTH;if(!o)return;const pid=o.pid,t=(o.t||"").trim().slice(0,60)||`Own ${PATHS[pid].name} practice`;
+ if(o.r){const old=S.plan.items.find(x=>x.id===o.r);if(old&&!old.done){L_(old.t).sw++;S.plan.items=S.plan.items.filter(x=>x.id!==o.r)}}
+ if(o.save&&o.t.trim()){S.custom[pid]=S.custom[pid]||[];if(!S.custom[pid].some(c=>c.t===t))S.custom[pid].push({t,m:o.m});injectCustom()}
+ const it={id:uid(),kind:"task",pid,t,m:o.m,load:[],why:"",done:false,own:true};const ref=PATHS[pid].pool.findIndex(x=>x.t===t);if(ref>=0)it.ref=ref;
+ S.plan.items.push(it);OTH=null;closeLayer();complete(it.id,ev)}
 function replan(msg){stopTool();OPEN=null;const keep=S.plan.items.filter(x=>x.done||x.kind==="trial");S.plan.items=buildPlan(keep);save();render();if(msg)toast(msg)}
 function setTime(v){S.time=v;replan(`Plan updated for ${TIMES.find(t=>t[0]===v)[1]}`)}
 function passTrial(pid){
@@ -397,7 +439,7 @@ function dayTick(){
 function weekStrip(){const t=td(),d=new Date(t+"T12:00:00"),mon=addD(t,-((d.getDay()+6)%7)),L=["Mo","Tu","We","Th","Fr","Sa","Su"];
  return `<div class="week">${L.map((l,i)=>{const x=addD(mon,i),a=S.days[x]&&S.days[x].a,cls=x===t?(a?"done today":"today"):x>t?"future":(a?"done":"miss");return `<span class="wd ${cls}"><i>${a?DIYA:""}</i><small>${l}</small></span>`}).join("")}</div>`}
 const goalLine=()=>S.streak>=S.goal?`Goal of ${S.goal} days reached`:`${S.goal-S.streak} more day${S.goal-S.streak===1?"":"s"} to reach your goal of ${S.goal}`;
-function streakSheet(){const sh=countPerk("shield"),used=S.shieldUsed.w===weekKey()?S.shieldUsed.n:0;
+function streakSheet(){const sh=shieldsAllowed(),used=S.shieldUsed.w===weekKey()?S.shieldUsed.n:0;
  sheet("var(--gold)",`<div class="sk-top"><div class="flame big">${DIYA}</div><div><b class="sk-n">${S.streak}</b><span>day streak · best ${S.best}</span></div></div>${weekStrip()}
  <div class="box"><small>Your goal</small>${goalLine()}<div class="track" style="--c:var(--gold)"><i style="width:${Math.min(100,S.streak/S.goal*100)}%"></i></div></div>
  <div class="box"><small>Streak shields</small>${sh?`${Math.max(0,sh-used)} of ${sh} left this week. Each covers one missed day.`:"Earn shields from skills like Smarana, Maitri and Tala."}</div>
@@ -501,6 +543,13 @@ function realmWheel(){const cx=150,cy=118,R=86,n=REALMS.length,pt=(i,f)=>{const 
  REALMS.forEach((r,i)=>{const[x,y]=pt(i,1.24),[vx,vy]=pt(i,val[i]);g+=`<circle cx="${vx}" cy="${vy}" r="4" fill="var(--gold)"/><text x="${x}" y="${y}" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="var(--ink)">${r.n}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="var(--mute)">${r.s}</text>`});
  return `<svg class="wheel" viewBox="0 0 300 250" role="img" aria-label="Balance across the five realms: ${REALMS.map((r,i)=>`${r.n} ${Math.round(val[i]*100)}%`).join(", ")}">${g}</svg>`}
 
+function learnedView(){const E=Object.entries(S.learn),fav=E.filter(([,l])=>l.sh>=3&&l.dn/l.sh>=.7&&!l.never).sort((a,b)=>b[1].dn-a[1].dn).slice(0,5),nev=E.filter(([,l])=>l.never),own=ORDER.flatMap(p=>(S.custom[p]||[]).map(c=>[p,c]));
+ if(!fav.length&&!nev.length&&!own.length)return `<p class="sub">Nothing yet. Each task you finish or swap teaches it what fits you. Everything stays on this phone.</p>`;
+ const row=(t,small,btn)=>`<div class="lrow"><span><b>${esc(t)}</b><small>${small}</small></span>${btn||""}</div>`;
+ return `${fav.length?`<div class="ptitle">You usually finish</div>${fav.map(([t,l])=>row(t,`${l.dn} of ${l.sh} times`)).join("")}`:""}
+ ${own.length?`<div class="ptitle">Your own tasks</div>${own.map(([p,c],i)=>row(c.t,`${PATHS[p].name} · ${c.m} min`,`<button class="mini" data-uncustom="${p}:${(S.custom[p]||[]).indexOf(c)}">Remove</button>`)).join("")}`:""}
+ ${nev.length?`<div class="ptitle">Never suggested</div>${nev.map(([t])=>row(t,"You chose “Not for me”",`<button class="mini" data-unnever="${esc(t)}">Bring back</button>`)).join("")}`:""}`}
+
 /* ================= views ================= */
 let lastView="",GI=0,GANIM=false,TALK=null;
 function render(){
@@ -555,14 +604,14 @@ function todayView(){
   const P=PATHS[it.pid],g=it.done?it.g:Math.round(Math.max(5,it.m)*mult(it.pid));
   if(it.kind==="anchor")return `<div class="task anchor${it.done?" done":""}" style="--c:${P.c}">${chk(it)}<div class="tx"><span class="atag">Your ${DAYS[d.getDay()]} routine</span><b>${it.t}</b><small><span class="dot"></span>${P.name} · ${it.m} min · +${g}</small>${why(it)}</div></div>`;
   const x=poolItem(it),open=OPEN===it.id&&!it.done;
-  return `<div class="task${it.done?" done":""}" style="--c:${P.c}">${chk(it)}<button class="tx" data-open="${it.id}" aria-expanded="${open}"><b>${it.t}</b><small><span class="dot"></span>${P.name} · ${it.m} min · +${g}</small>${it.done?"":why(it)}${it.done?"":`<span class="more">${open?"Hide guide":x&&x.tool?"Guide and "+TOOLNAME[x.tool.type]:"Guide"}</span>`}</button>${it.done?"":`<button class="swap" data-swap="${it.id}" aria-label="Swap for another task">${ic("swap")}</button>`}${open?guideView(it):""}</div>`}).join("");
+  return `<div class="task${it.done?" done":""}" style="--c:${P.c}">${chk(it)}<button class="tx" data-open="${it.id}" aria-expanded="${open}"><b>${esc(it.t)}</b><small><span class="dot"></span>${P.name} · ${it.m} min · +${g}${it.own?" · your own":""}</small>${it.done?"":why(it)}${it.done?"":`<span class="more">${open?"Hide guide":x&&x.tool?"Guide and "+TOOLNAME[x.tool.type]:"Guide"}</span>`}</button>${it.done?"":`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`}${open?guideView(it):""}</div>`}).join("");
  const tl=TIMES.find(t=>t[0]===S.time)||TIMES[1];
  return header()+`<section class="hero"><div class="wrap">
   <div class="date">${dateStr}</div><h1 class="hello">${hi}${S.name?", "+esc(S.name):""}.</h1>
   <blockquote class="quote">${qt[0]}<cite>${qt[1]}</cite></blockquote>
   <button class="calchip" data-today-cal="1"><span class="dot" style="--c:var(--gold)"></span>${r.n} ritu · ${cal.fest?cal.n:"Story: "+cal.n}</button></div></section>
  <div class="wrap">${rings()}${companionCard()}${(()=>{const n=nudges()[0];return n?nudgeCard(n):""})()}${checkCard()}
-  <div class="block" style="margin-top:8px"><div class="thead"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div><p class="sub">About ${mins} min of new practice${tasks.some(x=>x.kind==="anchor")?" plus your routine":""}. Tap a task for its guide.</p><div class="tasks">${rows}</div></div>
+  <div class="block" style="margin-top:8px"><div class="thead"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div><p class="sub">About ${mins} min of new practice${tasks.some(x=>x.kind==="anchor")?" plus your routine":""}. Tap a task for its guide.</p><div class="tasks">${rows}</div><button class="otherbtn" data-other="">+ I did something else</button></div>
   ${eveCard()}
  </div>`;
 }
@@ -621,6 +670,7 @@ function heroView(){
  <div class="block"><h2>Arsenal</h2><p class="sub">Gifts from your guides, earned at milestones</p><div class="items">${items.map(({pid,s,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s.item:"lock")}</i><b>${s.itemName||s.n}</b><small>${on?`${s.item} · ${P.hero}`:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
  <div class="block"><h2>Skills</h2>${sel().map(pid=>{const P=PATHS[pid];return `<div class="ptitle" style="--c:${P.c}"><span class="dot"></span>${P.name} with ${P.hero}</div><div class="skills">${P.skills.map((s,k)=>{const on=has(pid,k);return `<button class="skill${on?"":" off"}" style="--c:${P.c}" data-skill="${pid}:${k}"><span class="ic">${on?s.d.slice(0,1):k+1}</span><div><b>${s.n}<span class="dev">${s.d}</span></b><small>${on?PERK[s.perk](P.name):`Unlocks after ${P.name} trial ${k+1}`}</small></div></button>`}).join("")}</div>`}).join("")}</div>
  <div class="block"><h2>Record</h2><div class="stats" style="margin-top:12px"><div class="stat"><b>${S.total}</b><small>Total growth</small></div><div class="stat"><b>${msTotal()}</b><small>Trials passed</small></div><div class="stat"><b>${closedDays}</b><small>Days closed</small></div></div></div>
+ <div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>
  <div class="block"><h2>App</h2>${appCard()}</div>
  <div class="links"><button class="mini" data-act="routine">Edit kit and routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div>
  <p class="sub" style="text-align:center;margin-bottom:30px">Abhyasa ${APP_VERSION}</p></div>`;
@@ -734,14 +784,20 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){complete(d.done,e);return}
- if(d.swap){swap(d.swap);return}
+ if(d.swap){swapSheet(d.swap);return}
+ if(d.why){const[i,w]=d.why.split(":");swap(i,w);return}
+ if(d.other!==undefined){OTH=null;otherSheet(d.other);return}
+ if(d.oth){const[k,v]=d.oth.split(":");const n=$("#othname");if(n)OTH.t=n.value;if(k==="pid")OTH.pid=v;if(k==="m")OTH.m=+v;if(k==="save")OTH.save=!OTH.save;otherSheet(OTH.r);return}
+ if(d.othGo){const n=$("#othname");if(n)OTH.t=n.value;logOther(e);return}
+ if(d.unnever){if(S.learn[d.unnever])S.learn[d.unnever].never=false;save();render();toast("It can be suggested again");return}
+ if(d.uncustom){const[p,i]=d.uncustom.split(":");(S.custom[p]||[]).splice(+i,1);injectCustom();save();render();toast("Removed");return}
  if(d.open){if(OPEN===d.open){OPEN=null;if(TOOL&&TOOL.id===d.open)stopTool()}else{if(TOOL&&TOOL.id!==d.open)stopTool();OPEN=d.open}render();return}
  if(d.tgo){toolGo(d.tgo);return}
  if(d.treset){toolReset(d.treset);return}
