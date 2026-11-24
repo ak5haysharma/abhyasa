@@ -461,3 +461,67 @@ const STORIES={
   {bg:"clouds",chars:[["narada",120,50,.95,"in-r"]],notes:[[40,70]],cap:"In many tellings, Narada comes to sing at the court."},
   {bg:"rivers",chars:[["hanuman",10,90,.7,"rise"],["rama",120,50,.85,"rise"],["narada",250,90,.7,"rise"]],cap:"Strength, bonds and music meet, like three rivers at Prayag."}]}
 };
+
+/* ================= starter pack: guide intros, English meanings, glossary, tips ================= */
+// Three short cards shown when a guide joins you. bg = scene for the "famous moment" card.
+const GUIDE_INTRO={
+ hanuman:{who:"Hanuman is a vanara, a forest being with a monkey form, and the son of the wind god Vayu. He is loved for his strength and loyalty.",moment:"When no one else could, he leapt across the ocean to Lanka to find Sita, Rama’s wife.",teach:"Strength grows with practice, and is best used for others.",src:"Ramayana",bg:"sea"},
+ rama:{who:"Rama is the prince of Ayodhya and the hero of the Ramayana. Many Hindus worship him as a form of the god Vishnu, and he is seen as the ideal of duty.",moment:"To keep his father’s promise, he gave up his throne and spent fourteen years in exile in the forest.",teach:"Keep your word, and care for the people who depend on you.",src:"Ramayana",bg:"forest"},
+ narada:{who:"Narada is a wandering sage and musician. He travels between heaven and earth with his veena, a stringed instrument, carrying news and songs.",moment:"He told the poet Valmiki the story of Rama, and Valmiki turned it into the Ramayana.",teach:"Listen first, practise every day, and share what you make.",src:"Ramayana and Puranas",bg:"river"},
+ patanjali:{who:"Patanjali is the sage credited with the Yoga Sutras, a short classic text on yoga written about 2,000 years ago.",moment:"He described yoga as calming the restless movements of the mind, through steady practice and letting go.",teach:"Steady, easy practice of body and breath calms the mind.",src:"Yoga Sutras",bg:"scroll"},
+ savitri:{who:"Savitri is a princess in the Mahabharata, India’s great epic, famous for her intelligence and loyalty.",moment:"When Yama, the god of death, came for her husband, she followed him and spoke so wisely that he gave her husband back.",teach:"Choose with your heart, then stay calm and steady when it gets hard.",src:"Mahabharata",bg:"forest"},
+ saraswati:{who:"Saraswati is the goddess of knowledge, speech, music and learning. She is shown holding a veena and a book, with a white swan.",moment:"On the festival of Vasant Panchami, students honour her, and many children write their very first letters.",teach:"Learn a little every day, and learn to tell true from false.",src:"Vedas and Puranas",bg:"river"},
+ arjuna:{who:"Arjuna is the great archer of the Mahabharata and one of the five Pandava brothers.",moment:"Before a great battle he froze with doubt. Krishna’s answer to him is the Bhagavad Gita, one of India’s best-known texts.",teach:"Focus on one target, and do your work without fear of the result.",src:"Mahabharata",bg:"hills"},
+ dhruva:{who:"Dhruva is a young prince from the Puranas, ancient story collections, famous for his determination.",moment:"Hurt by rejection at the age of five, he meditated in the forest until he became the pole star.",teach:"Steady practice can turn pain into something unshakable.",src:"Vishnu and Bhagavata Puranas",bg:"stars"}
+};
+// English meaning shown next to each Sanskrit name
+const EN={
+ "Vayu Prana":"Breath of the wind","Gada":"The mace","Smarana":"Remembering your strength","Langhana":"The great leap","Sanjeevani":"The life-giving herb",
+ "Sthira Sukha":"Steady and easy","Pranayama":"Breath control","Abhyasa":"Steady practice","Pratyahara":"Turning the senses inward","Samadhi":"Complete absorption",
+ "Vachan":"A promise kept","Kodanda":"Rama’s bow","Maitri":"Friendship","Setu":"The bridge","Maryada":"Doing what is right",
+ "Svayamvara":"Choosing for yourself","Shraddha":"Trust","Sahana":"Patience","Vak":"Wise speech","Saubhagya":"Lasting good fortune",
+ "Akshara":"The first letter","Pustaka":"The book","Smriti":"Memory","Viveka":"Telling true from false","Vidya":"Knowledge",
+ "Lakshya":"The target","Gandiva":"Arjuna’s bow","Ekagrata":"One-pointed focus","Savyasachi":"Skilled with both hands","Karma Yoga":"The path of action",
+ "Shruti":"Listening","Veena":"The veena","Tala":"Rhythm","Raga":"Melody and mood","Katha":"Story",
+ "Sankalpa":"Resolve","Japa":"Repeating a mantra","Dhriti":"Steadiness","Dhyana":"Meditation","Achala":"Unmoving",
+ "Prana and Nada":"Breath and sound","Seva":"Service","Sangat":"Making music together","Triveni Sangam":"Where three rivers meet",
+ "Bālak":"Beginner","Shishya":"Student","Sādhaka":"Practitioner","Yodha":"Warrior","Āchārya":"Teacher","Purushottam":"The highest of people"
+};
+const GLOSSARY=[
+ ["How the app works",[
+  ["Abhyasa","Sanskrit for steady practice over a long time. The name of this app."],
+  ["Realm","One of five areas of life: Body, Bonds, Craft, Joy and Peace."],
+  ["Path","Something you want to grow inside a realm, such as Strength or Music. You focus on up to 5 at a time."],
+  ["Guide","A figure from Indian stories who walks a path with you and shares lines and stories."],
+  ["Growth","Points you earn by doing tasks. They fill a path’s ring."],
+  ["Trial","A real-life test that appears when a ring is full. Passing it earns the next skill."],
+  ["Skill","One of 5 levels on each path. Each skill gives an effect, and some give a gift for your hero."],
+  ["Bridge","A bonus that opens when two paths both pass 2 trials. It comes with a story and a shared task."],
+  ["Streak","How many days in a row you’ve done at least one task. Shown as a diya, an oil lamp."],
+  ["Streak shield","Covers one missed day. Some skills give you shields each week."],
+  ["Companion","Each day one guide travels. Close your day and they bring back a story chapter and a charm."],
+  ["Charm","A keepsake from your companion’s journey."],
+  ["Sandhya","The evening close: how today felt and one line about it. The word means twilight."]]],
+ ["Indian words and texts",[
+  ["Purusharthas","The four aims of life in Hindu thought: dharma (duty), artha (prosperity), kama (joy) and moksha (freedom). Abhyasa’s realms are based on them."],
+  ["Vedas","The oldest sacred texts of Hinduism, more than 3,000 years old."],
+  ["Upanishads","Philosophical texts that explore the self and reality."],
+  ["Ramayana","The epic of Prince Rama, his exile, and the rescue of his wife Sita."],
+  ["Mahabharata","A vast epic about a family war. It contains the Bhagavad Gita."],
+  ["Bhagavad Gita","Krishna’s advice to Arjuna before battle, about duty and action."],
+  ["Puranas","Ancient collections of stories about gods, sages and kings."],
+  ["Avatar","A god taking a form on earth, as Vishnu does as Rama or Krishna."],
+  ["Vanara","Forest beings with monkey forms in the Ramayana, like Hanuman."],
+  ["Ritu","One of six Indian seasons, each about two months long."],
+  ["Panchang","The Hindu calendar, based on the moon and sun."],
+  ["Purnima · Amavasya","Full moon and new moon days, often kept as special days."],
+  ["Ekadashi","The eleventh day of each half of the lunar month, often a day of fasting."],
+  ["Raga · Tala","In Indian music, a raga is a melody with a mood, and tala is the rhythm cycle."],
+  ["Mantra · Mala","A mantra is a word or phrase repeated in meditation. A mala is a string of 108 beads for counting."]]]
+];
+// First-time tips, one at a time per tab
+const TIPS={
+ today:[["rings","Each ring is one of your paths. It fills as you practise. Tap a ring to see the next skill."],["comp","Your companion for today. Do one task and close your day in the evening, and they set out on a journey."],["swap","A task doesn’t fit? Tap ⇄ and say why. Abhyasa learns from it. Did something else instead? Log it below the list."],["streak","The diya at the top is your streak. One task a day keeps it lit."],["eve","In the evening, tap “Close your day”: how it felt, and one line. Tomorrow morning brings the next chapter."]],
+ journey:[["focus","This is your focus: up to 5 paths. Tap any path to read about its guide, add it, or pause it."],["tree","The skill tree shows every path you walk. The gold diamonds are bridges, where two paths help each other."]],
+ hero:[["hero","This is your hero. It changes as you pass trials and earn gifts. Tap it to hear from a guide."],["gloss","New to these stories? The glossary at the bottom explains every term."]]
+};

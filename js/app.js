@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.2.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.3.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -41,7 +41,7 @@ function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -225,7 +225,7 @@ const queue=[];
 function pushModal(h){queue.push(h);if(!$(".scrim"))nextModal()}
 function nextModal(){const h=queue.shift();if(h)openLayer(`<div class="scrim center" data-close="1"><div class="modal" role="dialog" aria-modal="true">${h}<button class="cta" style="width:100%" data-close="1">Continue</button></div></div>`)}
 function openLayer(h){const s=$(".scrim");if(s)s.remove();document.body.insertAdjacentHTML("beforeend",h)}
-function closeLayer(){const s=$(".scrim");if(s)s.remove();if(PL){clearTimeout(PL.t);const dk=PL.deck;PL=null;if(dk){S.deck=td();save();render()}}if(queue.length)nextModal()}
+function closeLayer(){const s=$(".scrim");if(s)s.remove();if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
 
 /* ================= actions ================= */
 const GOALS=[7,14,30,50,100,365];
@@ -290,9 +290,9 @@ function passTrial(pid){
  pr.xp=Math.max(0,pr.xp-NEED[k]);pr.m++;activity();
  const it=S.plan.items.find(x=>x.kind==="trial"&&x.pid===pid&&!x.done);if(it){it.done=true;it.k=k}
  closeLayer();
- pushModal(`<div class="seal" style="--c:${P.c}">${sk.d.slice(0,1)}</div><div class="kick">${P.name} · New skill</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2><p>${sk.s}</p><div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
- SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2><p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
- const after=stage();if(after>S.seen){S.seen=after;pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div><h2>${RANKS[after][0]}<span class="dev">${RANKS[after][1]}</span></h2><p>You started as a simple seeker. Look how far you have come.</p>`)}
+ pushModal(`<div class="seal" style="--c:${P.c}">${sk.d.slice(0,1)}</div><div class="kick">${P.name} · New skill</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p><div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
+ SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
+ const after=stage();if(after>S.seen){S.seen=after;pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div><h2>${RANKS[after][0]}<span class="dev">${RANKS[after][1]}</span></h2>${enLine(RANKS[after][0])}<p>You started as a simple seeker. Look how far you have come.</p>`)}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
  save();render();
 }
@@ -533,7 +533,7 @@ function pathSheet(pid){const P=PATHS[pid],g=CHAR[pid],pp=PEOPLE[g],R=REALMS.fin
   :`<button class="cta" style="width:100%" data-path-add="${pid}:-1">Add to my focus</button>`}`)}
 function addPath(pid,k){if(S.paths.includes(pid))return;if(S.paths.length>=MAXP){toast(`You have ${MAXP} paths. Pause one first.`);return}
  if(k>=0)S.prog[pid]={m:k,xp:0,set:true};S.paths=ORDER.filter(p=>p===pid||S.paths.includes(p));closeLayer();replan();
- const g=CHAR[pid],pp=PEOPLE[g];pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="color:${PATHS[pid].c}">New path · ${PATHS[pid].name}</div><h2>Meet ${pp.n}<span class="dev">${pp.d}</span></h2><p>${pp.bio}</p><p style="font-family:var(--f-head);color:var(--ink)">“${GUIDE_LINES[pid][0]}”</p>`)}
+ const g=CHAR[pid],pp=PEOPLE[g];if(wantIntros()&&!S.intro.includes(g)){playIntro([pid]);return}pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="color:${PATHS[pid].c}">New path · ${PATHS[pid].name}</div><h2>Meet ${pp.n}<span class="dev">${pp.d}</span></h2><p>${pp.bio}</p><p style="font-family:var(--f-head);color:var(--ink)">“${GUIDE_LINES[pid][0]}”</p>`)}
 function pausePath(pid){if(S.paths.length<=1){toast("Keep at least one path active");return}S.paths=S.paths.filter(p=>p!==pid);closeLayer();replan();toast(`${PATHS[pid].name} paused. Your progress is saved.`)}
 function realmWheel(){const cx=150,cy=118,R=86,n=REALMS.length,pt=(i,f)=>{const a=(-90+i*360/n)*Math.PI/180;return[cx+R*f*Math.cos(a),cy+R*f*Math.sin(a)]};
  const val=REALMS.map(r=>{let b=0;ORDER.filter(p=>PATHS[p].realm===r.id).forEach(p=>{const pr=S.prog[p];b=Math.max(b,pr.m>=5?5:pr.m+Math.min(1,pr.xp/NEED[pr.m]))});return Math.max(.04,b/5)});
@@ -549,6 +549,23 @@ function learnedView(){const E=Object.entries(S.learn),fav=E.filter(([,l])=>l.sh
  return `${fav.length?`<div class="ptitle">You usually finish</div>${fav.map(([t,l])=>row(t,`${l.dn} of ${l.sh} times`)).join("")}`:""}
  ${own.length?`<div class="ptitle">Your own tasks</div>${own.map(([p,c],i)=>row(c.t,`${PATHS[p].name} · ${c.m} min`,`<button class="mini" data-uncustom="${p}:${(S.custom[p]||[]).indexOf(c)}">Remove</button>`)).join("")}`:""}
  ${nev.length?`<div class="ptitle">Never suggested</div>${nev.map(([t])=>row(t,"You chose “Not for me”",`<button class="mini" data-unnever="${esc(t)}">Bring back</button>`)).join("")}`:""}`}
+
+/* ================= starter pack ================= */
+const enLine=n=>EN[n]?`<p class="en">${EN[n]}</p>`:"";
+const wantIntros=()=>S.lore!=="well";
+function playIntro(pids,done){pids=pids.filter(p=>!S.intro.includes(CHAR[p]));if(!pids.length){if(done)done();return}
+ const pid=pids[0],g=CHAR[pid],I=GUIDE_INTRO[g],pp=PEOPLE[g],P=PATHS[pid];S.intro.push(g);save();
+ const cards=[
+  {kick:`Meet your guide · ${P.name}`,svg:sceneInner({bg:"glow",chars:[[g,120,50,1,"rise"]]}),cap:`<b>${pp.n} <span class="dev" style="color:var(--mute)">${pp.d}</span></b><br>${I.who}`},
+  {kick:"A famous moment",svg:sceneInner({bg:I.bg,chars:[[g,120,55,.9,"float"]]}),cap:I.moment},
+  {kick:`What ${pp.n} teaches you`,html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><p class="gq">“${GUIDE_LINES[pid][0]}”</p></div>`,cap:`${I.teach}<br><small class="mute">From the ${I.src}. Abhyasa uses these as stories to learn from. You don’t need to be religious to walk this path.</small>`}];
+ openPlayer({label:`Meet ${pp.n}`,title:`Meet ${pp.n}`,sub:`Guide for ${P.name}`,cast:[pid],cards,auto:false,after:()=>playIntro(pids.slice(1),done)});
+}
+function tipCard(){const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return"";const n=L.indexOf(t)+1;
+ return `<div class="wrap"><div class="tip1" role="note"><span class="tipi">${ic("sun")}</span><div><small>Tip ${n} of ${L.length}</small><p>${t[1]}</p><div class="nacts"><button class="mini pri" data-tip="${S.view}:${t[0]}">Got it</button><button class="mini" data-tips-off="1">Skip all tips</button></div></div></div></div>`}
+function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${[["well","I know these stories"],["some","A little"],["new","New to me"]].map(([k,l])=>`<button class="chip" data-lore="${k}" aria-pressed="${S.lore===k}">${l}</button>`).join("")}</div>
+ <p class="sub">${S.lore==="well"?"Guide intros are off.":"New guides introduce themselves with 3 short cards."}</p>
+ ${GLOSSARY.map(([h,L])=>`<details class="gloss"><summary>${h}</summary>${L.map(([t,d])=>`<div class="gl"><b>${t}</b><span>${d}</span></div>`).join("")}</details>`).join("")}`}
 
 /* ================= views ================= */
 let lastView="",GI=0,GANIM=false,TALK=null;
@@ -606,7 +623,7 @@ function todayView(){
   const x=poolItem(it),open=OPEN===it.id&&!it.done;
   return `<div class="task${it.done?" done":""}" style="--c:${P.c}">${chk(it)}<button class="tx" data-open="${it.id}" aria-expanded="${open}"><b>${esc(it.t)}</b><small><span class="dot"></span>${P.name} · ${it.m} min · +${g}${it.own?" · your own":""}</small>${it.done?"":why(it)}${it.done?"":`<span class="more">${open?"Hide guide":x&&x.tool?"Guide and "+TOOLNAME[x.tool.type]:"Guide"}</span>`}</button>${it.done?"":`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`}${open?guideView(it):""}</div>`}).join("");
  const tl=TIMES.find(t=>t[0]===S.time)||TIMES[1];
- return header()+`<section class="hero"><div class="wrap">
+ return header()+tipCard()+`<section class="hero"><div class="wrap">
   <div class="date">${dateStr}</div><h1 class="hello">${hi}${S.name?", "+esc(S.name):""}.</h1>
   <blockquote class="quote">${qt[0]}<cite>${qt[1]}</cite></blockquote>
   <button class="calchip" data-today-cal="1"><span class="dot" style="--c:var(--gold)"></span>${r.n} ritu · ${cal.fest?cal.n:"Story: "+cal.n}</button></div></section>
@@ -646,7 +663,7 @@ function treeSvg(){
 function storiesList(){const L=SYN.filter(x=>x.p.every(p=>S.paths.includes(p)));if(!L.length)return `<p class="sub">Choose two or more paths to unlock stories.</p>`;
  return `<div class="stories">${L.map(x=>{const on=S.syn.includes(x.id);return `<button class="storyc${on?"":" off"}" data-story="${x.id}"><span class="pair">${x.p.map(p=>medal(p,"sm")).join("")}</span><div><b>${x.n}</b><small>${on?"Unlocked · tap to watch":`Opens when ${x.p.map(p=>PATHS[p].name).join(" and ")} pass ${x.req} trials · preview`}</small></div><span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></button>`}).join("")}</div>`}
 function journeyView(){const t=td(),r=ritu(t),cal=todayCal(),up=upcoming(4);
- return header()+`<div class="wrap"><h1 class="ptitle1">Journey</h1>
+ return header()+tipCard()+`<div class="wrap"><h1 class="ptitle1">Journey</h1>
  ${focusSection()}
  <div class="season"><span class="chip2">Season</span><h3>${r.n} ritu<span class="dev">${r.d}</span></h3><p>${r.s}</p></div>
  <button class="calcard" data-today-cal="1"><small class="mute" style="font-size:12px;font-weight:600">${cal.fest?"Today in the Indian calendar":"A story for today"}</small><b>${cal.n}</b><span>Try today: ${cal.t}</span></button>
@@ -660,16 +677,17 @@ function heroView(){
  const st=stage(),n=sel().length,need=(st+1)*n-msTotal(),pct=st>=5?100:Math.round((msTotal()-st*n)/n*100);
  const items=[];sel().forEach(pid=>PATHS[pid].skills.forEach((s,k)=>{if(s.item)items.push({pid,s,k})}));
  const closedDays=Object.values(S.days).filter(x=>x.mood).length,total=sel().reduce((a,p)=>a+CHAPTERS[CHAR[p]].length,0);
- return header()+`<div class="wrap">
- <div class="stage"><button class="avbtn" data-talk="1" aria-label="Tap your hero">${TALK?`<span class="bubble"><small>${TALK[0]} says</small>${TALK[1]}</span>`:""}${avatar(st)}</button><div class="rank">${RANKS[st][0]}<span class="dev">${RANKS[st][1]}</span></div>
+ return header()+tipCard()+`<div class="wrap">
+ <div class="stage"><button class="avbtn" data-talk="1" aria-label="Tap your hero">${TALK?`<span class="bubble"><small>${TALK[0]} says</small>${TALK[1]}</span>`:""}${avatar(st)}</button><div class="rank">${RANKS[st][0]}<span class="dev">${RANKS[st][1]}</span><small class="rankEn">${EN[RANKS[st][0]]}</small></div>
   <div class="track"><i style="width:${pct}%"></i></div><small>${st>=5?"The highest rank":`${need} more trial${need===1?"":"s"} to ${RANKS[st+1][0]}`}</small></div>
  <div class="block"><div class="stat3"><button class="stat" data-streak="1" style="border:1px solid var(--line)"><b>${S.streak}</b><small>Day streak</small></button><div class="stat"><b>${S.goal}</b><small>Streak goal</small></div><div class="stat"><b>${S.best}</b><small>Best streak</small></div></div></div>
  <div class="block"><h2>Balance</h2><p class="sub">Your strongest path in each realm of life</p>${realmWheel()}</div>
  <div class="block"><h2>Charms</h2><p class="sub">Brought back from your companions’ journeys · ${S.charms.length} of ${total} found</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:`<p class="sub">Close your first day to send a companion on a journey.</p>`}</div>
  <div class="block"><h2>Your guides</h2><div class="guides" style="margin-top:12px">${sel().map(pid=>{const c=CHAR[pid],pp=PEOPLE[c];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${pp.n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
  <div class="block"><h2>Arsenal</h2><p class="sub">Gifts from your guides, earned at milestones</p><div class="items">${items.map(({pid,s,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s.item:"lock")}</i><b>${s.itemName||s.n}</b><small>${on?`${s.item} · ${P.hero}`:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
- <div class="block"><h2>Skills</h2>${sel().map(pid=>{const P=PATHS[pid];return `<div class="ptitle" style="--c:${P.c}"><span class="dot"></span>${P.name} with ${P.hero}</div><div class="skills">${P.skills.map((s,k)=>{const on=has(pid,k);return `<button class="skill${on?"":" off"}" style="--c:${P.c}" data-skill="${pid}:${k}"><span class="ic">${on?s.d.slice(0,1):k+1}</span><div><b>${s.n}<span class="dev">${s.d}</span></b><small>${on?PERK[s.perk](P.name):`Unlocks after ${P.name} trial ${k+1}`}</small></div></button>`}).join("")}</div>`}).join("")}</div>
+ <div class="block"><h2>Skills</h2>${sel().map(pid=>{const P=PATHS[pid];return `<div class="ptitle" style="--c:${P.c}"><span class="dot"></span>${P.name} with ${P.hero}</div><div class="skills">${P.skills.map((s,k)=>{const on=has(pid,k);return `<button class="skill${on?"":" off"}" style="--c:${P.c}" data-skill="${pid}:${k}"><span class="ic">${on?s.d.slice(0,1):k+1}</span><div><b>${s.n}<span class="dev">${s.d}</span></b><small class="enm">${EN[s.n]||""}</small><small>${on?PERK[s.perk](P.name):`Unlocks after ${P.name} trial ${k+1}`}</small></div></button>`}).join("")}</div>`}).join("")}</div>
  <div class="block"><h2>Record</h2><div class="stats" style="margin-top:12px"><div class="stat"><b>${S.total}</b><small>Total growth</small></div><div class="stat"><b>${msTotal()}</b><small>Trials passed</small></div><div class="stat"><b>${closedDays}</b><small>Days closed</small></div></div></div>
+ <div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div>
  <div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>
  <div class="block"><h2>App</h2>${appCard()}</div>
  <div class="links"><button class="mini" data-act="routine">Edit kit and routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div>
@@ -679,8 +697,8 @@ function heroView(){
 /* ================= questionnaire ================= */
 let Q=null;
 const KIT_FOR={gym:"gym",climb:"wall",swim:"pool"};
-function newQ(){return{i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7}}
-function qSteps(){const st=["welcome","name","paths"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));if(Q.paths.includes("body")||Q.paths.includes("flex"))st.push("kit");st.push("routine","time","goal","reveal");return st}
+function newQ(){return{i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
+function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));if(Q.paths.includes("body")||Q.paths.includes("flex"))st.push("kit");st.push("routine","time","goal","reveal");return st}
 function quiz(){
  if(!Q)Q=newQ();
  const steps=qSteps();Q.i=Math.min(Q.i,steps.length-1);const step=steps[Q.i],pct=Math.round(Q.i/(steps.length-1)*100);
@@ -697,6 +715,7 @@ function quiz(){
  else if(step==="kit"){body=`<h1>What can you use?</h1><p class="lead">Tasks only suggest what you can really do. Bodyweight tasks need nothing.</p><div class="cchips">${KIT.map(([k,l])=>`<button class="chip" data-qkit="${k}" aria-pressed="${Q.kit.includes(k)}">${l}</button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="routine"){const acts=ACTS.filter(a=>Q.paths.includes(a.pid));body=`<h1>What do you already do each week?</h1><p class="lead">Tap the days. These count as tasks, and new tasks are planned around them.</p><div class="rtable">${acts.map(a=>`<div class="rrow"><div class="rname"><span class="dot" style="--c:${PATHS[a.pid].c}"></span>${a.n}<small>about ${a.m} min</small></div><div class="rdays">${[1,2,3,4,5,6,0].map(d=>`<button class="day" data-qday="${a.id}:${d}" aria-pressed="${(Q.anchors[a.id]||[]).includes(d)}" aria-label="${a.n} on ${DAYS[d]}">${DAYS[d].slice(0,2)}</button>`).join("")}</div></div>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="time"){body=`<h1>How much time for new practice each day?</h1><p class="lead">On top of your routine. You can change it any day.</p><div class="opts">${[[15,"15 min","A small daily spark"],[30,"30 min","Steady growth"],[45,"45 min","Serious practice"],[75,"60+ min","Deep commitment"]].map(([v,l,d])=>`<button class="opt" data-qtime="${v}" aria-pressed="${Q.time===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
+ else if(step==="lore"){body=`<h1>How well do you know these stories?</h1><p class="lead">Each path has a guide from Indian stories: the Ramayana, Mahabharata and Puranas. You don’t need to be religious or know them already.</p><div class="opts">${[["well","I know them well","Skip the introductions"],["some","A little","Short intros for each guide"],["new","They’re new to me","Short intros, plus explainers along the way"]].map(([v,l,d])=>`<button class="opt" data-qlore="${v}" aria-pressed="${Q.lore===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next" ${Q.lore?"":"disabled"}>${Q.lore?"Continue":"Pick one"}</button>`}
  else if(step==="goal"){body=`<div class="flame big" style="margin:0 0 8px">${DIYA}</div><h1>Commit to a daily streak</h1><p class="lead">One task a day keeps your lamp lit. Choosing your own goal makes it easier to keep.</p><div class="opts">${[[7,"7 days","A good start"],[14,"14 days","Getting serious"],[30,"30 days","A real habit"],[50,"50 days","Fully committed"]].map(([v,l,d])=>`<button class="opt" data-qgoal="${v}" aria-pressed="${Q.goal===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Commit to my goal</button>`}
  else if(step==="reveal"){const ps=ORDER.filter(p=>Q.paths.includes(p)),wk=ACTS.filter(a=>ps.includes(a.pid)&&(Q.anchors[a.id]||[]).length).map(a=>`${a.n}: ${[1,2,3,4,5,6,0].filter(d=>Q.anchors[a.id].includes(d)).map(d=>DAYS[d].slice(0,3)).join(", ")}`);
   body=`<div style="width:130px;margin:0 auto">${avatar(0)}</div><h1 style="text-align:center">Your paths are open</h1><p class="lead" style="text-align:center">Daily tasks fill your meters. Each trial earns a skill, and some bring weapons and gifts.</p>
@@ -709,11 +728,11 @@ function quiz(){
 }
 function finishQuiz(){
  const redo=S.paths.length>0;
- S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;
+ S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
  S.paths.forEach(p=>{const k=Q.level[p]||0;if(S.prog[p].m<k)S.prog[p]={m:k,xp:0}});
  S.syn=S.syn.filter(id=>SYN.find(s=>s.id===id).p.every(p=>S.paths.includes(p)));
  SYN.forEach(s=>{if(!S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=s.req))S.syn.push(s.id)});
- S.seen=Math.max(S.seen,stage());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);Q=null;save();render();window.scrollTo(0,0);
+ S.seen=Math.max(S.seen,stage());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();if(wantIntros())setTimeout(()=>playIntro(sel()),400);window.scrollTo(0,0);
  toast(redo?"Your plan is updated":"Your first tasks are ready");
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 }
@@ -731,19 +750,19 @@ function loadSample(){
 /* ================= sheets ================= */
 function sheet(c,h){openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true">${h}</div></div>`)}
 function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid];
- sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2><p class="story">${s.s}</p>
+ sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
  <div class="box"><small>Trial to earn it</small>${trialFor(pid,k)}</div>
  <div class="box">${on?"Earned.":k===pr.m?`In progress: ${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth.`:"Locked."}</div>
  <button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function synSheet(id){const s=SYN.find(x=>x.id===id),un=S.syn.includes(id);
- sheet("var(--gold)",`<div class="kick">Bridge · ${s.p.map(p=>PATHS[p].name).join(" + ")}</div><h2>${s.n}<span class="dev">${s.d}</span></h2><p class="story">${s.s}</p>
+ sheet("var(--gold)",`<div class="kick">Bridge · ${s.p.map(p=>PATHS[p].name).join(" + ")}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
  <div class="box"><small>Opens when</small>${s.p.map(p=>`${PATHS[p].name}: ${Math.min(S.prog[p].m,s.req)} of ${s.req} trials`).join("<br>")}</div>
  <div class="box"><small>Effect</small>+10% growth on ${s.p.map(p=>PATHS[p].name).join(" and ")}, plus a daily bridge task: ${s.q.toLowerCase()}</div>
  <div class="box">${un?"Open.":"Locked."}</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-story="${id}">${un?"Watch the story":"Preview the story"}</button></div>`)}
 function trialSheet(pid,confirm){const P=PATHS[pid],k=S.prog[pid].m,s=P.skills[k];
- sheet(P.c,confirm?`<div class="kick">Confirm</div><h2>Did you pass?</h2><div class="box">${trialText(pid)}</div><p class="mute">This unlocks ${s.n} and cannot be undone. Only you know if it’s true.</p><div class="row"><button class="cta alt" data-close="1">Not yet</button><button class="cta" data-pass="${pid}">Yes, I passed</button></div>`
- :`<div class="kick">${P.name} trial ${k+1}</div><h2>${s.n}<span class="dev">${s.d}</span></h2><p class="story">${s.s}</p><div class="box"><small>The test</small>${trialText(pid)}</div><p class="mute">Your meter is full, so you’re ready. Do this in real life, then mark it here. Daily tasks still add growth while you prepare.</p><button class="cta" style="width:100%" data-close="1">Got it</button>`)}
+ sheet(P.c,confirm?`<div class="kick">Confirm</div><h2>Did you pass?</h2><div class="box">${trialText(pid)}</div><p class="mute">This unlocks ${s.n}${EN[s.n]?` (${EN[s.n].toLowerCase()})`:""} and cannot be undone. Only you know if it’s true.</p><div class="row"><button class="cta alt" data-close="1">Not yet</button><button class="cta" data-pass="${pid}">Yes, I passed</button></div>`
+ :`<div class="kick">${P.name} trial ${k+1}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p><div class="box"><small>The test</small>${trialText(pid)}</div><p class="mute">Your meter is full, so you’re ready. Do this in real life, then mark it here. Daily tasks still add growth while you prepare.</p><button class="cta" style="width:100%" data-close="1">Got it</button>`)}
 
 
 /* ================= app shell: install, backup, updates ================= */
@@ -784,13 +803,18 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){complete(d.done,e);return}
+ if(d.qlore){Q.lore=d.qlore;quiz();return}
+ if(d.intro){closeLayer();S.intro=S.intro.filter(g=>g!==CHAR[d.intro]);playIntro([d.intro]);return}
+ if(d.tip){S.tips.push(d.tip);save();render();return}
+ if(d.tipsOff){Object.keys(TIPS).forEach(v=>TIPS[v].forEach(t=>{const k=v+":"+t[0];if(!S.tips.includes(k))S.tips.push(k)}));save();render();toast("Tips off");return}
+ if(d.lore){S.lore=d.lore;save();render();return}
  if(d.swap){swapSheet(d.swap);return}
  if(d.why){const[i,w]=d.why.split(":");swap(i,w);return}
  if(d.other!==undefined){OTH=null;otherSheet(d.other);return}
@@ -826,7 +850,7 @@ document.addEventListener("click",e=>{
  if(d.qgoal){Q.goal=+d.qgoal;quiz();return}
  if(d.story){const sc=$(".scrim");if(sc)sc.remove();playStory(d.story);return}
  if(d.guideNext){GI++;GANIM=true;render();return}
- if(d.person){const c=PEOPLE[d.person],P=PATHS[c.pid];sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medal(c.pid,"lg")}<div><div class="kick">${P.name} guide</div><h2>${c.n}<span class="dev">${c.d}</span></h2></div></div><p class="story">${c.bio}</p><div class="box"><small>Says today</small>“${GUIDE_LINES[c.pid][doyNow()%5]}”</div><button class="cta" style="width:100%" data-close="1">Close</button>`);return}
+ if(d.person){const c=PEOPLE[d.person],P=PATHS[c.pid],I=GUIDE_INTRO[d.person];sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medal(c.pid,"lg")}<div><div class="kick">${P.name} guide</div><h2>${c.n}<span class="dev">${c.d}</span></h2></div></div><p class="story">${c.bio}</p><div class="box"><small>Says today</small>“${GUIDE_LINES[c.pid][doyNow()%5]}”</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-intro="${c.pid}">Watch intro</button></div>`);return}
  if(d.talk){const ps=sel();if(!ps.length)return;const pid=ps[Math.floor(Math.random()*ps.length)],L=GUIDE_LINES[pid];TALK=[PATHS[pid].hero,L[Math.floor(Math.random()*L.length)]];render();clearTimeout(window._tk);window._tk=setTimeout(()=>{TALK=null;if(S.view==="hero")render()},4500);return}
  if(d.trial){trialSheet(d.trial,true);return}
  if(d.trialInfo){trialSheet(d.trialInfo,false);return}

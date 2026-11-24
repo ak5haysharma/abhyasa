@@ -481,3 +481,20 @@ nav.tabs button[aria-current="page"] svg{transform:translateY(-1px)}
 .lrow{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px}
 .lrow b{display:block;font-weight:500;font-size:15px}
 .lrow small{display:block;font-size:12px;color:var(--mute)}
+
+.en{margin:2px 0 0;font-size:14px;color:var(--mute);font-style:italic}
+.modal .en{margin-bottom:6px}
+.skill .enm{color:var(--ink);opacity:.75}
+.rankEn{display:block;font-family:var(--f-body);font-size:13px;color:var(--mute);font-weight:400}
+.tip1{display:flex;gap:12px;align-items:flex-start;background:var(--gold-bg);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:16px;padding:12px 14px;margin:6px 0 4px;animation:enter .3s ease-out}
+.tip1 .tipi{width:30px;height:30px;flex:none;border-radius:50%;background:var(--surface);display:grid;place-items:center;color:var(--gold)}
+.tip1 .tipi svg{width:18px;height:18px}
+.tip1 small{font-size:12px;font-weight:600;color:var(--gold)}
+.tip1 p{margin:2px 0 0;font-size:15px}
+.gloss{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 14px;margin-bottom:8px}
+.gloss summary{cursor:pointer;font-weight:600;padding:10px 0;list-style:none}
+.gloss summary::after{content:"+";float:right;color:var(--mute)}
+.gloss[open] summary::after{content:"−"}
+.gl{padding:8px 0;border-top:1px solid var(--line)}
+.gl b{display:block;font-weight:600;font-size:14px}
+.gl span{font-size:14px;color:var(--mute)}

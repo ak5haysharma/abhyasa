@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.0 · 24.11.2026
+- Starter pack: 'How well do you know these stories?' in onboarding, 3-card guide intros, English meanings next to Sanskrit names, a glossary on the Hero tab, and first-time tips on each tab.
+
 ## 1.2.0 · 24.11.2026
 - Adaptive swaps: unlimited swaps with a reason, 'I did something else' (keeps your streak, can be saved as a task), suggestions that learn from what you finish and skip, and a 'What Abhyasa has learned' section on the Hero tab. The swap skill perk is now an extra streak shield.
 
