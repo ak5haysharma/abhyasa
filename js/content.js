@@ -1455,3 +1455,27 @@ const IDLINES={
  shabari:["grateful for what I have","someone who thanks people often","patient and content"]};
 const PVALUE={body:"Active and healthy",flex:"Takes care of their body",bonds:"Close to family",love:"Emotionally mature",learn:"Curious about the world",focus:"Driven",music:"Loves music",calm:"Calm and steady",friend:"Warm and social",money:"Sensible with money",courage:"Brave and honest",wisdom:"Thoughtful",making:"Practical",art:"Creative",gratitude:"Kind and grateful"};
 const PVALUE_ALL=["Keeps growing","Shares my roots","Open to the world","Good sense of humour","Kind to others"];
+
+/* ================= smarter routines (v1.24) ================= */
+// Mentor style: tasks whose text matches get a small boost; len prefers long or short tasks
+const MSTYLE={hanuman:{re:/walk|carry|stairs|help|daily|routine|squat/i},bhima:{re:/heavy|strength|lift|deadlift|squat|push|pull|sprint|hill|weight/i,len:"long"},
+ patanjali:{re:/posture|pose|breath|stretch|hold|spine/i,len:"short"},shiva:{re:/breath|hold|flow|still|dance|stretch/i,len:"long"},
+ rama:{re:/call|promise|parents|family|visit/i},lakshmana:{re:/help|chore|fix|carry|cook|visit/i},savitri:{re:/talk|listen|ask|calm|walk/i},parvati:{re:/together|plan|appreciat|thank|date/i},
+ saraswati:{re:/read|study|review|revise|course|notes/i},ganesha:{re:/start|write|note|summar|first|plan/i,len:"short"},arjuna:{re:/focus|deep|block|single|plan/i,len:"long"},ekalavya:{re:/practi|drill|reps|alone|self|repeat/i},
+ narada:{re:/play|sing|song|share|listen/i},dhruva:{re:/sit|breath|still|mantra|silent/i},krishna:{re:/friend|play|fun|game|invite|message/i},lakshmi:{re:/budget|plan|give|enough|tidy/i},kubera:{re:/save|track|expense|budget|invest|review/i},
+ durga:{re:/fear|brave|speak|challenge|cold/i},abhimanyu:{re:/new|first|try|challenge|ask/i},nachiketa:{re:/question|reflect|journal|read/i},vishwakarma:{re:/fix|build|make|repair|tool/i},valmiki:{re:/write|poem|draw|share|story/i},shabari:{re:/thank|notice|serve|grateful|give/i}};
+// Kit per path. Items with a regex hide matching tasks when you say you don't have them.
+const KITP={
+ body:[["gym","Gym"],["pool","Pool"],["wall","Climbing wall"],["park","Park or outdoors"],["dumbbells","Dumbbells"],["kettlebell","Kettlebell",/kettlebell/i],["bands","Resistance bands"],["pullup","Pull-up bar"],["hangboard","Hangboard"],["bike","Bike",/\bbike|cycl/i]],
+ flex:[["mat","Yoga mat"],["blocks","Yoga blocks or strap",/\bblock|strap/i]],
+ music:[["guitar","Guitar",/guitar|strum|fret/i],["keyboard","Keyboard or piano",/piano|keyboard|\bkeys\b/i],["ukulele","Ukulele",/ukulele/i],["drums","Tabla or drums",/tabla|drum/i],["harmonium","Harmonium",/harmonium/i]],
+ art:[["sketch","Sketchbook",/sketch/i],["paints","Paints",/paint|watercolou?r/i],["camera","Camera",/\bcamera\b/i]],
+ making:[["tools","Basic tools",/drill|screwdriver|hammer|\btools?\b/i],["kitchen","Kitchen",/cook|bake|kitchen|recipe/i],["garden","Garden or balcony",/garden|plant|seed|soil|balcony/i]],
+ calm:[["headphones","Headphones",/headphone|guided/i],["mala","Mala",/\bmala\b/i]],
+ learn:[["library","Library card",/library/i],["ereader","E-reader or books"]]};
+const LIFEQ=[
+ ["live","I live",[["alone","Alone"],["partner","With a partner"],["family","With family"],["flat","With flatmates"],["kids","With kids at home"]]],
+ ["work","I work",[["office","In an office"],["remote","Remotely"],["hybrid","Hybrid"],["shift","In shifts"],["student","I study"]]],
+ ["best","My best time",[["early","Early morning"],["lunch","Around lunch"],["evening","Evening"],["late","Late night"]]],
+ ["space","My space",[["small","Small flat"],["house","House"],["garden","With a garden or balcony"]]]];
+const BEST_H={early:7,lunch:13,evening:19,late:22};

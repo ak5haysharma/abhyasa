@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.24.0 · 24.11.2026
+- Smarter routines: your mentor's style shapes your tasks (Bhima favours heavy and long, Ganesha small starts, Kubera tracking). After a task, one optional tap: too easy, right or too hard. Level and length adapt, and tasks with numbers grow or ease (plank 30 sec becomes 38). New 'Your life and kit' screen: who you live with, work, best time, space, busiest days, and kit for each path (instruments, art supplies, tools, garden). Busy day mode in the check-in or on your busiest days: one short task per mentor. Tasks are ordered by the time you usually do each path, and an 'I am becoming... 3 times a week' line makes that mentor more likely to walk with you.
+
 ## 1.23.0 · 24.11.2026
 - Who you are becoming: add an 'I am becoming...' line to each path (3 ideas from each mentor, or write your own) from the path page. Your lines show in the morning cards and the weekly review asks 'Did you live like this?'. New Life card on the Hero tab: the life you are building, who you walk with, and a private 'In a partner I value' line. Share it as an image.
 

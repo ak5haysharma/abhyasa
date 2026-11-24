@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.23.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.24.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -130,6 +130,7 @@ function fit(x,pid,C){
  const D=dctx();if(D.noPlace.includes(x.place)&&x.place!=="any")return false;if(x.needs.some(n=>D.noNeed.includes(n)))return false;
  if(D.tired&&x.en>=3)return false;
  if(!x.needs.every(k=>S.kit.includes(k)))return false;
+ if(kitBlocked(x,pid))return false;
  const w=C.c.where;
  if(w==="travel"&&(x.needs.length||!["any","out"].includes(x.place)))return false;
  if(w==="travel"&&pid==="music"&&x.tags.every(g=>g==="guitar"||g==="keys"))return false;
@@ -161,10 +162,11 @@ function score(x,pid,C,r){
  if(D.short)s-=x.m/12;
  if(D.tired&&x.en===1){s+=1;why.push("Lighter, since you’re tired")}
  if(x.custom){s+=.5;why.push("Your own task")}
+ {const z=styleScore(x,pid);s+=z.s;if(z.why)why.push(z.why)}
  return{s,why:why[0]||""};
 }
 function ranked(pid,C,seed,exclude){
- const P=PATHS[pid],tier=Math.min(4,S.prog[pid].m),r=rng(seed),tags=S.tags[pid]||[];
+ const P=PATHS[pid],dd=(S.diff||{})[pid]||0,tier=Math.max(0,Math.min(4,S.prog[pid].m+(dd>=2?1:dd<=-2?-1:0))),r=rng(seed),tags=S.tags[pid]||[];
  const famCall=anchorsToday(C.c).some(a=>a.id==="family");
  let c=P.pool.map((x,i)=>({x,i})).filter(({x})=>tier>=x.lo&&tier<=x.hi&&fit(x,pid,C)&&!exclude.includes(x.t)&&!(famCall&&x.call)&&!(x.m<=5&&(S.shown[x.t]||[]).some(d=>d<td()&&diff(d,td())<=3)));
  const f=c.filter(({x})=>x.tags.includes("any")||x.tags.some(g=>tags.includes(g)));if(f.length>=2)c=f;
@@ -179,13 +181,13 @@ function buildPlan(keep){
  ps.forEach(pid=>{
   const pr=S.prog[pid];
   if(pr.m<5&&pr.xp>=NEED[pr.m]&&!items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done))items.push({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});
-  const hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*wt(pid)/wsum,cap=hasA?Math.min(15,share):share,maxN=hasA?1:2;
+  const bz=busyToday(C.c),hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*wt(pid)/wsum,cap=bz?5:hasA?Math.min(15,share):share,maxN=bz||hasA?1:2;
   const list=ranked(pid,C,td()+pid+S.time+items.length+JSON.stringify(C.c),items.map(x=>x.t));
   let left=cap,n=items.filter(x=>x.kind==="task"&&x.pid===pid).length;
   for(const o of list){if(n>=maxN)break;if(o.x.m<=left+3){items.push(mkT(pid,o));left-=o.x.m;n++}}
   if(!n){const o=list.slice().sort((a,b)=>a.x.m-b.x.m)[0];if(o)items.push(mkT(pid,o))}
  });
- synOpen().forEach(s=>{if(!items.some(x=>x.kind==="bridge"&&x.sid===s.id))items.push({id:uid(),kind:"bridge",sid:s.id,t:s.q,m:15,done:false})});
+ if(!busyToday(C.c))synOpen().forEach(s=>{if(!items.some(x=>x.kind==="bridge"&&x.sid===s.id))items.push({id:uid(),kind:"bridge",sid:s.id,t:s.q,m:15,done:false})});
  const rank={trial:0,anchor:1,task:2,bridge:3};
  return items.sort((a,b)=>rank[a.kind]-rank[b.kind]||ps.indexOf(a.pid)-ps.indexOf(b.pid));
 }
@@ -267,9 +269,9 @@ function complete(id,ev){
  const it=S.plan.items.find(x=>x.id===id);if(!it||it.kind==="trial")return;
  if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);if(it.kind==="task"&&S.learn[it.t]){const L=S.learn[it.t];L.dn=Math.max(0,L.dn-1);L.dw[new Date().getDay()]=Math.max(0,L.dw[new Date().getDay()]-1)}save();render();return}
  if(it.pid&&PATHS[it.pid])TANIM={pid:it.pid,f:todayFrac(it.pid)};it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
- S.log.push({id:it.id,d:td(),t:it.t,load:it.load||[],pid:it.pid||"bridge",m:it.m||0,own:!!it.own});S.log=S.log.filter(l=>diff(l.d,td())<=60);
+ S.log.push({id:it.id,d:td(),h:new Date().getHours(),t:it.t,load:it.load||[],pid:it.pid||"bridge",m:it.m||0,own:!!it.own});S.log=S.log.filter(l=>diff(l.d,td())<=60);
  if(it.kind==="bridge"){const s=SYN.find(x=>x.id===it.sid);it.g=8;s.p.forEach(p=>grow(p,Math.round(8*mult(p))));popAt("+ growth","var(--gold)",ev)}
- else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;S.awT=S.awT&&S.awT.d===td()?S.awT:{d:td(),p:[]};if(it.pid&&PATHS[it.pid]&&!S.awT.p.includes(it.pid)){S.awT.p.push(it.pid);const _p=it.pid;setTimeout(()=>toast(`Your inner ${PATHS[_p].hero} ${AWVERB[Math.min(5,S.prog[_p].m)]}`),1100)}grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
+ else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;S.awT=S.awT&&S.awT.d===td()?S.awT:{d:td(),p:[]};if(it.pid&&PATHS[it.pid]&&!S.awT.p.includes(it.pid)){S.awT.p.push(it.pid);const _p=it.pid;setTimeout(()=>toast(`Your inner ${PATHS[_p].hero} ${AWVERB[Math.min(5,S.prog[_p].m)]}`),1100)}if(it.kind==="task")setTimeout(()=>askFeel(it),2600);grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
  if(TOOL&&TOOL.id===it.id)stopTool();if(OPEN===it.id)OPEN=null;
  const left=S.plan.items.filter(x=>(x.kind==="task"||x.kind==="anchor")&&!x.done).length;
  if(!left&&!S.plan.closed){S.plan.closed=true;setTimeout(()=>toast("Today’s practice is done. Rest well."),1000)}
@@ -845,6 +847,35 @@ function lifeShare(){const ps=sel().filter(idOf),W=600,lines=ps.map(p=>`I am bec
  const H=y+80,svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="#f6ecd6"/><rect x="14" y="14" width="${W-28}" height="${H-28}" rx="24" fill="none" stroke="#86611b" stroke-width="3"/><text x="40" y="80" font-family="Georgia,serif" font-size="34" font-weight="bold" fill="#1d1f26">The life I’m building</text>${body}<text x="40" y="${H-40}" font-family="Helvetica,Arial,sans-serif" font-size="18" fill="#86611b">Walking with ${esc(sel().map(p=>PATHS[p].hero).join(", "))} · Abhyasa</text></svg>`;
  const fallback=()=>{if(navigator.share)navigator.share({text:txt}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast("Copied your life card")).catch(()=>toast("Could not share here"))};
  try{const img=new Image();img.onload=()=>{try{const c=document.createElement("canvas");c.width=W*2;c.height=H*2;const x=c.getContext("2d");x.scale(2,2);x.drawImage(img,0,0);c.toBlob(b=>{try{const f=new File([b],"my-life-card.png",{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],text:txt}).catch(()=>{});else fallback()}catch(e){fallback()}},"image/png")}catch(e){fallback()}};img.onerror=fallback;img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)}catch(e){fallback()}}
+/* ================= smarter routines (v1.24) ================= */
+const LIFE=()=>S.life||{};
+const busyToday=c=>{c=c||checkToday();if(c.d===td()&&c.busy!==undefined)return !!c.busy;return (LIFE().busy||[]).includes(new Date().getDay())};
+function kitBlocked(x,pid){const seen=S.kitSeen||[];for(const p of Object.keys(KITP))for(const it of KITP[p]){const re=it[2];if(re&&seen.includes(it[0])&&!S.kit.includes(it[0])&&re.test(x.t))return true}return false}
+function progT(t){const f=(S.pg||{})[t];if(!f||f===1)return t;return t.replace(/(\d+(?:\.\d+)?)(\s*)(sec|seconds|second|min|minutes|reps|push-ups|squats|lunges|km|metres|meters|pages|words|breaths|rounds)\b/gi,(m,n,s,u)=>{let v=+n*f;v=/km/i.test(u)?Math.max(.5,Math.round(v*2)/2):Math.max(1,Math.round(v));return v+s+u})}
+const idFreq=pid=>{const t=idOf(pid);if(!t)return 0;const m=t.match(/(\d+)\s*(?:times|days|x)\s*(?:a|per)\s*week/i);if(m)return Math.min(7,+m[1]);if(/every (day|morning|evening|night)|daily/i.test(t))return 7;return 0};
+const weekDaysDone=pid=>{const mon=monOf(td());return new Set(S.log.filter(l=>l.pid===pid&&l.d>=mon).map(l=>l.d)).size};
+const behindFreq=pid=>{const f=idFreq(pid);if(!f)return false;const el=(new Date().getDay()+6)%7+1;return weekDaysDone(pid)<Math.ceil(f*el/7)};
+function prefH(pid){const L=S.log.filter(l=>l.pid===pid&&l.h!==undefined).slice(-20);if(L.length>=3)return L.reduce((a,l)=>a+l.h,0)/L.length;const b=LIFE().best;return b?BEST_H[b]:null}
+function timeSort(items){const h=new Date().getHours(),rank={trial:0,anchor:1,task:2,bridge:3};
+ return items.slice().sort((a,b)=>(a.done-b.done)||(rank[a.kind]-rank[b.kind])||(a.kind==="task"&&b.kind==="task"?((x=>x===null?6:Math.abs(x-h))(prefH(a.pid))-(x=>x===null?6:Math.abs(x-h))(prefH(b.pid))):0))}
+function styleScore(x,pid){const st=MSTYLE[CHAR[pid]];let s=0,why="";if(st){if(st.re.test(x.t)){s+=.8;why=`${PATHS[pid].hero}’s style`}if(st.len==="long"&&x.m>=20)s+=.4;if(st.len==="short"&&x.m<=10)s+=.4}
+ const d=(S.diff||{})[pid]||0;if(d>=2&&x.en>=2)s+=.6;if(d<=-2&&x.en===1)s+=.6;
+ const L=LIFE();if(L.live==="kids"&&/kid|child|family|together/i.test(x.t))s+=.6;if(L.space==="small"&&/jump|burpee|skipping|sprint/i.test(x.t))s-=2;if(L.work==="remote"&&/posture|desk|walk/i.test(x.t)){const h=new Date().getHours();if(h>=11&&h<=15)s+=.6}
+ if(busyToday())s-=x.m/4;
+ return{s,why}}
+function askFeel(it){if(!it||it.kind!=="task")return;const L=L_(it.t);if((L.tfn||0)>=3)return;L.tfn=(L.tfn||0)+1;const old=$("#fbar");if(old)old.remove();
+ document.body.insertAdjacentHTML("beforeend",`<div id="fbar" class="fbar" role="group" aria-label="How was that task?"><span>How was it?</span><button data-tf="${it.id}:easy">Too easy</button><button data-tf="${it.id}:right">Right</button><button data-tf="${it.id}:hard">Too hard</button></div>`);
+ clearTimeout(askFeel.t);askFeel.t=setTimeout(()=>{const b=$("#fbar");if(b)b.remove()},8000)}
+function tfApply(id,v){const it=S.plan.items.find(x=>x.id===id)||{};const b=$("#fbar");if(b)b.remove();if(!it.t)return;
+ S.diff=S.diff||{};S.pg=S.pg||{};const p=it.pid,d=S.diff[p]||0;S.diff[p]=v==="easy"?Math.min(3,d+1):v==="hard"?Math.max(-3,d-1):d>0?d-1:d<0?d+1:0;
+ const num=/\d/.test(it.t);if(num&&v==="easy")S.pg[it.t]=Math.min(3,(S.pg[it.t]||1)*1.25);if(num&&v==="hard")S.pg[it.t]=Math.max(.5,(S.pg[it.t]||1)*.8);
+ save();toast(v==="easy"?(num?"Noted. Next time it grows a step":"Noted. Harder tasks are coming"):v==="hard"?(num?"Noted. Next time it eases off":"Noted. Gentler tasks for now"):"Good. Keep that pace")}
+let FX=null;
+function fitBody(o,pre){const ps=o.paths;return `${LIFEQ.map(([k,l,opts])=>`<div class="qlabel">${l}</div><div class="cchips">${opts.map(([v,t])=>`<button class="chip" data-${pre}life="${k}:${v}" aria-pressed="${o.life[k]===v}">${t}</button>`).join("")}</div>`).join("")}
+ <div class="qlabel">My busiest days <span class="mute">· shorter tasks on these days</span></div><div class="cchips">${[1,2,3,4,5,6,0].map(dw=>`<button class="chip" data-${pre}busy="${dw}" aria-pressed="${(o.life.busy||[]).includes(dw)}">${DAYS[dw].slice(0,3)}</button>`).join("")}</div>
+ ${ps.filter(p=>KITP[p]).map(p=>`<div class="qlabel">${PATHS[p].name}: what do you have?</div><div class="cchips">${KITP[p].map(([k,l])=>`<button class="chip" data-${pre}kit="${k}" aria-pressed="${o.kit.includes(k)}">${l}</button>`).join("")}</div>`).join("")}`}
+function fitSheet(){FX=FX||{life:JSON.parse(JSON.stringify(S.life||{})),kit:[...S.kit],paths:sel()};FX.life.busy=FX.life.busy||[];
+ const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Fit your tasks</div><h2>Your life and your kit</h2><p class="sub">A few taps, so Abhyasa only suggests what fits your day. Everything stays on this phone.</p>${fitBody(FX,"f")}<button class="cta" style="width:100%;margin-top:16px" data-fsave="1">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -965,8 +996,8 @@ function heroSheet(keep){const st=stage(),ps=sel();if(!HS||!keep){const pid=ps.l
 /* ================= focus: choose up to 5, readiness nudges ================= */
 const MAXP=8,DAYMAX=4;
 const sinceP=pid=>{const L=S.log.filter(l=>l.pid===pid);if(!L.length)return 99;return diff(L.reduce((a,l)=>l.d>a?l.d:a,"0000"),td())};
-function pickWhy(pid){const w=[];if(focusPid()===pid)w.push("Week focus");if(S.epic&&S.epic.goal&&(S.epic.goal.pid===pid||(S.epic.goal.combo&&(SYN.find(x=>x.id===S.epic.goal.combo)||{p:[]}).p.includes(pid))))w.push("Sankalpa");const c=S.story&&S.story.cur;if(c&&c.opts.includes(pid))w.push("Story trial");const pr=S.prog[pid];if(pr.m<5&&pr.xp>=NEED[pr.m])w.push("Trial ready");const d=sinceP(pid);if(d>=7&&d<99)w.push(`${d} days since last practice`);return w}
-function autoPick(){const c=sel();if(c.length<=DAYMAX)return c;const sc=p=>{const w=pickWhy(p),d=sinceP(p);return (w.includes("Week focus")?3:0)+(w.includes("Sankalpa")?3:0)+(w.includes("Story trial")?2:0)+(w.includes("Trial ready")?1:0)+(d>=7?2.5:0)+Math.min(d,14)/7};
+function pickWhy(pid){const w=[];if(focusPid()===pid)w.push("Week focus");if(S.epic&&S.epic.goal&&(S.epic.goal.pid===pid||(S.epic.goal.combo&&(SYN.find(x=>x.id===S.epic.goal.combo)||{p:[]}).p.includes(pid))))w.push("Sankalpa");const c=S.story&&S.story.cur;if(c&&c.opts.includes(pid))w.push("Story trial");const pr=S.prog[pid];if(pr.m<5&&pr.xp>=NEED[pr.m])w.push("Trial ready");if(behindFreq(pid))w.push(`Your line: ${idFreq(pid)}× a week`);const d=sinceP(pid);if(d>=7&&d<99)w.push(`${d} days since last practice`);return w}
+function autoPick(){const c=sel();if(c.length<=DAYMAX)return c;const sc=p=>{const w=pickWhy(p),d=sinceP(p);return (w.includes("Week focus")?3:0)+(w.includes("Sankalpa")?3:0)+(w.includes("Story trial")?2:0)+(w.includes("Trial ready")?1:0)+(w.some(x=>x.startsWith("Your line"))?2:0)+(d>=7?2.5:0)+Math.min(d,14)/7};
  const top=[...c].sort((a,b)=>sc(b)-sc(a)||c.indexOf(a)-c.indexOf(b)).slice(0,DAYMAX);return c.filter(p=>top.includes(p))}
 function todayPs(){const c=sel(),P=S.dayPick;if(P&&P.d===td()){const p=P.p.filter(x=>c.includes(x));if(p.length)return p}return autoPick()}
 let DP=null;
@@ -1178,6 +1209,7 @@ function checkCard(){
  <div class="cirow"><span>Energy</span><div class="cchips">${["low","ok","high"].map(v=>chip("energy",v,E_L[v],CI.energy===v)).join("")}</div></div>
  <div class="cirow"><span>Sore</span><div class="cchips">${chip("sore","none","None",!CI.sore.length)}${Object.keys(SORE).map(k=>chip("sore",k,SORE_L[k][0].toUpperCase()+SORE_L[k].slice(1),CI.sore.includes(k))).join("")}</div></div>
  <div class="cirow"><span>Today</span><div class="cchips">${Object.keys(W_L).map(v=>chip("where",v,W_L[v],CI.where===v)).join("")}</div></div>
+ <div class="cirow"><span>Day</span><div class="cchips">${chip("busy","0","Normal day",!(CI.busy===undefined?busyToday():CI.busy))}${chip("busy","1","Busy day",!!(CI.busy===undefined?busyToday():CI.busy))}</div></div>
  <button class="cta" style="width:100%;margin-top:14px" data-ci="apply">Fit my plan</button></div>`;
 }
 const RC=2*Math.PI*28;
@@ -1326,15 +1358,16 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  {const a=stAvail(),c=SS().cur;if(c&&stReady())out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,"Story trial complete","Claim your title",STRIALS[c.i].n));else if(a>=0)out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,`Story trial ready · Book ${a+1}`,STRIALS[a].n,`Pass it to become ${ARC_RANK[Math.min(6,a+1)][0]}`))}
  if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Sankalpa · milestone ${i} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
  else out.push(card("",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Sankalpa","Have a goal? Take a vow","3 goals suggested for you"));
+ if(!S.fitDone&&sel().length)out.push(card("",'data-fit="1"',`<span class="sci">${ic("sun")}</span>`,"New · 1 minute","Fit tasks to your life","Your kit, your space, your busy days"));
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
  return `<div class="strip" role="list">${out.join("")}</div>`}
 function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${it.id}" aria-label="${it.done?"Undo":"Mark done"}: ${esc(it.t)}">${ic("check")}</button>`;
  if(it.kind==="trial"){const P=PATHS[it.pid],k=it.done?it.k:S.prog[it.pid].m,sn=P.skills[k]?P.skills[k].n:"";return `<div class="trow trial" style="--c:${P.c}"><span class="trialicon">${ic(it.done?"check":"trial")}</span><button class="tx" data-trial-info="${it.pid}"><span class="tag">${P.name} trial · ${it.done?"earned":"unlocks"} ${sn}</span><b>${it.t}</b></button>${it.done?"":`<button class="mini pri" data-trial="${it.pid}">Passed</button>`}</div>`}
  if(it.kind==="bridge"){const sy=SYN.find(x=>x.id===it.sid);return `<div class="trow${it.done?" done":""}" style="--c:var(--gold)">${chk}<div class="tx"><b>${it.t}</b><small><span class="duo" style="--a:${PATHS[sy.p[0]].c};--b:${PATHS[sy.p[1]].c}"></span>Bridge · ${sy.n}</small></div></div>`}
  const P=PATHS[it.pid],g=it.done?it.g:Math.round(Math.max(5,it.m)*mult(it.pid)),x=poolItem(it);
- return `<div class="trow${it.done?" done":""}${it.kind==="anchor"?" anchor":""}" style="--c:${P.c}">${chk}<button class="tx" data-task="${it.id}"><b>${esc(it.t)}</b><small><span class="dot"></span>${it.kind==="anchor"?"Your routine · ":""}${P.name} · ${it.m} min · +${g}${x&&x.tool&&!it.done?` · ${TOOLNAME[x.tool.type]}`:""}</small>${!it.done&&it.why?`<span class="why">${it.why}</span>`:""}</button>${!it.done&&it.kind==="task"?`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`:""}</div>`}
+ return `<div class="trow${it.done?" done":""}${it.kind==="anchor"?" anchor":""}" style="--c:${P.c}">${chk}<button class="tx" data-task="${it.id}"><b>${esc(progT(it.t))}</b><small><span class="dot"></span>${it.kind==="anchor"?"Your routine · ":""}${P.name} · ${it.m} min · +${g}${x&&x.tool&&!it.done?` · ${TOOLNAME[x.tool.type]}`:""}</small>${!it.done&&it.why?`<span class="why">${it.why}</span>`:""}</button>${!it.done&&it.kind==="task"?`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`:""}</div>`}
 function taskSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it)return;const P=PATHS[it.pid],x=poolItem(it);
- sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(it.t)}</h2>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
+ sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(progT(it.t))}</h2>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
  ${x?guideView(it):`<p class="sub" style="margin-top:12px">${it.kind==="anchor"?"Part of your weekly routine.":"Your own task."}</p>`}
  ${it.done?"":`<button class="cta fmgo" style="width:100%;margin-top:16px" data-focus="${it.id}">${ic("sun")} Start focus mode · ${it.m} min</button>`}
  <div class="row" style="margin-top:10px">${it.kind==="task"&&!it.done?`<button class="cta alt" data-swap="${it.id}">Swap</button>`:""}<button class="cta alt" data-done="${it.id}">${it.done?"Undo":"Mark done"}</button></div>`)}
@@ -1343,6 +1376,7 @@ function checkSheet(){if(!CI)CI=JSON.parse(JSON.stringify(checkToday()));const c
  <div class="cirow"><span>Energy</span><div class="cchips">${["low","ok","high"].map(v=>chip("energy",v,E_L[v],CI.energy===v)).join("")}</div></div>
  <div class="cirow"><span>Sore</span><div class="cchips">${chip("sore","none","None",!CI.sore.length)}${Object.keys(SORE).map(k=>chip("sore",k,SORE_L[k][0].toUpperCase()+SORE_L[k].slice(1),CI.sore.includes(k))).join("")}</div></div>
  <div class="cirow"><span>Today</span><div class="cchips">${Object.keys(W_L).map(v=>chip("where",v,W_L[v],CI.where===v)).join("")}</div></div>
+ <div class="cirow"><span>Day</span><div class="cchips">${chip("busy","0","Normal day",!(CI.busy===undefined?busyToday():CI.busy))}${chip("busy","1","Busy day",!!(CI.busy===undefined?busyToday():CI.busy))}</div></div>
  <button class="cta" style="width:100%;margin-top:18px" data-ci="apply">Fit my plan</button>`)}
 function todayView(){
  const d=new Date(),h=d.getHours(),hi=h<5?"Still up":h<12?"Good morning":h<17?"Good afternoon":"Good evening";
@@ -1351,7 +1385,7 @@ function todayView(){
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
  ${mentorRow()}${activityRings()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
- ${stStepRow()}<div class="tlist">${items.map(taskRow).join("")}</div>
+ ${stStepRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
 
 /* ================= layout v2: Journey ================= */
@@ -1408,14 +1442,14 @@ function heroView(){const sg=segOf("hero","hero");let body="";
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
  if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><button class="revcard" data-feedback="1"><span class="revi">${ic("love")}</span><span><b>Send feedback</b><small>Ideas, bugs or stories. It helps shape Abhyasa.</small></span></button><div class="block"><h2>Calendar</h2><p class="sub">What shows on your Calendar tab and morning cards. The story for each day stays in every option.</p><div class="cchips">${[["indian","Indian festivals and ritus"],["seasons","Spring, summer, autumn, winter"],["none","No calendar"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div><div class="block"><h2>App</h2>${appCard()}${S.lastBackup?`<p class="sub">Last backup: ${S.lastBackup.split("-").reverse().join(".")}</p>`:""}</div>
-  <div class="links"><button class="mini" data-act="routine">Edit kit and routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div><p class="sub" style="text-align:center;margin-bottom:30px">Abhyasa ${APP_VERSION}</p>`;
+  <div class="links"><button class="mini" data-fit="1">Your life and kit</button><button class="mini" data-act="routine">Edit routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div><p class="sub" style="text-align:center;margin-bottom:30px">Abhyasa ${APP_VERSION}</p>`;
  return header("Hero")+tipCard()+`<div class="wrap">${seg("hero",[["hero","Hero"],["stats","Stats"],["coll","Collection"],["more","More"]])}<div class="segbody">${body}</div></div>`}
 
 /* ================= questionnaire ================= */
 let Q=null;
 const KIT_FOR={gym:"gym",climb:"wall",swim:"pool"};
-function newQ(){return{mentor:Object.assign({},S.mentor||{}),i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
-function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));if(Q.paths.includes("body")||Q.paths.includes("flex"))st.push("kit");st.push("routine","time","goal","reveal");return st}
+function newQ(){return{life:Object.assign({busy:[]},JSON.parse(JSON.stringify(S.life||{}))),mentor:Object.assign({},S.mentor||{}),i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
+function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));st.push("fit","routine","time","goal","reveal");return st}
 function quiz(){
  if(!Q)Q=newQ();
  const steps=qSteps();Q.i=Math.min(Q.i,steps.length-1);const step=steps[Q.i],pct=Math.round(Q.i/(steps.length-1)*100);
@@ -1430,7 +1464,7 @@ function quiz(){
   <div class="qlabel">Focus on (pick any)</div><div class="chips" style="--c:${P.c}">${P.tags.map(([k,l])=>`<button class="chip" data-qtag="${pid}:${k}" aria-pressed="${tg.includes(k)}">${l}</button>`).join("")}</div>
   ${MENTORS[pid]?`<div class="qlabel">Who will awaken in you?</div><div class="mlist">${MENTORS[pid].map(g=>mCard(pid,g,(Q.mentor[pid]||CHAR0[pid])===g,`data-qmentor="${pid}:${g}"`)).join("")}</div>`:`<div class="qlabel">Your inner mentor</div><div class="mlist">${mCard(pid,CHAR0[pid],true,"disabled")}</div>`}`;
   foot=`<button class="cta" data-q="next" ${ok?"":"disabled"}>${ok?"Continue":"Pick where you are"}</button>`}
- else if(step==="kit"){body=`<h1>What can you use?</h1><p class="lead">Tasks only suggest what you can really do. Bodyweight tasks need nothing.</p><div class="cchips">${KIT.map(([k,l])=>`<button class="chip" data-qkit="${k}" aria-pressed="${Q.kit.includes(k)}">${l}</button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
+ else if(step==="fit"||step==="kit"){Q.life.busy=Q.life.busy||[];body=`<h1>Your life and your kit</h1><p class="lead">So your tasks fit your real day. Skip anything you like.</p>${fitBody({life:Q.life,kit:Q.kit,paths:ORDER.filter(p=>Q.paths.includes(p))},"q")}`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="routine"){const acts=ACTS.filter(a=>Q.paths.includes(a.pid));body=`<h1>What do you already do each week?</h1><p class="lead">Tap the days. These count as tasks, and new tasks are planned around them.</p><div class="rtable">${acts.map(a=>`<div class="rrow"><div class="rname"><span class="dot" style="--c:${PATHS[a.pid].c}"></span>${a.n}<small>about ${a.m} min</small></div><div class="rdays">${[1,2,3,4,5,6,0].map(d=>`<button class="day" data-qday="${a.id}:${d}" aria-pressed="${(Q.anchors[a.id]||[]).includes(d)}" aria-label="${a.n} on ${DAYS[d]}">${DAYS[d].slice(0,2)}</button>`).join("")}</div></div>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="time"){body=`<h1>How much time for new practice each day?</h1><p class="lead">On top of your routine. You can change it any day.</p><div class="opts">${[[15,"15 min","A small daily spark"],[30,"30 min","Steady growth"],[45,"45 min","Serious practice"],[75,"60+ min","Deep commitment"]].map(([v,l,d])=>`<button class="opt" data-qtime="${v}" aria-pressed="${Q.time===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="lore"){body=`<h1>How well do you know these stories?</h1><p class="lead">Each path has a guide from Indian stories: the Ramayana, Mahabharata and Puranas. You don’t need to be religious or know them already.</p><div class="opts">${[["well","I know them well","Skip the introductions"],["some","A little","Short intros for each guide"],["new","They’re new to me","Short intros, plus explainers along the way"]].map(([v,l,d])=>`<button class="opt" data-qlore="${v}" aria-pressed="${Q.lore===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next" ${Q.lore?"":"disabled"}>${Q.lore?"Continue":"Pick one"}</button>`}
@@ -1446,7 +1480,7 @@ function quiz(){
 }
 function finishQuiz(){
  const redo=S.paths.length>0;
- S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.mentor=Object.assign({},S.mentor||{},Q.mentor||{});applyMentors();S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
+ S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.mentor=Object.assign({},S.mentor||{},Q.mentor||{});applyMentors();S.life=Q.life||S.life;S.kitSeen=[...new Set([...(S.kitSeen||[]),...S.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1;S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
  S.paths.forEach(p=>{const k=Q.level[p]||0;if(S.prog[p].m<k)S.prog[p]={m:k,xp:0}});
  S.syn=S.syn.filter(id=>SYN.find(s=>s.id===id).p.every(p=>S.paths.includes(p)));
  SYN.forEach(s=>{if(!S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=s.req))S.syn.push(s.id)});
@@ -1525,7 +1559,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1533,6 +1567,14 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.tf){const[id,v]=d.tf.split(":");tfApply(id,v);return}
+ if(d.fit){closeLayer();FX=null;fitSheet();return}
+ if(d.flife){const[k,v]=d.flife.split(":");FX.life[k]=FX.life[k]===v?"":v;fitSheet();return}
+ if(d.fbusy){const v=+d.fbusy;FX.life.busy=FX.life.busy.includes(v)?FX.life.busy.filter(x=>x!==v):[...FX.life.busy,v];fitSheet();return}
+ if(d.fkit){const v=d.fkit;FX.kit=FX.kit.includes(v)?FX.kit.filter(x=>x!==v):[...FX.kit,v];fitSheet();return}
+ if(d.fsave){S.life=FX.life;S.kit=FX.kit;S.kitSeen=[...new Set([...(S.kitSeen||[]),...FX.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1;FX=null;closeLayer();replan("Your tasks now fit your life");return}
+ if(d.qlife){const[k,v]=d.qlife.split(":");Q.life[k]=Q.life[k]===v?"":v;quiz();return}
+ if(d.qbusy){const v=+d.qbusy;Q.life.busy=Q.life.busy.includes(v)?Q.life.busy.filter(x=>x!==v):[...Q.life.busy,v];quiz();return}
  if(d.ident){IDX=null;identSheet(d.ident);return}
  if(d.idsug!==undefined){const g=CHAR[IDX.pid];IDX.v=(IDLINES[g]||[])[+d.idsug]||"";identSheet(IDX.pid);return}
  if(d.idsave){const v=(($("#idin")||{}).value||"").trim().replace(/^I am becoming\s*/i,"").replace(/\.$/,"");S.ident=S.ident||{};if(v)S.ident[IDX.pid]=v.slice(0,90);else delete S.ident[IDX.pid];const p=IDX.pid;IDX=null;save();closeLayer();render();toast(v?`Your inner ${PATHS[p].hero} heard you`:"Line removed");return}
@@ -1635,7 +1677,7 @@ document.addEventListener("click",e=>{
  if(d.ci){const v=d.ci;
   if(v==="edit"){CIedit=true;CI=null;render();return}
   if(v==="apply"){const before=S.plan.items.filter(x=>!x.done&&(x.kind==="task"||x.kind==="anchor")).map(x=>({t:x.t,id:x.id,pid:x.pid,why:x.why}));S.check=Object.assign({},CI,{d:td()});CIedit=false;CI=null;closeLayer();replan();checkDiff(before);return}
-  const[g,x]=v.split(":");if(g==="sore"){if(x==="none")CI.sore=[];else{const i=CI.sore.indexOf(x);i<0?CI.sore.push(x):CI.sore.splice(i,1)}}else CI[g]=x;checkSheet();return}
+  const[g,x]=v.split(":");if(g==="sore"){if(x==="none")CI.sore=[];else{const i=CI.sore.indexOf(x);i<0?CI.sore.push(x):CI.sore.splice(i,1)}}else if(g==="busy")CI.busy=x==="1";else CI[g]=x;checkSheet();return}
  if(d.pathsheet){pathSheet(d.pathsheet);return}
  if(d.pathAdd){const[p,k]=d.pathAdd.split(":");addPath(p,+k);return}
  if(d.pathPause){pausePath(d.pathPause);return}
@@ -1667,7 +1709,7 @@ document.addEventListener("click",e=>{
  if(d.act==="import"){const f=$("#importf");if(f){f.value="";f.click()}return}
  if(d.act==="import-ok"){if(PENDING){stopTool();S=migrate(Object.assign(fresh(),PENDING.state),PENDING.state);PENDING=null;save();closeLayer();render();toast("Backup restored")}return}
  if(d.act==="redo"){stopTool();S.on=false;Q=null;quiz();window.scrollTo(0,0);return}
- if(d.act==="routine"){stopTool();S.on=false;Q=newQ();Q.i=qSteps().indexOf(Q.paths.includes("body")||Q.paths.includes("flex")?"kit":"routine");quiz();window.scrollTo(0,0);return}
+ if(d.act==="routine"){stopTool();S.on=false;Q=newQ();Q.i=qSteps().indexOf("routine");quiz();window.scrollTo(0,0);return}
  if(d.act==="reset"){if(!resetArm){resetArm=1;t.textContent="Tap again to erase everything";setTimeout(()=>{resetArm=0;if(t.isConnected)t.textContent="Reset everything"},3000);return}stopTool();S=fresh();Q=null;save();render();return}
  if(d.q){const n=qSteps().length;
   if(d.q==="sample"){loadSample();return}
