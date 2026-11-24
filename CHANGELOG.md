@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.34.0 · 24.11.2026
+- Journey starts with the Tree, then Paths (with companion journeys at the bottom). The Story section (epics, story trials, vows) is set aside for now while we rethink it; nothing you did there is lost, and your title now grows with path trials. Calendar is now a month view: days you practised, rest days and festivals, with a tap on any day to see what you did. Seasons removed. Settings are grouped into clear cards: You, Stories and calendar, Your data, Reminders, Help, Start over.
+
 ## 1.33.0 · 24.11.2026
 - Today, redesigned: a ring for each path with its mentor inside (tap to open the path), today's total, and a line from today's companion. Today's practice is now a day timeline: Morning, Afternoon and Evening, with the current part of the day highlighted. Tasks are placed by their nature and when you usually do them; move any task from its page. Tips appear as a small pop-up above the tabs instead of taking space at the top.
 
