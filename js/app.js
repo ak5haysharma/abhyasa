@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.8.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.9.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],trialLog:[],reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -41,7 +41,7 @@ function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.learned=o.learned||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.learned=o.learned||[];o.trialLog=o.trialLog||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -283,19 +283,55 @@ function logOther(ev){const o=OTH;if(!o)return;const pid=o.pid,t=(o.t||"").trim(
  if(o.save&&o.t.trim()){S.custom[pid]=S.custom[pid]||[];if(!S.custom[pid].some(c=>c.t===t))S.custom[pid].push({t,m:o.m});injectCustom()}
  const it={id:uid(),kind:"task",pid,t,m:o.m,load:[],why:"",done:false,own:true};const ref=PATHS[pid].pool.findIndex(x=>x.t===t);if(ref>=0)it.ref=ref;
  S.plan.items.push(it);OTH=null;closeLayer();complete(it.id,ev)}
+
+function checkDiff(before){const after=S.plan.items.filter(x=>!x.done&&(x.kind==="task"||x.kind==="anchor")),bt=before.map(x=>x.t),at=after.map(x=>x.t);
+ const gone=before.filter(x=>!at.includes(x.t)),added=after.filter(x=>!bt.includes(x.t)),flag=after.filter(x=>x.kind==="anchor"&&x.why&&/sore/.test(x.why));
+ const c=checkToday(),summ=`${E_L[c.energy]} energy · ${c.sore.length?"sore "+c.sore.map(k=>SORE_L[k]).join(", "):"no soreness"} · ${W_L[c.where].toLowerCase()}`;
+ if(!gone.length&&!added.length&&!flag.length){toast("Your plan already fits how you are today");return}
+ const row=(x,sign)=>`<div class="cdr ${sign==="+"?"add":"rem"}" style="--c:${PATHS[x.pid]?PATHS[x.pid].c:"var(--gold)"}"><span class="cds">${sign==="+"?"+":"−"}</span><span><b>${esc(x.t)}</b>${sign==="+"&&x.why?`<small>${x.why}</small>`:""}</span></div>`;
+ sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Plan fitted · ${summ}</div><h2>Here’s what changed</h2>
+ ${gone.length?`<div class="qlabel">Taken out</div>${gone.map(x=>row(x,"−")).join("")}`:""}${added.length?`<div class="qlabel">Added</div>${added.map(x=>row(x,"+")).join("")}`:""}
+ ${flag.length?`<div class="qlabel">Careful today</div>${flag.map(x=>`<div class="cdr warn"><span class="cds">!</span><span><b>${esc(x.t)}</b><small>${x.why}</small></span></div>`).join("")}`:""}
+ <button class="cta" style="width:100%;margin-top:16px" data-close="1">Got it</button>`)}
 function replan(msg){stopTool();OPEN=null;const keep=S.plan.items.filter(x=>x.done||x.kind==="trial");S.plan.items=buildPlan(keep);save();render();if(msg)toast(msg)}
 function setTime(v){S.time=v;replan(`Plan updated for ${TIMES.find(t=>t[0]===v)[1]}`)}
-function passTrial(pid){
+function passTrial(pid,feel){
  const pr=S.prog[pid],before=stage(),k=pr.m,P=PATHS[pid],sk=P.skills[k];
  pr.xp=Math.max(0,pr.xp-NEED[k]);pr.m++;activity();
  const it=S.plan.items.find(x=>x.kind==="trial"&&x.pid===pid&&!x.done);if(it){it.done=true;it.k=k}
  closeLayer();
- pushModal(`<div class="seal" style="--c:${P.c}">${sk.d.slice(0,1)}</div><div class="kick">${P.name} · New skill</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p><div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
+ beep(523,.15);setTimeout(()=>beep(659,.15),150);setTimeout(()=>beep(784,.35),300);
+ pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
  SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
  const after=stage();if(after>S.seen){S.seen=after;pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div><h2>${RANKS[after][0]}<span class="dev">${RANKS[after][1]}</span></h2>${enLine(RANKS[after][0])}<p>You started as a simple seeker. Look how far you have come.</p>`)}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
  save();render();
 }
+
+
+/* ================= trial ceremony ================= */
+const FEEL=[["hard","Hard won"],["steady","Steady"],["easy","Easier than expected"]],HELP=[["practice","Daily practice"],["rest","Rest and recovery"],["people","People around me"],["focus","Focus"],["guide","The guides and tasks"]];
+const FEEL_REPLY={hard:"Hard-won strength is the kind that stays with you.",steady:"Steady is how every great journey is walked.",easy:"Easy now, because you prepared. Choose a bigger test next time."};
+let CER=null;
+function ceremony(pid,step){const P=PATHS[pid],k=S.prog[pid].m,sk=P.skills[k],g=CHAR[pid],pp=PEOPLE[g];if(!CER||CER.pid!==pid)CER={pid,feel:"",help:[],note:""};
+ if(step===0)sheet(P.c,`<div class="cer-h">${medal(pid,"lg")}<div><div class="kick">${P.name} trial ${k+1} of 5</div><h2>${trialText(pid)}</h2></div></div>
+ <p class="cer-q">${pp.n} asks: before you claim <b>${sk.n}</b>, look back for a moment.</p>
+ <div class="qlabel">How did it feel?</div><div class="cchips">${FEEL.map(([v,l])=>`<button class="chip" data-cer="feel:${v}" aria-pressed="${CER.feel===v}">${l}</button>`).join("")}</div>
+ <div class="qlabel">What got you here?</div><div class="cchips">${HELP.map(([v,l])=>`<button class="chip" data-cer="help:${v}" aria-pressed="${CER.help.includes(v)}">${l}</button>`).join("")}</div>
+ <label class="qlabel" for="cernote" style="display:block">One thing you learned (optional)</label><input class="name" id="cernote" maxlength="120" placeholder="For example: rest days made me stronger" value="${esc(CER.note)}" style="font-size:16px">
+ <div class="row" style="margin-top:16px"><button class="cta alt" data-close="1">Not yet</button><button class="cta" data-cer="next" ${CER.feel?"":"disabled"}>${CER.feel?"Continue":"Pick how it felt"}</button></div>`);
+ else sheet(P.c,`<div class="cer-h">${medal(pid,"lg")}<div><div class="kick">Your word</div><h2>Did you truly pass?</h2></div></div><div class="box"><small>The trial</small>${trialText(pid)}</div>
+ <p class="cer-q">There is no one checking. Like Rama, keep your word, even to yourself. Passing unlocks <b>${sk.n}</b>${EN[sk.n]?`, ${EN[sk.n].toLowerCase()}`:""}, and can’t be undone.</p>
+ <div class="row"><button class="cta alt" data-cer="back">Not yet</button><button class="cta" data-cer="pass">Yes, I passed</button></div>`);
+ const n=$("#cernote");if(n)n.addEventListener("input",e=>CER.note=e.target.value)}
+function cerCmd(v){if(!CER)return;const n=$("#cernote");if(n)CER.note=n.value;const[k,x]=v.split(":");
+ if(k==="feel"){CER.feel=x;ceremony(CER.pid,0);return}
+ if(k==="help"){const i=CER.help.indexOf(x);i<0?CER.help.push(x):CER.help.splice(i,1);ceremony(CER.pid,0);return}
+ if(k==="next"){if(CER.feel)ceremony(CER.pid,1);return}
+ if(k==="back"){ceremony(CER.pid,0);return}
+ if(k==="pass"){const c=CER;S.trialLog.push({pid:c.pid,k:S.prog[c.pid].m,d:td(),feel:c.feel,help:c.help,note:(c.note||"").trim().slice(0,120)});CER=null;passTrial(c.pid,c.feel)}}
+function unlockArt(pid,sk){const c=TREEC[pid]||"#f5c76a";let rays="";for(let i=0;i<16;i++){const a=i*22.5;rays+=`<path d="M0 -46 L4 -88 L-4 -88Z" transform="rotate(${a})" fill="${c}" opacity=".55"/>`}
+ return `<svg class="unl" viewBox="-100 -100 200 200" aria-hidden="true"><g class="unl-rays">${rays}</g><circle class="unl-ring" r="52" fill="none" stroke="${c}" stroke-width="3"/><circle class="unl-seal" r="40" fill="${c}"/><text class="unl-seal" y="14" text-anchor="middle" font-size="40" font-family="Tiro Devanagari Hindi,serif" fill="#14182e">${sk.d.slice(0,1)}</text></svg>`}
 
 /* ================= art ================= */
 const K="#1d1f26";
@@ -961,18 +997,18 @@ function loadSample(){
 
 /* ================= sheets ================= */
 function sheet(c,h){openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true">${h}</div></div>`)}
-function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid];
+function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid],rf=(S.trialLog||[]).filter(x=>x.pid===pid&&x.k===k).pop();
  sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
  <div class="box"><small>Trial to earn it</small>${trialFor(pid,k)}</div>
  <div class="box">${on?"Earned.":k===pr.m?`In progress: ${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth.`:"Locked."}</div>
- <button class="cta" style="width:100%" data-close="1">Close</button>`)}
+ ${rf?`<div class="box"><small>Your reflection · ${rf.d.split("-").reverse().join(".")}</small>${FEEL.find(f=>f[0]===rf.feel)?.[1]||""}${rf.help.length?` · helped by ${rf.help.map(h=>HELP.find(x=>x[0]===h)[1].toLowerCase()).join(", ")}`:""}${rf.note?`<br>“${esc(rf.note)}”`:""}</div>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function synSheet(id){const s=SYN.find(x=>x.id===id),un=S.syn.includes(id);
  sheet("var(--gold)",`<div class="kick">Bridge · ${s.p.map(p=>PATHS[p].name).join(" + ")}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
  <div class="box"><small>Opens when</small>${s.p.map(p=>`${PATHS[p].name}: ${Math.min(S.prog[p].m,s.req)} of ${s.req} trials`).join("<br>")}</div>
  <div class="box"><small>Effect</small>+10% growth on ${s.p.map(p=>PATHS[p].name).join(" and ")}, plus a daily bridge task: ${s.q.toLowerCase()}</div>
  <div class="box">${un?"Open.":"Locked."}</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-story="${id}">${un?"Watch the story":"Preview the story"}</button></div>`)}
-function trialSheet(pid,confirm){const P=PATHS[pid],k=S.prog[pid].m,s=P.skills[k];
+function trialSheet(pid,confirm){if(confirm){ceremony(pid,0);return}const P=PATHS[pid],k=S.prog[pid].m,s=P.skills[k];
  sheet(P.c,confirm?`<div class="kick">Confirm</div><h2>Did you pass?</h2><div class="box">${trialText(pid)}</div><p class="mute">This unlocks ${s.n}${EN[s.n]?` (${EN[s.n].toLowerCase()})`:""} and cannot be undone. Only you know if it’s true.</p><div class="row"><button class="cta alt" data-close="1">Not yet</button><button class="cta" data-pass="${pid}">Yes, I passed</button></div>`
  :`<div class="kick">${P.name} trial ${k+1}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p><div class="box"><small>The test</small>${trialText(pid)}</div><p class="mute">Your meter is full, so you’re ready. Do this in real life, then mark it here. Daily tasks still add growth while you prepare.</p><button class="cta" style="width:100%" data-close="1">Got it</button>`)}
 
@@ -1016,13 +1052,14 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
+ if(d.cer){cerCmd(d.cer);return}
  if(d.learn){learnHub();return}
  if(d.pack){closeLayer();playPack(d.pack,()=>learnHub());return}
  if(d.who){whoSheet();return}
@@ -1060,7 +1097,7 @@ document.addEventListener("click",e=>{
  if(d.ttap){toolTap(d.ttap);return}
  if(d.ci){const v=d.ci;
   if(v==="edit"){CIedit=true;CI=null;render();return}
-  if(v==="apply"){S.check=Object.assign({},CI,{d:td()});CIedit=false;CI=null;closeLayer();replan("Plan fitted to how you are today");return}
+  if(v==="apply"){const before=S.plan.items.filter(x=>!x.done&&(x.kind==="task"||x.kind==="anchor")).map(x=>({t:x.t,id:x.id,pid:x.pid,why:x.why}));S.check=Object.assign({},CI,{d:td()});CIedit=false;CI=null;closeLayer();replan();checkDiff(before);return}
   const[g,x]=v.split(":");if(g==="sore"){if(x==="none")CI.sore=[];else{const i=CI.sore.indexOf(x);i<0?CI.sore.push(x):CI.sore.splice(i,1)}}else CI[g]=x;checkSheet();return}
  if(d.pathsheet){pathSheet(d.pathsheet);return}
  if(d.pathAdd){const[p,k]=d.pathAdd.split(":");addPath(p,+k);return}

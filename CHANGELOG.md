@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.0 · 24.11.2026
+- Trial ceremony: your guide asks how it felt and what helped, then an honest 'Did you truly pass?', then a skill-unlock animation with a chime and a reply from your guide. Reflections are kept on each skill. Check-in feedback: after 'Fit my plan', a summary of what was taken out, what was added and why, and which routines to take carefully.
+
 ## 1.8.0 · 24.11.2026
 - Explainer pack: a Learn hub with 5 two-minute swipe guides (How Abhyasa works, The Ramayana, The Mahabharata, The old texts, Living the journey), a Who's who of about 35 figures, and the glossary. A Start here card sits on Today until you've finished the guides, and new users get the tour after setup.
 
