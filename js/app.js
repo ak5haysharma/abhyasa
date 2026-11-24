@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.29.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.30.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,7 +50,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},ink:[],hideInk:false,enemies:[],enLog:{},ident:{},pvals:[],pshare:false,hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},ink:[],hideInk:false,enemies:[],enLog:{},rest:[],ident:{},pvals:[],pshare:false,hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S),S);
@@ -83,8 +83,10 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 
 (function(){
  if(!S.last)return;const g=diff(S.last,td());if(g<=1)return;
+ const R=(S.rest||[]).map(r=>r.d);let miss=0;{const a=new Date(S.last+"T12:00:00");for(let i=1;i<g;i++){const d=new Date(a);d.setDate(a.getDate()+i);if(!R.includes(d.toLocaleDateString("en-CA")))miss++}}
+ if(miss===0){const y=new Date();y.setDate(y.getDate()-1);S.last=y.toLocaleDateString("en-CA");save();return}
  const wk=weekKey();if(S.shieldUsed.w!==wk)S.shieldUsed={w:wk,n:0};
- if(g===2&&S.shieldUsed.n<shieldsAllowed()){S.shieldUsed.n++;const y=new Date();y.setDate(y.getDate()-1);S.last=y.toLocaleDateString("en-CA");setTimeout(()=>toast("A streak shield saved your streak"),700)}
+ if(miss===1&&S.shieldUsed.n<shieldsAllowed()){S.shieldUsed.n++;const y=new Date();y.setDate(y.getDate()-1);S.last=y.toLocaleDateString("en-CA");setTimeout(()=>toast("A streak shield saved your streak"),700)}
  else S.streak=0;save();
 })();
 
@@ -330,7 +332,7 @@ function passTrial(pid,feel){
  const it=S.plan.items.find(x=>x.kind==="trial"&&x.pid===pid&&!x.done);if(it){it.done=true;it.k=k}
  closeLayer();
  beep(523,.15);setTimeout(()=>beep(659,.15),150);setTimeout(()=>beep(784,.35),300);
- pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2><p class="aw-line">Your inner ${P.hero} is now <b>${AWAKE[Math.min(5,k+1)]}</b></p>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
+ pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2><p class="aw-line">Your inner ${P.hero} is now <b>${AWAKE[Math.min(5,k+1)]}</b></p>${enLine(sk.n)}<p>${skS(pid,sk,k)}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
  SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
  {const a2=stAvail();if(a2>=0&&SS().nt!==a2){SS().nt=a2;pushModal(`<div class="flame big" style="margin:0 auto">${DIYA}</div><div class="kick">A story trial awaits · Book ${a2+1}</div><h2>${STRIALS[a2].n}<span class="dev">${STRIALS[a2].d}</span></h2><p>${STRIALS[a2].theme} Pass it to become ${ARC_RANK[Math.min(6,a2+1)][0]}.</p><button class="cta" style="width:100%" data-st="open">See the trial</button>`)}}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
@@ -980,7 +982,7 @@ Object.assign(ICO,{gear:`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.
 const srow=(icon,title,sub,attr,cls)=>`<button class="srow${cls?" "+cls:""}" ${attr}><span class="sri">${ic(icon)}</span><span><b>${title}</b>${sub?`<small>${sub}</small>`:""}</span><span class="srar">›</span></button>`;
 function settingsSheet(){const y=$(".sheet")?$(".sheet").scrollTop:0;
  sheet("var(--ink)",`<div class="setg" data-set="1"><h2>Settings</h2><p class="sub">Abhyasa has no account. Everything is saved on this phone only.</p>
- <div class="sgrp"><small>You</small>${srow("user","Paths and focus",`${sel().length} of ${MAXP} paths`,'data-focus-manage="1"')}${srow("sun","Your life and kit","Space, busy days, equipment",'data-fit="1"')}${srow("path","Weekly routine","What you already do",'data-act="routine"')}${srow("hero","Retake setup","Answer all questions again",'data-act="redo"')}${srow("warn","Your inner enemies",myEnemies().length?myEnemies().map(e=>e.antN).join(", "):"Not chosen yet",'data-enpick="1"')}</div>
+ <div class="sgrp"><small>You</small>${srow("user","Paths and focus",`${sel().length} of ${MAXP} paths`,'data-focus-manage="1"')}${srow("sun","Your life and kit","Space, busy days, equipment",'data-fit="1"')}${srow("path","Weekly routine","What you already do",'data-act="routine"')}${srow("moon","Rest days",(S.rest||[]).filter(r=>r.d>=td()).length?`${(S.rest||[]).filter(r=>r.d>=td()).length} planned`:"Plan a day off without losing your streak",'data-rest="1"')}${srow("hero","Retake setup","Answer all questions again",'data-act="redo"')}${srow("warn","Your inner enemies",myEnemies().length?myEnemies().map(e=>e.antN).join(", "):"Not chosen yet",'data-enpick="1"')}</div>
  <div class="sgrp"><small>Stories</small>${srow("learn","Learn","The app and the stories behind it",'data-learn="1"')}${srow("book","Glossary","Every term used in the app",'data-gloss="1"')}
   <div class="sin"><b>How well you know the stories</b><div class="cchips">${[["well","Well"],["some","A little"],["new","New to me"]].map(([k,l])=>`<button class="chip" data-lore="${k}" aria-pressed="${S.lore===k}">${l}</button>`).join("")}</div></div>
   <div class="sin"><b>Calendar</b><div class="cchips">${[["indian","Indian festivals"],["seasons","Seasons"],["none","None"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div></div>
@@ -1027,6 +1029,24 @@ function enemySheet(k){const e=EN_(k);if(!e)return;const W=enWeeks(k),won=W.filt
  <div class="qlabel">Mentors who stand against ${e.antN}</div><div class="enh">${help.map(p=>`<span>${medalG(Object.keys(PEOPLE).find(g=>PEOPLE[g]===p),"xs")}${p.n}</span>`).join("")}</div>
  <button class="cta alt" style="width:100%;margin-top:14px" data-enpick="1">Change my inner enemies</button>`)}
 function enemyBlock(){const E=myEnemies();return `<div class="block"><h2>Inner enemies</h2>${E.length?`<div class="enl">${E.map(e=>{const W=enWeeks(e.k);return `<button class="enrow" data-enemy="${e.k}"><span class="medal sm" style="--c:#6b1f2a">${portrait(e.ant)}</span><span><b>${e.antN}</b><small>${e.n} · ${e.en}${W.length?` · ${W.filter(x=>x==="won").length} of ${W.length} weeks won`:""}</small></span><span class="srar">›</span></button>`}).join("")}</div>`:`<p class="sub">Name what holds you back, and your weekly review will check in on it.</p>`}<button class="cta alt" style="width:100%;margin-top:8px" data-enpick="1">${E.length?"Change":"Choose your inner enemies"}</button></div>`}
+// Skill stories were written for each path's first mentor. With another mentor, credit the story and add their own voice.
+function skS(pid,sk,k){const g=CHAR[pid],g0=CHAR0[pid];if(g===g0||!sk)return sk?sk.s:"";const L=MLINES[g]||[];return `${sk.s} <span class="mute">(From ${PEOPLE[g0].n}’s story.)</span>${L.length?`<span class="skv"><b>Your inner ${PEOPLE[g].n}:</b> “${L[k%L.length]}”</span>`:""}`}
+/* ================= comeback + rest days (v1.30) ================= */
+const REASONS_R=[["rest","Just rest"],["travel","Travelling"],["sick","Unwell"],["family","Family day"],["busy","Too much work"]];
+const isRest=d=>(S.rest||[]).some(r=>r.d===d);
+const restOf=d=>(S.rest||[]).find(r=>r.d===d);
+const restsInWeek=d=>{const m=monOf(d),e=addD(m,6);return (S.rest||[]).filter(r=>r.d>=m&&r.d<=e).length};
+let RS=null;
+function restSheet(){RS=RS||{days:(S.rest||[]).filter(r=>r.d>=td()).map(r=>r.d),why:"rest"};const ds=Array.from({length:7},(_,i)=>addD(td(),i));
+ const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Rest days</div><h2>Plan a rest day</h2><p class="sub">Rest is part of practice. On a planned rest day nothing is required, and your streak is safe. Up to 2 per week.</p>
+ <div class="qlabel">Which days?</div><div class="cchips">${ds.map((d,i)=>`<button class="chip" data-rday="${d}" aria-pressed="${RS.days.includes(d)}">${i===0?"Today":i===1?"Tomorrow":DAYS[new Date(d+"T12:00:00").getDay()].slice(0,3)+" "+d.slice(8)}</button>`).join("")}</div>
+ <div class="qlabel">Why? (optional)</div><div class="cchips">${REASONS_R.map(([k,l])=>`<button class="chip" data-rwhy="${k}" aria-pressed="${RS.why===k}">${l}</button>`).join("")}</div>
+ <button class="cta" style="width:100%;margin-top:14px" data-rsave="1">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y}
+function restBanner(){const r=restOf(td());if(!r)return "";const L=(REASONS_R.find(x=>x[0]===r.why)||[0,"Rest"])[1];return `<div class="restb"><b>Rest day · ${L}</b><span>Nothing is required today, and your streak is safe. If you feel like it, one small task still counts.</span></div>`}
+function comebackCheck(){if(!S.on||!S.last)return;const g=diff(S.last,td());if(g<3||S.cbk===td())return;let miss=0;for(let d=addD(S.last,1);d<td();d=addD(d,1))if(!isRest(d))miss++;if(miss<2)return;
+ S.cbk=td();save();const pid=companionPid()||sel()[0];if(!pid)return;const g0=CHAR[pid],pp=PEOPLE[g0];
+ const lines=[`Rama spent fourteen years in the forest. ${miss} days is nothing.`,`Even Vishwamitra began again many times. Today is one of those times.`,`I am still here. One small task, and we walk again.`,`The river does not stop because a stone fell in. Neither do you.`];
+ pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="color:${PATHS[pid].c}">${pp.n} · welcome back</div><h2>“${lines[dayNum(td())%lines.length]}”</h2><p>You were away for ${miss} days. Nothing is lost: your paths, gear, marks and story are all here. Today’s plan is lighter, so one task is enough to light the lamp again.</p><button class="cta" style="width:100%" data-cbgo="1">Start small</button>`)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -1347,6 +1367,7 @@ function render(){
  save();
  if(S.deck!==td()&&!$(".scrim")&&!queue.length)setTimeout(()=>{if(S.on&&S.deck!==td()&&!$(".scrim"))openDeck()},300);
  else epicCheck();
+ if(v==="today"&&!$(".scrim")&&!queue.length)comebackCheck();
 }
 function header(title,sub){return `<header class="bar"><div class="wrap"><div class="hgreet">${sub?`<small>${sub}</small>`:""}<b>${title||"Abhyasa"}</b></div><button class="spill" data-streak="1" aria-label="${S.streak} day streak. Open streak details">${DIYA}${S.streak}</button><button class="ibtn" data-settings="1" aria-label="Settings">${ic("gear")}</button></div></header>`}
 function tabs(){return `<nav class="tabs" aria-label="Main"><div class="wrap">${[["today","Today","sun"],["journey","Journey","path"],["hero","Hero","hero"]].map(([k,l,i])=>`<button data-view="${k}" ${S.view===k?'aria-current="page"':""}>${ic(i)}<span>${l}</span></button>`).join("")}</div></nav>`}
@@ -1447,7 +1468,7 @@ function exPanel(key){const el=$("#expanel");if(!el)return;if(!key){el.innerHTML
   const state=on?`<span class="exst on" style="--c:${c}">Earned</span>`:nx?`<span class="exst nx" style="--c:${c}">${full?"Trial ready":"In progress"}</span>`:`<span class="exst">Locked</span>`;
   const eta=on?"":etaText(pid,k),prog=nx?`<div class="exbar" style="--c:${c}"><i style="width:${Math.min(100,pr.xp/NEED[k]*100)}%"></i></div><p class="exp-m">${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth · ${eta}</p>`:eta?`<p class="exp-m">${eta}</p>`:"";
   el.innerHTML=`<div class="exp-k" style="color:${c}">${P.name} · skill ${k+1} of 5 · with ${P.hero}</div><div class="exp-h"><b>${sk.n}</b><span class="dev">${sk.d}</span>${state}</div>${EN[sk.n]?`<p class="exp-en">${EN[sk.n]}</p>`:""}
-  <p class="exp-s">${sk.s}</p>${prog}
+  <p class="exp-s">${skS(pid,sk,k)}</p>${prog}
   <div class="exgrid"><div><small>Effect</small>${PERK[sk.perk](P.name)}</div><div><small>${on?"Trial passed":"Trial"}</small>${trialFor(pid,k)}</div>${sk.item?`<div><small>Gift</small>${sk.itemName||sk.n}</div>`:""}${!on&&!nx?`<div><small>Unlocks after</small>${P.skills[k-1].n}</div>`:""}</div>
   <div class="exnav"><button class="ex-b" data-ex="prev" ${k===0?"disabled":""} aria-label="Previous skill">‹</button><button class="ex-b" data-ex="next" ${k===4?"disabled":""} aria-label="Next skill">›</button>${L.length>1?`<button class="ex-b wide" data-ex="branch">⇄ Next branch</button>`:""}${full?`<button class="ex-b wide pri" data-trial="${pid}">I passed</button>`:""}</div>`;return}
  if(type==="syn"){const sy=SYN.find(x=>x.id===a),un=S.syn.includes(a);
@@ -1539,8 +1560,8 @@ function todayView(){
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
  ${todayHead()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
- ${stStepRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
- <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
+ ${restBanner()}${stStepRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
+ <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div><button class="linkbtn restl" data-rest="1">${isRest(addD(td(),1))?"Tomorrow is a rest day · change":"Plan a rest day"}</button></div>`}
 
 /* ================= layout v2: Journey ================= */
 function dayMinsBy(d){const by={};S.log.filter(l=>l.d===d&&l.pid!=="bridge").forEach(l=>{by[l.pid]=(by[l.pid]||0)+logMin(l)});return by}
@@ -1649,7 +1670,7 @@ function finishQuiz(){
 /* ================= sheets ================= */
 let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`);const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
 function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid],rf=(S.trialLog||[]).filter(x=>x.pid===pid&&x.k===k).pop();
- sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
+ sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${skS(pid,s,k)}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
  <div class="box"><small>Trial to earn it</small>${trialFor(pid,k)}</div>
  <div class="box">${on?"Earned.":k===pr.m?`In progress: ${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth.`:"Locked."}</div>
@@ -1661,7 +1682,7 @@ function synSheet(id){const s=SYN.find(x=>x.id===id),un=S.syn.includes(id);
  <div class="box">${un?"Open.":"Locked."}</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-story="${id}">${un?"Watch the story":"Preview the story"}</button></div>`)}
 function trialSheet(pid,confirm){if(confirm){ceremony(pid,0);return}const P=PATHS[pid],k=S.prog[pid].m,s=P.skills[k];
  sheet(P.c,confirm?`<div class="kick">Confirm</div><h2>Did you pass?</h2><div class="box">${trialText(pid)}</div><p class="mute">This unlocks ${s.n}${EN[s.n]?` (${EN[s.n].toLowerCase()})`:""} and cannot be undone. Only you know if it’s true.</p><div class="row"><button class="cta alt" data-close="1">Not yet</button><button class="cta" data-pass="${pid}">Yes, I passed</button></div>`
- :`<div class="kick">${P.name} trial ${k+1}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p><div class="box"><small>The test</small>${trialText(pid)}</div><p class="mute">Your meter is full, so you’re ready. Do this in real life, then mark it here. Daily tasks still add growth while you prepare.</p><button class="cta" style="width:100%" data-close="1">Got it</button>`)}
+ :`<div class="kick">${P.name} trial ${k+1}</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${skS(pid,s,k)}</p><div class="box"><small>The test</small>${trialText(pid)}</div><p class="mute">Your meter is full, so you’re ready. Do this in real life, then mark it here. Daily tasks still add growth while you prepare.</p><button class="cta" style="width:100%" data-close="1">Got it</button>`)}
 
 
 /* ================= app shell: install, backup, updates ================= */
@@ -1705,7 +1726,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1713,6 +1734,11 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.rest){closeLayer();RS=null;restSheet();return}
+ if(d.rday){const v=d.rday;if(RS.days.includes(v))RS.days=RS.days.filter(x=>x!==v);else{const wk=monOf(v),cnt=RS.days.filter(x=>monOf(x)===wk).length+(S.rest||[]).filter(r=>r.d<td()&&monOf(r.d)===wk).length;if(cnt>=2){toast("Up to 2 rest days per week");return}RS.days=[...RS.days,v]}restSheet();return}
+ if(d.rwhy){RS.why=d.rwhy;restSheet();return}
+ if(d.rsave){S.rest=[...(S.rest||[]).filter(r=>r.d<td()),...RS.days.map(x=>({d:x,why:RS.why}))].filter(r=>diff(r.d,td())<=60);RS=null;save();closeLayer();render();toast(S.rest.some(r=>r.d>=td())?"Rest planned. Your streak is safe":"No rest days planned");return}
+ if(d.cbgo){closeLayer();const D=dctx();D.short=true;replan("A lighter plan for today. One task is enough");return}
  if(d.enpick){closeLayer();EPK=null;enemyPick();return}
  if(d.enp){const v=d.enp;EPK=EPK.includes(v)?EPK.filter(x=>x!==v):EPK.length<2?[...EPK,v]:(toast("Pick up to 2"),EPK);enemyPick();return}
  if(d.ensave){S.enemies=EPK;EPK=null;onbDone("enemy");save();closeLayer();render();if(S.enemies.length)toast(`Named. ${S.enemies.map(k=>EN_(k).antN).join(" and ")} will be checked each week`);return}

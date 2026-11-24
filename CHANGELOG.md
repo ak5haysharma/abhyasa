@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.30.0 · 24.11.2026
+- Welcome back: after 2 or more missed days, today's mentor greets you without guilt and the plan gets lighter, so one task is enough. Plan rest days (up to 2 a week) from Today or Settings: nothing is required that day and your streak is safe. Skill stories now credit their original mentor and add a line from the mentor you chose.
+
 ## 1.29.0 · 24.11.2026
 - The six inner enemies (Shadripu): craving (Ravana), anger (Hiranyakashipu), greed (Shakuni), blind attachment (Dhritarashtra), pride (Mahishasura) and envy (Duryodhana). Each is shown as a great figure undone by one weakness, with how it shows up today, tips and the mentors who stand against it. Pick up to 2 (a daily question, Settings or Hero > Collection); the weekly review asks 'Did it win this week?' and keeps a record of your wins.
 

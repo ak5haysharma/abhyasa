@@ -970,3 +970,6 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .enh{display:flex;flex-wrap:wrap;gap:8px}.enh span{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 3px;font-size:13px;font-weight:600}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .encard.on{background:#3a2024}}
 :root[data-theme="dark"] .encard.on{background:#3a2024}
+.skv{display:block;margin-top:8px;font-style:normal}
+.restb{background:var(--surface);border:1.5px solid var(--gold);border-radius:14px;padding:10px 12px;margin:8px 0}.restb b{display:block;font-size:15px}.restb span{font-size:13.5px;color:var(--mute)}
+.restl{display:block;margin:6px auto 0;font-size:13px;color:var(--mute)}
