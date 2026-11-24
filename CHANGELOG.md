@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.1 · 24.11.2026
+- New skill tree: a night-sky constellation with glowing branches, energy flowing along unlocked skills, Devanagari skill letters, guide portraits at branch tips, gold bridges and a turning lotus mandala at the centre.
+
 ## 1.5.0 · 24.11.2026
 - New layout: Today has activity rings, a swipeable card strip and a compact task list with guides in a sheet. Journey has Paths, Tree and Calendar tabs, with path cards showing progress and 7-day sparklines. Hero has Hero, Stats, Collection and More tabs, with a 7-day chart and a 5-week heatmap.
 

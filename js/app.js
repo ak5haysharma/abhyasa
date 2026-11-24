@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.5.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.5.1";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -650,33 +650,46 @@ function companionCard(){const t=td(),pid=companionPid(t);if(!pid)return"";const
  return `<div class="comp ${st}" style="--c:${PATHS[pid].c}"><div class="cmain"><span class="cav">${medal(pid)}</span><div class="ctext"><small>Today’s companion · ${pp.n}</small><b>${body}</b><div class="track"><i style="width:${tasks.length?done/tasks.length*100:0}%"></i></div><span class="cmeta">${done} of ${tasks.length} tasks · chapter ${CHAPTERS[g].indexOf(C)+1} of ${CHAPTERS[g].length}</span></div></div>${btn?`<div class="cact">${btn}</div>`:""}${ret}</div>`}
 function eveCard(){const t=td(),d=S.days[t];if(S.closed===t)return `<div class="evedone">Day closed${d&&d.mood?` · ${MOODS.find(m=>m[0]===d.mood)[1].toLowerCase()}`:""}${d&&d.note?` · “${esc(d.note)}”`:""}</div>`;
  return `<button class="evecard${new Date().getHours()>=17?" late":""}" data-eve="1"><span class="moon">${ic("moon")}</span><span><b>Close your day</b><small>How it felt, and one line. Your companion sets out tonight.</small></span></button>`}
+const TREEC={body:"#ff8a65",flex:"#5ec8dc",bonds:"#5cd6a2",love:"#f490a6",learn:"#8db2ff",focus:"#b39cff",music:"#ee93dc",calm:"#b4dc72"},TGOLD="#f5c76a";
 function treeSvg(){
- const L=sel(),C=[200,212],ANG=Object.fromEntries(L.map((p,i)=>[p,-90+i*360/L.length])),pos=(p,j,r)=>{const a=ANG[p]*Math.PI/180,rr=r??(62+j*29);return[C[0]+rr*Math.cos(a),C[1]+rr*Math.sin(a)]};
- let s=`<defs><clipPath id="mc"><circle cx="60" cy="60" r="57"/></clipPath></defs>`;
- SYN.filter(x=>x.p.length===2).forEach(b=>{
-  if(!b.p.every(p=>S.paths.includes(p)))return;
-  const a1=ANG[b.p[0]],a2=ANG[b.p[1]];let mid=(a1+a2)/2;if(Math.abs(a1-a2)>180)mid+=180;
-  const m=[C[0]+112*Math.cos(mid*Math.PI/180),C[1]+112*Math.sin(mid*Math.PI/180)],un=S.syn.includes(b.id);
-  b.p.forEach(p=>{const q=pos(p,b.req-1),met=S.prog[p].m>=b.req;s+=`<path d="M${q[0]} ${q[1]} Q${(q[0]+m[0])/2+(C[0]-(q[0]+m[0])/2)*.25} ${(q[1]+m[1])/2+(C[1]-(q[1]+m[1])/2)*.25} ${m[0]} ${m[1]}" fill="none" stroke="${met?PATHS[p].c:"var(--faint)"}" stroke-width="${met?2.5:1.5}" ${met?"":'stroke-dasharray="4 5"'}/>`});
-  s+=`<g class="tn" data-syn="${b.id}" tabindex="0" role="button" aria-label="Bridge ${b.n}"><circle cx="${m[0]}" cy="${m[1]}" r="20" fill="transparent"/><rect x="${m[0]-9}" y="${m[1]-9}" width="18" height="18" rx="3" transform="rotate(45 ${m[0]} ${m[1]})" fill="${un?"var(--gold)":"var(--surface)"}" stroke="${un?"var(--gold)":"var(--faint)"}" stroke-width="1.8"/><text x="${m[0]}" y="${m[1]+28}" text-anchor="middle" font-size="12" font-weight="500" fill="${un?"var(--gold)":"var(--mute)"}" stroke="var(--surface)" stroke-width="4" paint-order="stroke" font-family="Inter,sans-serif">${b.n}</text></g>`;
- });
- L.forEach(p=>{
-  const on=S.paths.includes(p),P=PATHS[p],pr=S.prog[p],end=pos(p,4);
-  s+=`<line x1="${C[0]}" y1="${C[1]}" x2="${end[0]}" y2="${end[1]}" stroke="var(--line)" stroke-width="2" ${on?"":'stroke-dasharray="3 6"'}/>`;
-  if(!on){const t=pos(p,0,200);s+=`<text x="${t[0]}" y="${t[1]+4}" text-anchor="middle" font-size="12" fill="var(--faint)" font-family="Inter,sans-serif">${P.name} · not chosen</text>`;return}
-  if(pr.m>0){const u=pos(p,Math.min(pr.m,5)-1);s+=`<line x1="${C[0]}" y1="${C[1]}" x2="${u[0]}" y2="${u[1]}" stroke="${P.c}" stroke-width="3.5" stroke-linecap="round"/>`}
-  for(let j=0;j<5;j++){const[x,y]=pos(p,j);let n=`<g class="tn pop" style="animation-delay:${(j*.08+L.indexOf(p)*.05).toFixed(2)}s" data-skill="${p}:${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${P.skills[j].n}"><circle cx="${x}" cy="${y}" r="16" fill="transparent"/>`;
-   if(j<pr.m)n+=`<circle cx="${x}" cy="${y}" r="11" fill="${P.c}"/><path d="M${x-4} ${y} l3 3 l5 -6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-   else if(j===pr.m){const f=(75.4*Math.min(1,pr.xp/NEED[j])).toFixed(1);n+=`<circle class="pulse" cx="${x}" cy="${y}" r="12" fill="none" stroke="${P.c}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="12" fill="var(--surface)" stroke="var(--line)" stroke-width="3"/><circle cx="${x}" cy="${y}" r="12" fill="none" stroke="${P.c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${f} 75.4" transform="rotate(-90 ${x} ${y})"/><circle cx="${x}" cy="${y}" r="4" fill="${P.c}"/>`}
-   else n+=`<circle cx="${x}" cy="${y}" r="7" fill="var(--surface)" stroke="var(--faint)" stroke-width="1.8"/>`;
-   s+=n+`</g>`}
-  const t=pos(p,0,198),cos=Math.cos(ANG[p]*Math.PI/180),mp=pos(p,0,228);
-  s+=`<g transform="translate(${mp[0]-15} ${mp[1]-15}) scale(.25)"><circle cx="60" cy="60" r="60" fill="var(--surface)" stroke="${P.c}" stroke-width="6"/><g clip-path="url(#mc)">${portraitG(CHAR[p])}</g></g>`;
-  s+=`<text x="${t[0]}" y="${t[1]+(ANG[p]<0?-2:14)}" text-anchor="${Math.abs(cos)<.3?"middle":cos>0?"end":"start"}" font-family="Literata,serif" font-weight="600" font-size="16" fill="${P.c}" stroke="var(--surface)" stroke-width="5" paint-order="stroke" stroke-linejoin="round">${P.name}<tspan font-family="Inter,sans-serif" font-weight="400" font-size="12" fill="var(--mute)"> · ${P.hero}</tspan></text>`;
- });
+ const L=sel(),n=L.length,CX=200,CY=220,base=Object.fromEntries(L.map((p,i)=>[p,-90+i*360/Math.max(1,n)]));
+ const pos=(p,j)=>{const a=(base[p]+j*7)*Math.PI/180,r=58+j*30;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]};
+ const tip=(p,r)=>{const a=(base[p]+30)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]};
+ const f1=v=>v.toFixed(1),line=pts=>"M"+pts.map(q=>f1(q[0])+" "+f1(q[1])).join(" L");
+ let g=`<defs><radialGradient id="tbg" cx="50%" cy="48%" r="70%"><stop offset="0" stop-color="#26305e"/><stop offset=".55" stop-color="#151a38"/><stop offset="1" stop-color="#0b0e20"/></radialGradient>
+ <filter id="tglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="tglow2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter>
+ <clipPath id="mc"><circle cx="60" cy="60" r="57"/></clipPath></defs>
+ <rect x="-60" y="-60" width="520" height="560" fill="url(#tbg)"/>`;
+ let seed=11;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+ for(let i=0;i<70;i++){const x=rnd()*460-30,y=rnd()*500-30,r=rnd()*1.3+.3;g+=`<circle class="${i%4?"":"twk"}" style="animation-delay:${f1(rnd()*4)}s" cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#fff" opacity="${f1(rnd()*.5+.15)}"/>`}
+ // bridges
+ SYN.filter(x=>x.p.length===2&&x.p.every(p=>S.paths.includes(p))).forEach(b=>{const[a,c]=b.p,q1=pos(a,b.req-1),q2=pos(c,b.req-1),un=S.syn.includes(b.id);
+  const mx=(q1[0]+q2[0])/2,my=(q1[1]+q2[1])/2,k=-.55,cx=mx+(CX-mx)*k,cy=my+(CY-my)*k,mid=[(q1[0]+2*cx+q2[0])/4,(q1[1]+2*cy+q2[1])/4],d=`M${f1(q1[0])} ${f1(q1[1])} Q${f1(cx)} ${f1(cy)} ${f1(q2[0])} ${f1(q2[1])}`;
+  g+=un?`<path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="5" opacity=".35" filter="url(#tglow2)"/><path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="2"/><path class="flow" d="${d}" fill="none" stroke="#fff" stroke-width="1.4" stroke-dasharray="2 12" opacity=".8"/>`
+   :`<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.2" stroke-dasharray="3 6"/>`;
+  g+=`<g class="tn" data-syn="${b.id}" tabindex="0" role="button" aria-label="Bridge ${b.n}${un?", open":", locked"}"><circle cx="${f1(mid[0])}" cy="${f1(mid[1])}" r="18" fill="transparent"/>${un?`<rect x="${f1(mid[0]-11)}" y="${f1(mid[1]-11)}" width="22" height="22" rx="3" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${TGOLD}" opacity=".45" filter="url(#tglow2)"/>`:""}<rect x="${f1(mid[0]-8)}" y="${f1(mid[1]-8)}" width="16" height="16" rx="2.5" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${un?TGOLD:"#1b2146"}" stroke="${un?"#fff3d0":"#ffffff55"}" stroke-width="1.4"/>
+  <text x="${f1(mid[0])}" y="${f1(mid[1]+24)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${un?TGOLD:"#ffffff80"}" font-family="Inter,sans-serif" stroke="#0e1229" stroke-width="3.5" paint-order="stroke">${b.n}</text></g>`});
+ // branches
+ L.forEach((p,pi)=>{const P=PATHS[p],c=TREEC[p]||"#fff",pr=S.prog[p],pts=[[CX,CY],...[0,1,2,3,4].map(j=>pos(p,j))],un=Math.min(pr.m,5);
+  g+=`<path d="${line(pts)}" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="${line(pts)}" fill="none" stroke="${c}" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round"/>`;
+  const part=pts.slice(0,un+1+(pr.m<5&&pr.xp>0?0:0));
+  if(un>0){g+=`<path d="${line(part)}" fill="none" stroke="${c}" stroke-width="7" opacity=".45" stroke-linecap="round" stroke-linejoin="round" filter="url(#tglow2)"/><path d="${line(part)}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path class="flow" d="${line(part)}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 14" stroke-linecap="round" opacity=".85"/>`}
+  for(let j=0;j<5;j++){const[x,y]=pos(p,j),sk=P.skills[j],X=f1(x),Y=f1(y);let nd=`<g class="tn pop" style="animation-delay:${(.15+j*.09+pi*.06).toFixed(2)}s" data-skill="${p}:${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${sk.n}${j<pr.m?", earned":j===pr.m?", next":", locked"}"><circle cx="${X}" cy="${Y}" r="17" fill="transparent"/>`;
+   if(j<pr.m)nd+=`<circle cx="${X}" cy="${Y}" r="15" fill="${c}" opacity=".5" filter="url(#tglow2)"/><circle cx="${X}" cy="${Y}" r="12" fill="${c}" stroke="#fff" stroke-width="1.6"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="#10142c">${sk.d.slice(0,1)}</text>`;
+   else if(j===pr.m){const fr=Math.min(1,pr.xp/NEED[j]),Cc=2*Math.PI*14;nd+=`<circle class="pulse" cx="${X}" cy="${Y}" r="13" fill="none" stroke="${c}" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="14" fill="#141a3a" stroke="#ffffff30" stroke-width="3"/><circle cx="${X}" cy="${Y}" r="14" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${f1(fr*Cc)} ${f1(Cc)}" transform="rotate(-90 ${X} ${Y})" filter="url(#tglow)"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="${c}">${sk.d.slice(0,1)}</text>`}
+   else nd+=`<circle cx="${X}" cy="${Y}" r="6.5" fill="#141a3a" stroke="${c}" stroke-opacity=".45" stroke-width="1.6"/>`;
+   g+=nd+`</g>`;
+   if(j===pr.m&&j<5){const a=(base[p]+j*7)*Math.PI/180,lx=x+24*Math.cos(a+Math.PI/2),ly=y+24*Math.sin(a+Math.PI/2);g+=`<text x="${f1(lx)}" y="${f1(ly+4)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${c}" font-family="Inter,sans-serif" stroke="#0e1229" stroke-width="3.5" paint-order="stroke">${sk.n}</text>`}}
+  const ar=(base[p]+30)*Math.PI/180,px=CX+212*Math.cos(ar),py=CY+212*Math.sin(ar),ca=Math.cos(ar),anc=Math.abs(ca)<.35?"middle":ca>0?"end":"start",lx=anc==="middle"?px:anc==="end"?px+20:px-20;
+  g+=`<g class="tn" data-pdetail="${p}" tabindex="0" role="button" aria-label="${P.name} with ${P.hero}"><circle cx="${f1(px)}" cy="${f1(py)}" r="21" fill="${c}" opacity=".35" filter="url(#tglow2)"/><g transform="translate(${f1(px-18)} ${f1(py-18)}) scale(.3)"><circle cx="60" cy="60" r="60" fill="#f4efe3" stroke="${c}" stroke-width="7"/><g clip-path="url(#mc)">${portraitG(CHAR[p])}</g></g>
+  <text x="${f1(lx)}" y="${f1(py+(Math.sin(ar)<-.3?-26:34))}" text-anchor="${anc}" font-family="Literata,serif" font-weight="600" font-size="13" fill="${c}" stroke="#0e1229" stroke-width="4" paint-order="stroke">${P.name}</text></g>`});
+ // mandala
  const sgOn=["body","bonds","music"].every(p=>S.paths.includes(p)),sgUn=S.syn.includes("sangam");
- s+=`<g class="tn" ${sgOn?'data-syn="sangam" tabindex="0" role="button" aria-label="Triveni Sangam"':""}><circle cx="${C[0]}" cy="${C[1]}" r="31" fill="${sgUn?"var(--gold)":"var(--surface)"}" stroke="${sgUn?"var(--gold)":"var(--line)"}" stroke-width="2"/><text x="${C[0]}" y="${C[1]+5}" text-anchor="middle" font-family="Tiro Devanagari Hindi,serif" font-size="16" fill="${sgUn?"var(--surface)":"var(--ink)"}">${RANKS[stage()][1]}</text><text x="${C[0]}" y="${C[1]+19}" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="${sgUn?"var(--surface)":"var(--mute)"}">${msTotal()} trials</text></g>`;
- return `<div class="treebox"><svg class="tree" viewBox="-25 -45 450 500">${s}</svg></div>`;
+ let petals="";for(let i=0;i<12;i++){petals+=`<path d="M0 -40 C7 -30 7 -24 0 -18 C-7 -24 -7 -30 0 -40Z" transform="rotate(${i*30})" fill="${TGOLD}" fill-opacity="${sgUn?.7:.22}" stroke="${TGOLD}" stroke-opacity=".7" stroke-width=".8"/>`}
+ g+=`<g ${sgOn?'class="tn" data-syn="sangam" tabindex="0" role="button" aria-label="Triveni Sangam"':""}><circle cx="${CX}" cy="${CY}" r="46" fill="${TGOLD}" opacity="${sgUn?.35:.14}" filter="url(#tglow2)"/><g transform="translate(${CX} ${CY})"><g class="spin">${petals}<circle r="44" fill="none" stroke="${TGOLD}" stroke-opacity=".5" stroke-dasharray="1 4"/></g><circle r="22" fill="#0f1430" stroke="${TGOLD}" stroke-width="1.6"/></g>
+ <text x="${CX}" y="${CY+3}" text-anchor="middle" font-family="Tiro Devanagari Hindi,serif" font-size="14" fill="${TGOLD}">${RANKS[stage()][1]}</text><text x="${CX}" y="${CY+14}" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#ffffffa0">${msTotal()} trials</text></g>`;
+ return `<div class="treebox night"><svg class="tree" viewBox="-48 -38 496 520" role="img" aria-label="Skill tree">${g}</svg><div class="tlegend"><span><i class="lk"></i>Earned</span><span><i class="nx"></i>Next</span><span><i class="lc"></i>Locked</span><span><i class="br"></i>Bridge</span></div></div>`;
 }
 function storiesList(){const L=SYN.filter(x=>x.p.every(p=>S.paths.includes(p)));if(!L.length)return `<p class="sub">Choose two or more paths to unlock stories.</p>`;
  return `<div class="stories">${L.map(x=>{const on=S.syn.includes(x.id);return `<button class="storyc${on?"":" off"}" data-story="${x.id}"><span class="pair">${x.p.map(p=>medal(p,"sm")).join("")}</span><div><b>${x.n}</b><small>${on?"Unlocked · tap to watch":`Opens when ${x.p.map(p=>PATHS[p].name).join(" and ")} pass ${x.req} trials · preview`}</small></div><span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></button>`}).join("")}</div>`}

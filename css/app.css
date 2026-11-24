@@ -608,3 +608,19 @@ nav.tabs button[aria-current="page"] svg{transform:translateY(-1px)}
 .hm-k small{font-size:10px;color:var(--mute)}
 .stage{margin-top:0}
 .stage .avbtn{width:170px}
+
+.treebox.night{background:#0b0e20;border-color:#20264a;border-radius:24px;position:relative}
+.treebox.night .tree{display:block;width:100%;height:auto}
+.tree .flow{animation:flow 2.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-32}}
+.tree .twk{animation:twk 3.5s ease-in-out infinite}
+@keyframes twk{50%{opacity:.05}}
+.tree .spin{animation:spin 60s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tlegend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding:0 12px 12px;font-size:12px;color:#c9cbe0}
+.tlegend span{display:flex;align-items:center;gap:6px}
+.tlegend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tlegend .lk{background:#f5c76a;box-shadow:0 0 6px #f5c76a}
+.tlegend .nx{border:2px solid #f5c76a}
+.tlegend .lc{border:1.5px solid #ffffff60}
+.tlegend .br{background:#f5c76a;border-radius:2px;transform:rotate(45deg);width:8px;height:8px}
