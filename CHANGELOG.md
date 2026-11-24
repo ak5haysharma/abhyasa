@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.2 · 24.11.2026
+- More reliable updates: new versions always download fresh files, and the app checks for updates each time you open it.
+
 ## 1.5.1 · 24.11.2026
 - New skill tree: a night-sky constellation with glowing branches, energy flowing along unlocked skills, Devanagari skill letters, guide portraits at branch tips, gold bridges and a turning lotus mandala at the centre.
 

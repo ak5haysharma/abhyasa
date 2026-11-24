@@ -1,7 +1,7 @@
 /* Abhyasa service worker: offline support and safe updates.
    VERSION must change on every release (tools/bump_version.py does it),
    otherwise phones keep the old cached app. */
-const VERSION = "1.5.1";
+const VERSION = "1.5.2";
 const CACHE = "abhyasa-" + VERSION;
 const FONTS = "abhyasa-fonts";
 const SHELL = [
@@ -10,7 +10,7 @@ const SHELL = [
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" }))))); // bypass the HTTP cache so a new version never stores old files
 });
 
 self.addEventListener("activate", e => {

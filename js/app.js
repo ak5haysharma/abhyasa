@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.5.1";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.5.2";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -885,10 +885,11 @@ function importFile(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.p
  sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Restore</div><h2>Replace your progress?</h2><p class="sub">This backup is from ${String(o.date||"").split("-").reverse().join(".")} (version ${esc(o.version||"?")}). Your current progress on this device will be replaced.</p><div class="row"><button class="cta alt" data-close="1">Cancel</button><button class="cta" data-act="import-ok">Restore</button></div>`)}catch(e){toast("That file isn’t an Abhyasa backup")}};r.readAsText(f)}
 function showUpdate(reg){if($("#upd"))return;document.body.insertAdjacentHTML("beforeend",`<div id="upd" class="upd" role="status"><span>A new version of Abhyasa is ready.</span><button class="mini pri" id="updbtn">Update</button></div>`);$("#updbtn").onclick=()=>{if(reg.waiting)reg.waiting.postMessage("skip-waiting");else location.reload()}}
 if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
- window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").then(reg=>{
+ window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
   if(reg.waiting&&navigator.serviceWorker.controller)showUpdate(reg);
   reg.addEventListener("updatefound",()=>{const nw=reg.installing;if(nw)nw.addEventListener("statechange",()=>{if(nw.state==="installed"&&navigator.serviceWorker.controller)showUpdate(reg)})});
-  setInterval(()=>reg.update(),60*60*1000);
+  setInterval(()=>reg.update(),30*60*1000);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")reg.update().catch(()=>{})});
  }).catch(()=>{})});
  let reloading=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloading)return;reloading=true;location.reload()});
 }
