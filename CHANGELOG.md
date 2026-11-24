@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0 · 24.11.2026
+- New layout: Today has activity rings, a swipeable card strip and a compact task list with guides in a sheet. Journey has Paths, Tree and Calendar tabs, with path cards showing progress and 7-day sparklines. Hero has Hero, Stats, Collection and More tabs, with a 7-day chart and a 5-week heatmap.
+
 ## 1.4.0 · 24.11.2026
 - Weekly review: every Sunday (or until Tuesday), five swipe cards covering active days, minutes, moods, time per path, best day, a guide's comment, 'worth it?' for your own tasks, and next week's focus, which gets more daily time. Past reviews on the Hero tab.
 
