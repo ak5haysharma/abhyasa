@@ -1040,3 +1040,31 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .sgrp .sin{border:0;border-radius:0;margin:0;border-bottom:1px solid var(--line)}
 .sgrp .sri{background:var(--gold-bg)}
 .sgrp.danger .sgh{background:#fbeeee}.sgrp.danger .sgh .sri{background:#fbe3e3;color:#b0182f}
+
+/* ===== R3: tree in ink-on-paper irezumi style (v1.35) ===== */
+.treebox.night{background:#f5ecd9;border-color:#e2d3b3}
+.tlegend{color:var(--mute)}
+.tlegend .lk,.exp-legend .lk{background:#a87a1f;box-shadow:none}.tlegend .nx,.exp-legend .nx{border-color:#a87a1f}.tlegend .lc,.exp-legend .lc{border-color:#24305e66}.tlegend .br,.exp-legend .br{background:#a87a1f}
+.exhint{color:#7a5a14;background:#fdf9efe6;border-color:#a87a1f66}
+#ex{background:#f5ecd9;color:#1d1f26}
+.ex-b{border-color:#24305e30;background:#ffffff80;color:#1d1f26}
+.ex-b.pri{background:#a87a1f;color:#fff;border-color:#a87a1f}
+.ex-panel{background:#fdf9ef;border-top-color:#e2d3b3;color:#1d1f26}
+.exp-h .dev{color:#1d1f2699}.exst{border-color:#1d1f2640;color:#1d1f26b0}.exst.on{color:#fff}
+.exp-en{color:#1d1f26a0}.exp-m{color:#1d1f2690}.exbar{background:#1d1f2618}
+.exgrid>div{background:#f5ecd9}.exgrid small{color:#1d1f2680}.exp-legend{color:var(--mute)}
+
+/* ===== R3: welcome + path cards (v1.35) ===== */
+.welcome .manthan{display:block;width:calc(100% + 24px);max-width:none;margin:-8px -12px 4px;max-height:44vh}
+.welcome .big{font-size:44px}
+.welcome .wtag{font-family:var(--f-head);font-style:italic;color:var(--gold);font-size:17px;margin:-2px 0 8px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--c);border-radius:20px;padding:16px}
+.pc-top{display:flex;gap:12px;align-items:flex-start}.pc-top .pi{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--c);color:#fff}.pc-top .pi svg{width:24px;height:24px}
+.pc-top small{font-size:12px;font-weight:600;color:var(--mute)}.pc-top h1{margin:2px 0 4px;font-size:28px}.pc-top p{margin:0;font-size:14px;color:var(--mute)}
+.pc-ms{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.pc-m{flex:0 0 96px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:10px 6px;color:var(--ink)}
+.pc-m[aria-pressed="true"]{border-color:var(--c);background:var(--gold-bg)}
+.pc-m b{font-size:13.5px}.pc-m small{font-size:11.5px;color:var(--mute);line-height:1.25}
+.pc-best{font-size:13.5px;line-height:1.45;margin:4px 0 0;color:var(--ink)}
+.tprev{margin-top:8px}.tprev .treebox{cursor:default}
+.welcome .manthan{margin-bottom:12px}

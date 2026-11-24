@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.35.0 · 24.11.2026
+- New first screens: the welcome shows the churning of the ocean (Samudra Manthan) in irezumi style, with a new opening: 'The art of steady practice'. After choosing paths, each path gets its own card: pick the mentor who will awaken in you (with what they bring) and where you are now. The last step shows your skill tree. The skill tree is redrawn in ink-on-paper style with irezumi waves and clouds, matching the rest of the app.
+
 ## 1.34.0 · 24.11.2026
 - Journey starts with the Tree, then Paths (with companion journeys at the bottom). The Story section (epics, story trials, vows) is set aside for now while we rethink it; nothing you did there is lost, and your title now grows with path trials. Calendar is now a month view: days you practised, rest days and festivals, with a tap on any day to see what you did. Seasons removed. Settings are grouped into clear cards: You, Stories and calendar, Your data, Reminders, Help, Start over.
 
