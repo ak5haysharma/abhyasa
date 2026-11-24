@@ -523,7 +523,7 @@ const GLOSSARY=[
 const TIPS={
  today:[["rings","The rings show today’s practice, one colour per path. Finish a task and its ring fills. Close them all to complete your day."],["comp","Swipe the cards under the rings: your companion, check-in, today’s story and suggestions. Tap a task to open its guide."],["swap","A task doesn’t fit? Tap ⇄ and say why. Abhyasa learns from it. Did something else instead? Log it below the list."],["streak","The diya at the top is your streak. One task a day keeps it lit."],["eve","In the evening, tap “Close your day”: how it felt, and one line. Tomorrow morning brings the next chapter."]],
  journey:[["focus","Each card is a path: progress to the next skill, and your last 7 days. Tap one for its skills. “Manage focus” adds or pauses paths."],["tree","Use the tabs at the top for the skill tree, bridge stories and the Indian calendar."]],
- hero:[["hero","This is your hero. It changes as you pass trials and earn gifts. Tap it to hear from a guide."],["gloss","Stats shows your week and month as charts. The glossary and backup are under More."]]
+ hero:[["hero","This is your hero. It changes as you pass trials and earn gifts. Tap it to see and change your gear."],["gloss","Stats shows your week and month as charts. The glossary and backup are under More."]]
 };
 
 /* ================= explainer pack ================= */

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.16.0 · 24.11.2026
+- Hero gear: tap your hero to open a full gear screen. All 30 skill gifts (2 per path) plus 3 rank gifts are now real items on your hero, in 8 slots (hand, back, neck, arms, waist, head, aura, companion). Equip, swap or take off. Removed the cut-off speech bubble. The epic moved off Today into its own Epic tab under Journey, with a short explainer; Today keeps one small card.
+
 ## 1.15.0 · 24.11.2026
 - Your epic: choose an epic (Ramayana first; Mahabharata, Devi Mahatmya and Nachiketa coming), set your destination and your obstacle. 7 books open as you pass trials, each with a short scene and a new title (new title Vira). Your obstacle has 10 heads; one falls every 2 trials. Banner on Today, full view on tap, title on Hero.
 

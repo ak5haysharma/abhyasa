@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.15.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.16.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,7 +50,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -585,13 +585,14 @@ function epicBanner(){
  if(!S.epic)return `<button class="epicb start" data-epic-setup="1"><small>New · Your epic</small><b>Begin your story</b><em>7 books, one destination, one obstacle to defeat. Your daily tasks move it forward.</em></button>`;
  const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],t=arcT(),nx=ARC_GATE[i+1],pct=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100),need=i>=6?0:nx-t;
  return `<button class="epicb" data-epic="1"><small>${E.n} · Book ${i+1} of 7</small><b>${st.n}<span class="dev">${st.d}</span></b><span class="eb-bar"><i style="width:${pct}%"></i></span><span class="eb-row"><em>${i>=6?"You have come home":`${need} more trial${need===1?"":"s"} to Book ${i+2}`}</em>${headsSvg()}</span></button>`}
-function epicSheet(){const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],cut=headsCut(),t=arcT();
- sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">${E.n} · ${E.d}</div><h2>Book ${i+1}: ${st.n}<span class="dev">${st.sa}</span></h2><p class="sub">${st.ask}</p>
+function epicBody(){if(!S.epic)return `<div class="ep-why"><h3>What is an epic?</h3><p>Abhyasa is about your daily practice. An epic is an <b>optional story layer</b> on top of it. You do not do anything extra: the trials you pass anyway open the next book.</p><ul><li><b>7 books</b> that open after 1, 3, 6, 10, 15 and 20 trials</li><li><b>Your destination:</b> who you want to become</li><li><b>Your obstacle</b> with 10 heads. One falls every 2 trials.</li><li>Missed days never set it back</li></ul><button class="cta" style="width:100%" data-epic-setup="1">Choose your epic</button></div>`;
+ const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],cut=headsCut(),t=arcT();
+ return `<p class="ep-note">Your epic runs in the background. Your daily tasks earn trials, and trials open the next book.</p><div class="ep-head"><div class="kick" style="color:var(--gold)">${E.n} · ${E.d} · Book ${i+1} of 7</div><h2>${st.n}<span class="dev">${st.sa}</span></h2><p class="sub">${st.ask}</p></div>
  <div class="foe">${headsSvg(true)}<div><b>${foeName()}</b><small>${10-cut?`${10-cut} of 10 heads left. One falls every 2 trials.`:"Defeated."}</small></div></div>
  <div class="box"><small>Your Ayodhya: where this journey ends</small>${CAP(destText())}</div>
  <div class="box"><small>Your title</small>${ARC_RANK[i][0]} <span class="dev">${ARC_RANK[i][1]}</span> · ${EN[ARC_RANK[i][0]]}</div>
  <ol class="books">${E.stages.map((b,k)=>{const open=k<=i;return `<li class="${k<i?"done":k===i?"now":""}"><span class="bn">${k<i?"✓":k+1}</span><span class="bt"><b>${b.n}</b><small>${b.sa} · ${k<i?"Done":k===i?"You are here":`Opens at ${ARC_GATE[k]} trials (${Math.max(0,ARC_GATE[k]-t)} to go)`}</small></span>${open?`<button class="mini" data-ep="play:${k}">Watch</button>`:""}</li>`}).join("")}</ol>
- <button class="cta alt" style="width:100%" data-epic-setup="edit">Change destination or obstacle</button>`)}
+ <button class="cta alt" style="width:100%" data-epic-setup="edit">Change destination or obstacle</button>`}
 function epicSetup(){const E=EP.id&&EPICS[EP.id],bst=bestEpic();let h="";
  if(EP.step===0)h=`<div class="kick" style="color:var(--gold)">Step 1 of 3</div><h2>Choose your epic</h2><p class="sub">Each epic tells the same 7 books of growth in its own way. You can start another one later.</p>
   <div class="epics">${Object.entries(EPICS).map(([k,X])=>`<button class="epc${X.soon?" soon":""}" ${X.soon?"disabled":`data-ep="id:${k}"`}><b>${X.n}<span class="dev">${X.d}</span></b><small>${X.about}</small><em>${X.soon?"Coming soon":k===bst?"Fits your paths":"Ready"}</em></button>`).join("")}</div>`;
@@ -615,36 +616,112 @@ function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
 
-function avatar(st){
- const pr=k=>S.paths.includes(k)?S.prog[k].m:0;
+/* ================= hero gear (v1.16): every skill gift becomes an item ================= */
+const SLOTS=[["hand","Hand"],["back","Back"],["neck","Neck"],["arms","Arms"],["waist","Waist"],["head","Head"],["aura","Aura"],["comp","Companion"]];
+const GEAR=[
+ // [id, name, path, skill level (m>=), slot]   rank items use path "" and level = hero rank
+ ["gada","Gada","body",2,"hand"],["kankan","Swarna kankan","body",4,"arms"],
+ ["rudraksha","Rudraksha mala","flex",2,"neck"],["kamandalu","Kamandalu","flex",4,"hand"],
+ ["kodanda","Kodanda bow","bonds",2,"hand"],["tunir","Tunir quiver","bonds",4,"back"],
+ ["garland","Forest garland","love",2,"neck"],["ring","Wedding ring","love",4,"arms"],
+ ["book","Palm-leaf book","learn",2,"hand"],["swan","Swan feather","learn",4,"head"],
+ ["gandiva","Gandiva","focus",2,"hand"],["conch","Devadatta conch","focus",4,"waist"],
+ ["veena","Veena","music",2,"back"],["tulsi","Tulsi mala","music",4,"neck"],
+ ["japa","Japa mala","calm",2,"neck"],["star","Pole star","calm",4,"aura"],
+ ["chakra","Sudarshana chakra","friend",2,"hand"],["bansuri","Bansuri","friend",4,"waist"],
+ ["kalasha","Golden kalasha","money",2,"hand"],["lotus","Lakshmi’s lotus","money",4,"head"],
+ ["trishula","Trishula","courage",2,"hand"],["lion","Lion of Durga","courage",4,"comp"],
+ ["deepa","Lamp of knowledge","wisdom",2,"hand"],["scroll","Katha scroll","wisdom",4,"back"],
+ ["vajra","Indra’s vajra","making",2,"hand"],["pushpaka","Pushpaka vimana","making",4,"comp"],
+ ["stylus","Valmiki’s stylus","art",2,"hand"],["manuscript","Ramayana manuscript","art",4,"back"],
+ ["basket","Shabari’s basket","gratitude",2,"hand"],["ashram","Ashram lamp","gratitude",4,"hand"],
+ ["crown","Golden crown","",4,"head"],["halo","Sun halo","",4,"aura"],["rays","Rays of Surya","",5,"aura"]];
+const gearOwned=g=>g[2]?(S.prog[g[2]]&&S.prog[g[2]].m>=g[3]):stage()>=g[3];
+const gearIn=slot=>GEAR.filter(g=>g[4]===slot&&gearOwned(g));
+function gearOn(slot){S.gear=S.gear||{};const own=gearIn(slot);if(Object.prototype.hasOwnProperty.call(S.gear,slot)){const id=S.gear[slot];return own.some(g=>g[0]===id)?id:""}
+ if(!own.length)return "";const act=own.filter(g=>!g[2]||S.paths.includes(g[2]));const L=(act.length?act:own);return L[L.length-1][0]}
+const GOLD="#d9a441",RED="#d0492e",WOOD="#8a5424";
+function gearSvg(id,c){const{sh,O,O2,hx,hy,lx}=c,ln=(x1,y1,x2,y2,col,w)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${K}" stroke-width="${w+5}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+ const beads=(col,n,r)=>{let s="";for(let i=0;i<=n;i++){const t=i/n;s+=`<circle cx="${(100-sh+8+2*(sh-8)*t).toFixed(1)}" cy="${(86+26*Math.sin(Math.PI*t)).toFixed(1)}" r="${r}" fill="${col}" stroke="${K}" stroke-width="1"/>`}return s};
+ switch(id){
+ case "gada":return ln(hx,hy+9,hx+6,96,WOOD,4)+`<circle cx="${hx+7}" cy="86" r="14" fill="${GOLD}" ${O}/><circle cx="${hx+7}" cy="86" r="5" fill="${RED}" ${O2}/>`;
+ case "kankan":return `<rect x="${100-sh-15}" y="103" width="13" height="7" rx="2" fill="${GOLD}" ${O2}/><rect x="${100+sh+2}" y="103" width="13" height="7" rx="2" fill="${GOLD}" ${O2}/>`;
+ case "rudraksha":return beads("#5a2f16",8,2.7);
+ case "tulsi":return beads("#4f8a3c",8,2.7);
+ case "japa":return beads("#c9a07a",10,2.4)+`<path d="M100 112 l-3 10 h6z" fill="${RED}" ${O2}/>`;
+ case "garland":{let s="";for(let i=0;i<=8;i++){const t=i/8;s+=`<circle cx="${(100-sh+6+2*(sh-6)*t).toFixed(1)}" cy="${(86+34*Math.sin(Math.PI*t)).toFixed(1)}" r="4.3" fill="${i%2?"#e8892b":"#f2c94c"}" stroke="${K}" stroke-width="1.2"/>`}return s}
+ case "kamandalu":return `<path d="M${hx-3} ${hy-2} q3 -10 6 0" stroke="${K}" stroke-width="3" fill="none"/><ellipse cx="${hx}" cy="${hy+12}" rx="11" ry="10" fill="${WOOD}" ${O}/><path d="M${hx+10} ${hy+10} l9 -6" stroke="${K}" stroke-width="4" stroke-linecap="round"/>`;
+ case "kodanda":return `<path d="M${hx+12} 40 Q${hx-20} 120 ${hx+12} 200" stroke="${K}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M${hx+12} 40 Q${hx-20} 120 ${hx+12} 200" stroke="${GOLD}" stroke-width="4" fill="none" stroke-linecap="round"/><line x1="${hx+12}" y1="40" x2="${hx+12}" y2="200" stroke="#f3ead6" stroke-width="1.4"/>`;
+ case "gandiva":return `<path d="M${hx+14} 30 Q${hx-24} 120 ${hx+14} 210" stroke="${K}" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M${hx+14} 30 Q${hx-24} 120 ${hx+14} 210" stroke="#3c6ab0" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="${hx-8}" cy="120" r="4" fill="${GOLD}" ${O2}/><line x1="${hx+14}" y1="30" x2="${hx+14}" y2="210" stroke="#f3ead6" stroke-width="1.4"/>`;
+ case "tunir":return `<g transform="rotate(-18 60 110)"><rect x="50" y="70" width="20" height="70" rx="4" fill="#8a5a2b" ${O}/><path d="M54 70 l-4 -18 M60 70 l0 -20 M66 70 l4 -18" stroke="${K}" stroke-width="2.5"/><path d="M47 52 l3 -6 3 6 M57 50 l3 -6 3 6 M67 52 l3 -6 3 6" fill="${RED}" ${O2}/></g>`;
+ case "veena":return `<line x1="62" y1="36" x2="150" y2="196" stroke="${K}" stroke-width="9" stroke-linecap="round"/><line x1="62" y1="36" x2="150" y2="196" stroke="#a86f35" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="44" r="12" fill="#a86f35" ${O}/><circle cx="146" cy="188" r="15" fill="#a86f35" ${O}/>`;
+ case "scroll":return `<g transform="rotate(-28 64 100)"><rect x="40" y="88" width="48" height="16" rx="3" fill="#e9d7a6" ${O}/><circle cx="40" cy="96" r="9" fill="#c9a07a" ${O2}/><circle cx="88" cy="96" r="9" fill="#c9a07a" ${O2}/><line x1="64" y1="88" x2="64" y2="104" stroke="${RED}" stroke-width="3"/></g>`;
+ case "manuscript":return `<g transform="rotate(22 140 100)"><rect x="118" y="70" width="44" height="9" rx="3" fill="#e9d7a6" ${O2}/><rect x="118" y="79" width="44" height="9" rx="3" fill="#ddc690" ${O2}/><rect x="118" y="88" width="44" height="9" rx="3" fill="#e9d7a6" ${O2}/><line x1="140" y1="66" x2="140" y2="100" stroke="${RED}" stroke-width="3"/></g>`;
+ case "ring":return `<circle cx="${lx}" cy="${hy+1}" r="4" fill="none" stroke="${K}" stroke-width="4"/><circle cx="${lx}" cy="${hy+1}" r="4" fill="none" stroke="${GOLD}" stroke-width="2.2"/><circle cx="${lx}" cy="${hy-3}" r="2" fill="${RED}"/>`;
+ case "book":return `<rect x="${hx-13}" y="${hy-18}" width="24" height="17" rx="2" fill="#e9d7a6" ${O2}/><path d="M${hx-9} ${hy-12} h16 M${hx-9} ${hy-7} h16" stroke="${K}" stroke-width="1.3"/><line x1="${hx-1}" y1="${hy-21}" x2="${hx-1}" y2="${hy+2}" stroke="${RED}" stroke-width="2"/>`;
+ case "swan":return `<path d="M109 34 Q122 22 128 2 Q116 10 106 30Z" fill="#fbfaf5" ${O2}/><path d="M108 32 Q118 18 126 6" stroke="${K}" stroke-width="1"/>`;
+ case "conch":return `<g transform="translate(${100-sh+4} 136) rotate(-20)"><ellipse rx="10" ry="7" fill="#fbfaf5" ${O2}/><path d="M-6 0 q4 -5 8 0 q-3 3 -5 0" stroke="${K}" stroke-width="1.2" fill="none"/><path d="M9 -2 l6 -3 v6z" fill="#fbfaf5" ${O2}/></g>`;
+ case "star":return `<g transform="translate(100 2)"><path d="M0 -13 L3.5 -3.5 L13 0 L3.5 3.5 L0 13 L-3.5 3.5 L-13 0 L-3.5 -3.5Z" fill="${GOLD}" ${O2}/></g><circle cx="58" cy="30" r="2.5" fill="${GOLD}"/><circle cx="146" cy="24" r="3" fill="${GOLD}"/><circle cx="154" cy="60" r="2" fill="${GOLD}"/><circle cx="46" cy="66" r="2" fill="${GOLD}"/>`;
+ case "chakra":{let sp="";for(let i=0;i<8;i++){const a=i*Math.PI/4;sp+=`<line x1="${hx+4}" y1="${hy-30}" x2="${(hx+4+12*Math.cos(a)).toFixed(1)}" y2="${(hy-30+12*Math.sin(a)).toFixed(1)}" stroke="${K}" stroke-width="1.5"/>`}return `<line x1="${hx+1}" y1="${hy-6}" x2="${hx+3}" y2="${hy-22}" stroke="${K}" stroke-width="3"/><circle cx="${hx+4}" cy="${hy-30}" r="13" fill="${GOLD}" ${O2}/>${sp}<circle cx="${hx+4}" cy="${hy-30}" r="4" fill="${RED}" ${O2}/>`}
+ case "bansuri":return ln(100-sh+2,142,100+sh-2,122,WOOD,4)+`<circle cx="${100-sh+14}" cy="137" r="1.4" fill="${K}"/><circle cx="${100-sh+22}" cy="134" r="1.4" fill="${K}"/><path d="M${100+sh-8} 124 l6 -9 l3 7z" fill="#3c6ab0" ${O2}/>`;
+ case "kalasha":return `<ellipse cx="${hx}" cy="${hy+12}" rx="12" ry="11" fill="${GOLD}" ${O}/><rect x="${hx-6}" y="${hy-4}" width="12" height="6" fill="${GOLD}" ${O2}/><path d="M${hx-10} ${hy-4} q-4 -8 2 -10 M${hx+10} ${hy-4} q4 -8 -2 -10 M${hx} ${hy-4} v-10" stroke="#4f8a3c" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="${hx}" cy="${hy-12}" r="5" fill="${WOOD}" ${O2}/>`;
+ case "lotus":return `<g transform="translate(116 34)"><path d="M0 0 q-7 -6 -4 -14 q4 4 4 14z M0 0 q7 -6 4 -14 q-4 4 -4 14z M0 0 q-2 -10 0 -16 q2 6 0 16z" fill="#ec7f90" ${O2}/></g>`;
+ case "trishula":return ln(hx+4,hy+16,hx+4,48,WOOD,4)+`<path d="M${hx-10} 52 q0 -14 4 -22 M${hx+18} 52 q0 -14 -4 -22 M${hx-10} 52 q14 8 28 0 M${hx+4} 52 v-30" stroke="${K}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M${hx-10} 52 q0 -14 4 -22 M${hx+18} 52 q0 -14 -4 -22 M${hx-10} 52 q14 8 28 0 M${hx+4} 52 v-30" stroke="#c9ccd6" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+ case "deepa":return `<path d="M${hx-12} ${hy-8} q12 14 24 0 z" fill="${GOLD}" ${O2}/><path d="M${hx+2} ${hy-10} q-6 -8 0 -18 q6 10 0 18z" fill="#f2a43a" stroke="${RED}" stroke-width="1.4"/>`;
+ case "ashram":return `<line x1="${hx}" y1="${hy-2}" x2="${hx}" y2="${hy+16}" stroke="${K}" stroke-width="2"/><path d="M${hx-11} ${hy+16} q11 14 22 0 z" fill="#c48459" ${O2}/><path d="M${hx} ${hy+14} q-5 -7 0 -14 q5 7 0 14z" fill="#f2a43a" stroke="${RED}" stroke-width="1.3"/>`;
+ case "vajra":return ln(hx+3,hy+8,hx+3,hy-46,GOLD,4)+`<path d="M${hx-6} ${hy-38} q9 -16 18 0 M${hx-6} ${hy} q9 16 18 0" stroke="${K}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M${hx-6} ${hy-38} q9 -16 18 0 M${hx-6} ${hy} q9 16 18 0" stroke="${GOLD}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="${hx+3}" cy="${hy-19}" r="4" fill="${RED}" ${O2}/>`;
+ case "stylus":return ln(hx-2,hy+2,hx+16,hy-40,"#c9ccd6",2.5)+`<path d="M${hx+16} ${hy-40} l3 -8" stroke="${K}" stroke-width="2"/>`;
+ case "basket":{const y=hy+6;return `<path d="M${hx-10} ${y-2} q10 -14 20 0" stroke="${K}" stroke-width="2.5" fill="none"/><path d="M${hx-14} ${y} h28 l-4 16 h-20z" fill="#c9a07a" ${O2}/><path d="M${hx-12} ${y+5} h24 M${hx-10} ${y+10} h20" stroke="${K}" stroke-width="1"/><circle cx="${hx-6}" cy="${y-2}" r="3" fill="${RED}" stroke="${K}" stroke-width="1"/><circle cx="${hx+1}" cy="${y-4}" r="3" fill="#a8263a" stroke="${K}" stroke-width="1"/><circle cx="${hx+7}" cy="${y-2}" r="3" fill="${RED}" stroke="${K}" stroke-width="1"/>`}
+ case "lion":return `<g transform="translate(20 168)"><ellipse cx="14" cy="40" rx="22" ry="16" fill="${GOLD}" ${O}/><circle cx="0" cy="18" r="17" fill="#a8641e" ${O}/><circle cx="0" cy="20" r="10" fill="${GOLD}" ${O2}/><circle cx="-4" cy="18" r="1.6" fill="${K}"/><circle cx="4" cy="18" r="1.6" fill="${K}"/><path d="M-3 24 q3 3 6 0" stroke="${K}" stroke-width="1.5" fill="none"/><path d="M34 34 q10 -10 4 -20" stroke="${K}" stroke-width="3" fill="none"/></g>`;
+ case "pushpaka":return `<g transform="translate(6 6)"><path d="M0 30 h44 l-6 10 h-32z" fill="${GOLD}" ${O2}/><path d="M8 30 v-12 l14 -10 l14 10 v12" fill="#f3ead6" ${O2}/><path d="M22 8 v-6" stroke="${RED}" stroke-width="2"/><path d="M0 32 q-10 -8 -6 -16 q6 6 10 12 M44 32 q10 -8 6 -16 q-6 6 -10 12" fill="#fbfaf5" ${O2}/></g>`;
+ case "crown":return `<path d="M82 38 L86 22 L93 32 L100 16 L107 32 L114 22 L118 38 Z" fill="${GOLD}" ${O}/><circle cx="100" cy="30" r="2.8" fill="${RED}"/>`;
+ case "halo":return `<circle cx="100" cy="66" r="62" fill="${GOLD}" ${O}/><circle cx="100" cy="66" r="50" fill="var(--surface)" ${O}/>`;
+ case "rays":{let s="";for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=60,r2=74;s+=`<path d="M${100+r1*Math.cos(a-.11)} ${66+r1*Math.sin(a-.11)} L${100+r2*Math.cos(a)} ${66+r2*Math.sin(a)} L${100+r1*Math.cos(a+.11)} ${66+r1*Math.sin(a+.11)}Z" fill="${RED}" ${O2}/>`}return s+gearSvg("halo",c)}}
+ return ""}
+function avatar(st,only){
+ const pr=k=>S.prog[k]?S.prog[k].m:0,G=only||Object.fromEntries(SLOTS.map(([k])=>[k,gearOn(k)]));
  const sk="#c48459",skd="#a0663f",sh=24+Math.min(5,pr("body"))*1.6;
  const dhoti=st>=1?"#f3ead6":"#d8d1c2",O=`stroke="${K}" stroke-width="3" stroke-linejoin="round"`,O2=`stroke="${K}" stroke-width="2"`;
- let s="";
- if(st>=5)for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=60,r2=74;s+=`<path d="M${100+r1*Math.cos(a-.11)} ${66+r1*Math.sin(a-.11)} L${100+r2*Math.cos(a)} ${66+r2*Math.sin(a)} L${100+r1*Math.cos(a+.11)} ${66+r1*Math.sin(a+.11)}Z" fill="#d0492e" ${O2}/>`}
- if(st>=4)s+=`<circle cx="100" cy="66" r="62" fill="#d9a441" ${O}/><circle cx="100" cy="66" r="50" fill="var(--surface)" ${O}/>`;
+ const c={sh,O,O2,hx:100+sh+6,hy:151,lx:100-sh-6},I=k=>G[k]?gearSvg(G[k],c):"";
+ let s=I("aura");
  s+=`<ellipse cx="100" cy="226" rx="58" ry="7" fill="${K}" opacity=".18"/>`;
- if(pr("bonds")>=4)s+=`<g transform="rotate(-18 60 110)"><rect x="50" y="70" width="20" height="70" rx="4" fill="#8a5a2b" ${O}/><path d="M54 70 l-4 -18 M60 70 l0 -20 M66 70 l4 -18" stroke="${K}" stroke-width="2.5"/><path d="M47 52 l3 -6 3 6 M57 50 l3 -6 3 6 M67 52 l3 -6 3 6" fill="#d0492e" ${O2}/></g>`;
- if(pr("music")>=2)s+=`<line x1="62" y1="36" x2="150" y2="196" stroke="${K}" stroke-width="9" stroke-linecap="round"/><line x1="62" y1="36" x2="150" y2="196" stroke="#a86f35" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="44" r="12" fill="#a86f35" ${O}/><circle cx="146" cy="188" r="15" fill="#a86f35" ${O}/>`;
- if(pr("bonds")>=2)s+=`<path d="M150 40 Q118 120 150 200" stroke="${K}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M150 40 Q118 120 150 200" stroke="#d9a441" stroke-width="4" fill="none" stroke-linecap="round"/><line x1="150" y1="40" x2="150" y2="200" stroke="#f3ead6" stroke-width="1.4"/>`;
+ s+=I("back");
  s+=`<rect x="85" y="168" width="12" height="55" rx="6" fill="${sk}" ${O}/><rect x="103" y="168" width="12" height="55" rx="6" fill="${sk}" ${O}/>`;
  const dl=st>=2?206:182;
  s+=`<path d="M${100-sh+6} 126 L${100+sh-6} 126 L${100+sh+2} ${dl} Q100 ${dl-12} ${100-sh-2} ${dl} Z" fill="${dhoti}" ${O}/>`;
- if(st>=2)s+=`<path d="M${100+sh} ${dl-4} Q100 ${dl-16} ${100-sh} ${dl-4}" stroke="#d0492e" stroke-width="4" fill="none"/>`;
+ if(st>=2)s+=`<path d="M${100+sh} ${dl-4} Q100 ${dl-16} ${100-sh} ${dl-4}" stroke="${RED}" stroke-width="4" fill="none"/>`;
  const arm=a=>`<path d="${a}" stroke="${K}" stroke-width="16" stroke-linecap="round" fill="none"/><path d="${a}" stroke="${sk}" stroke-width="10" stroke-linecap="round" fill="none"/>`;
  s+=arm(`M${100-sh} 88 Q${100-sh-13} 116 ${100-sh-6} 150`)+arm(`M${100+sh} 88 Q${100+sh+13} 116 ${100+sh+6} 150`);
  s+=`<path d="M${100-sh} 84 Q100 76 ${100+sh} 84 L${100+sh-8} 130 L${100-sh+8} 130 Z" fill="${sk}" ${O}/>`;
- if(pr("body")>=4)s+=`<rect x="${100-sh-15}" y="103" width="13" height="7" rx="2" fill="#d9a441" ${O2}/><rect x="${100+sh+2}" y="103" width="13" height="7" rx="2" fill="#d9a441" ${O2}/>`;
- if(st>=1)s+=`<path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="${K}" stroke-width="13" stroke-linecap="round"/><path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="#d0492e" stroke-width="8" stroke-linecap="round"/>`;
- if(st>=2||pr("music")>=4){const mc=pr("music")>=4?"#4f8a3c":"#5a2f16";for(let i=0;i<=8;i++){const t=i/8;s+=`<circle cx="${86+28*t}" cy="${86+20*Math.sin(Math.PI*t)}" r="2.7" fill="${mc}" stroke="${K}" stroke-width="1"/>`}}
+ if(st>=1)s+=`<path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="${K}" stroke-width="13" stroke-linecap="round"/><path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="${RED}" stroke-width="8" stroke-linecap="round"/>`;
+ s+=I("waist")+I("arms")+I("neck");
  s+=`<rect x="94" y="66" width="12" height="18" rx="3" fill="${skd}" ${O}/><circle cx="100" cy="54" r="19" fill="${sk}" ${O}/>`;
  s+=st>=1?`<path d="M81 52 Q82 33 100 33 Q118 33 119 52 Q112 42 100 42 Q88 42 81 52Z" fill="${K}"/><circle cx="100" cy="29" r="${st>=3?9:7}" fill="${K}"/>`:`<path d="M81 52 Q82 34 100 34 Q118 34 119 52 Q110 44 100 45 Q90 44 81 52Z" fill="${K}"/>`;
  s+=`<path d="M91 56 q3 2.5 6 0M103 56 q3 2.5 6 0" stroke="${K}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
- if(st>=2)s+=`<path d="M100 40 v8" stroke="${st>=4?"#d0492e":"#d9a441"}" stroke-width="3" stroke-linecap="round"/>`;
- if(st>=4)s+=`<path d="M82 38 L86 22 L93 32 L100 16 L107 32 L114 22 L118 38 Z" fill="#d9a441" ${O}/><circle cx="100" cy="30" r="2.8" fill="#d0492e"/>`;
+ if(st>=2)s+=`<path d="M100 40 v8" stroke="${st>=4?RED:GOLD}" stroke-width="3" stroke-linecap="round"/>`;
+ s+=I("head");
  s+=`<circle cx="${100-sh-6}" cy="151" r="6" fill="${sk}" ${O}/><circle cx="${100+sh+6}" cy="151" r="6" fill="${sk}" ${O}/>`;
- if(pr("body")>=2)s+=`<line x1="${100+sh+6}" y1="160" x2="${100+sh+12}" y2="96" stroke="${K}" stroke-width="9" stroke-linecap="round"/><line x1="${100+sh+6}" y1="160" x2="${100+sh+12}" y2="96" stroke="#8a5424" stroke-width="4" stroke-linecap="round"/><circle cx="${100+sh+13}" cy="86" r="14" fill="#d9a441" ${O}/><circle cx="${100+sh+13}" cy="86" r="5" fill="#d0492e" ${O2}/>`;
+ s+=I("hand")+I("comp");
  return `<svg viewBox="-10 -10 220 250" role="img" aria-label="Your hero at rank ${RANKS[st][0]}">${s}</svg>`;
 }
+function itemIcon(id){const c={sh:28,O:`stroke="${K}" stroke-width="3"`,O2:`stroke="${K}" stroke-width="2"`,hx:134,hy:151,lx:66};const g=GEAR.find(x=>x[0]===id);
+ const box={hand:"84 10 90 220",back:"30 20 150 200",neck:"60 70 80 60",arms:"50 85 100 70",waist:"55 110 90 50",head:"75 -10 60 60",aura:"30 -10 140 150",comp:"0 0 80 230"}[g[4]];
+ const vb=id==="ring"?"52 135 28 28":id==="lion"?"-4 160 70 70":id==="pushpaka"?"-8 0 70 52":box;
+ return `<svg viewBox="${vb}" class="gico" aria-hidden="true"><g>${gearSvg(id,c)}</g></svg>`}
+let HS=null;
+function heroSheet(keep){const st=stage(),ps=sel();if(!HS||!keep){const pid=ps.length?ps[Math.floor(Math.random()*ps.length)]:null;HS={pid,line:pid?GUIDE_LINES[pid][Math.floor(Math.random()*GUIDE_LINES[pid].length)]:""}}
+ const prev=$(".sheet")?$(".sheet").scrollTop:0,owned=GEAR.filter(gearOwned).length;
+ const rk=S.epic?ARC_RANK[arcStage()]:RANKS[st];
+ sheet("var(--gold)",`<div class="hs-av">${avatar(st)}</div><div class="rank" style="text-align:center">${rk[0]}<span class="dev">${rk[1]}</span></div>
+ ${HS.pid?`<div class="box hs-say"><small>${PATHS[HS.pid].hero} says</small>“${HS.line}”</div>`:""}
+ <h2 style="margin-top:14px">Your gear</h2><p class="sub">${owned} of ${GEAR.length} gifts earned. Each path gives a gift at skills 2 and 4. Tap to equip or take off.</p>
+ ${SLOTS.map(([k,l])=>{const own=gearIn(k),on=gearOn(k),next=GEAR.filter(g=>g[4]===k&&!gearOwned(g)&&(!g[2]||S.paths.includes(g[2])))[0];
+  return `<div class="slot"><div class="slh"><b>${l}</b><small>${on?GEAR.find(g=>g[0]===on)[1]:"Empty"}</small></div>
+  ${own.length?`<div class="slitems">${own.map(g=>`<button class="gitem" data-gear="${k}:${g[0]}" aria-pressed="${on===g[0]}">${itemIcon(g[0])}<span>${g[1]}</span><small>${g[2]?PATHS[g[2]].hero:"Rank gift"}</small></button>`).join("")}${on?`<button class="gitem off" data-gear="${k}:">${""}<span>Take off</span></button>`:""}</div>`:""}
+  ${next?`<p class="slnext">${own.length?"Next: ":"Earn "}${next[1]} · ${next[2]?`${PATHS[next[2]].name} skill ${next[3]}`:`reach ${RANKS[next[3]][0]}`}</p>`:own.length?"":`<p class="slnext">Add more paths to earn gifts here.</p>`}</div>`}).join("")}
+ <button class="cta" style="width:100%;margin-top:14px" data-close="1">Done</button>`);
+ document.querySelectorAll(".gico").forEach(v=>{try{const r=v.firstChild.getBBox(),m=Math.max(r.width,r.height)+8;if(m>8)v.setAttribute("viewBox",`${(r.x+r.width/2-m/2).toFixed(1)} ${(r.y+r.height/2-m/2).toFixed(1)} ${m.toFixed(1)} ${m.toFixed(1)}`)}catch(e){}});
+ if(keep&&$(".sheet"))$(".sheet").scrollTop=prev}
 
 
 /* ================= focus: choose up to 5, readiness nudges ================= */
@@ -832,7 +909,7 @@ function render(){
  if(lastView!==v){lastView=v;app.classList.remove("enter");void app.offsetWidth;app.classList.add("enter")}
  save();
  if(S.deck!==td()&&!$(".scrim")&&!queue.length)setTimeout(()=>{if(S.on&&S.deck!==td()&&!$(".scrim"))openDeck()},300);
- else if(v==="today")epicCheck();
+ else epicCheck();
 }
 function header(title,sub){return `<header class="bar"><div class="wrap"><div class="hgreet">${sub?`<small>${sub}</small>`:""}<b>${title||"Abhyasa"}</b></div><button class="spill" data-streak="1" aria-label="${S.streak} day streak. Open streak details">${DIYA}${S.streak}</button></div></header>`}
 function tabs(){return `<nav class="tabs" aria-label="Main"><div class="wrap">${[["today","Today","sun"],["journey","Journey","path"],["hero","Hero","hero"]].map(([k,l,i])=>`<button data-view="${k}" ${S.view===k?'aria-current="page"':""}>${ic(i)}<span>${l}</span></button>`).join("")}</div></nav>`}
@@ -992,6 +1069,8 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  if(S.lore!=="well"&&learnLeft()){const nx=LEARN.find(x=>!S.learned.includes(x.id));out.splice(Math.min(out.length,1),0,card("gold",'data-learn="1"',`<span class="sci gold">${ic("learn")}</span>`,"New to these stories?","Start here",`Next: ${nx.t}`))}
  out.push(card("",'data-today-cal="1"',`<span class="sci gold">${ic("calm")}</span>`,cal.fest?"Today’s festival":"Story for today",cal.n,cal.t));
  if(c.d===t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in",`${E_L[c.energy]} energy`,`${c.sore.length?"Sore "+c.sore.map(k=>SORE_L[k]).join(", "):"No soreness"} · tap to change`));
+ if(S.epic){const E=EPICS[S.epic.id],i=arcStage();out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Your epic · ${E.n}`,`Book ${i+1}: ${E.stages[i].n}`,`${10-headsCut()} of 10 heads of ${E.foe} left`))}
+ else out.push(card("gold",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Your epic","Give your growth a story","7 books that move as you pass trials"));
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
  return `<div class="strip" role="list">${out.join("")}</div>`}
 function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${it.id}" aria-label="${it.done?"Undo":"Mark done"}: ${esc(it.t)}">${ic("check")}</button>`;
@@ -1015,7 +1094,7 @@ function todayView(){
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
  const eve=S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
- ${epicBanner()}${activityRings()}${stripCards()}
+ ${activityRings()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
  <div class="tlist">${items.map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
@@ -1037,12 +1116,13 @@ function focusManage(){sheet("var(--ink)",`<div class="kick" style="color:var(--
  ${REALMS.map(R=>`<div class="realm"><div class="rh"><b>${R.n}</b><span class="dev">${R.d}</span><small>${R.s} · ${R.about}</small></div><div class="rpaths">${ORDER.filter(p=>PATHS[p].realm===R.id).map(p=>{const on=S.paths.includes(p),pr=S.prog[p];return `<button class="rpath${on?" on":""}" data-pathsheet="${p}" style="--c:${PATHS[p].c}">${medal(p,"xs")}<span><b>${PATHS[p].name}</b><small>${on?"Active":pr.m||pr.xp?`Paused · ${pr.m}/5`:"Not started"}</small></span></button>`}).join("")}${SOON.filter(x=>x[2]===R.id).map(([n,h])=>`<div class="rpath soonp"><span class="medal xs" style="--c:var(--faint)"></span><span><b>${n}</b><small>Soon · ${h}</small></span></div>`).join("")}</div></div>`).join("")}`)}
 function journeyView(){const sg=segOf("journey","paths");let body="";
  if(sg==="paths")body=`${nudges().map(nudgeCard).join("")}<div class="pclist">${sel().map(pathCard).join("")}</div><button class="cta alt" style="width:100%;margin-top:12px" data-focus-manage="1">Manage focus · ${sel().length} of ${MAXP}</button>`;
+ if(sg==="epic")body=epicBody();
  if(sg==="tree")body=`${treeSvg()}<div class="block"><h2>Bridges and stories</h2><p class="sub">When two paths both pass 2 trials, their guides’ story unlocks.</p>${storiesList()}</div>`;
  if(sg==="cal"){const t=td(),r=ritu(t),cal=todayCal(),up=upcoming(4);body=`${r?`<div class="season"><span class="chip2">Season</span><h3>${r.d?`${r.n} ritu<span class="dev">${r.d}</span>`:r.n}</h3><p>${r.s}</p></div>`:""}
  <button class="calcard" data-today-cal="1"><small class="mute" style="font-size:12px;font-weight:600">${cal.fest?"Today in the Indian calendar":"A story for today"}</small><b>${cal.n}</b><span>Try today: ${cal.t}</span></button>
  ${up.length?`<div class="block"><h2>Coming up</h2><div class="upl">${up.map(k=>`<button class="upi" data-fest="${k}"><span class="ud"><b>${+k.slice(8)}</b><small>${MONS[+k.slice(5,7)-1]}</small></span><span><b>${FEST[k].n}</b><small>${inDays(k)}${FEST[k].approx?" · date approximate":""}</small></span></button>`).join("")}</div></div>`:""}
  <div class="block"><h2>Yatra log</h2><p class="sub">Each closed day sends your companion one step further</p>${sel().map(pid=>{const g=CHAR[pid],n=CHAPTERS[g].length,k=S.chap[g]||0,got=S.chapters.filter(c=>c.g===g);return `<div class="ylog" style="--c:${PATHS[pid].c}">${medal(pid,"sm")}<div><b>${PEOPLE[g].n}</b><small>${k>=n?`All ${n} chapters done.`:`Next: ${CHAPTERS[g][k%n].dest} · ${Math.min(k,n)} of ${n}`}</small><div class="ychips">${CHAPTERS[g].map((c,i)=>{const h=got.some(x=>x.ch===i);return `<button class="ych${h?" on":""}" ${h?`data-chap="${g}:${i}"`:"disabled"} aria-label="Chapter ${i+1}: ${c.dest}">${i+1}</button>`}).join("")}</div></div></div>`}).join("")}</div>`}
- return header("Journey")+tipCard()+`<div class="wrap">${seg("journey",[["paths","Paths"],["tree","Tree"],["cal","Calendar"]])}<div class="segbody">${body}</div></div>`}
+ return header("Journey")+tipCard()+`<div class="wrap">${seg("journey",[["paths","Paths"],["tree","Tree"],["epic","Epic"],["cal","Calendar"]])}<div class="segbody">${body}</div></div>`}
 
 /* ================= layout v2: Hero ================= */
 function weekChart(){const days=Array.from({length:7},(_,i)=>addD(td(),i-6)),ps=sel(),data=days.map(dayMinsBy),tots=data.map(o=>Object.values(o).reduce((a,b)=>a+b,0)),mx=Math.max(30,...tots),H=120,L=["Su","Mo","Tu","We","Th","Fr","Sa"];
@@ -1054,7 +1134,7 @@ function heatmap(){const t=td(),start=addD(monOf(t),-28),cells=[];for(let i=0;i<
  return `<div class="cardx"><div class="cx-h"><b>Last 5 weeks</b><small>${act} active days</small></div><div class="hm-l">${["M","T","W","T","F","S","S"].map(x=>`<small>${x}</small>`).join("")}</div><div class="hm">${cells.join("")}</div><div class="hm-k"><small>Less</small><i class="h0"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><small>More</small></div></div>`}
 function heroView(){const sg=segOf("hero","hero");let body="";
  const st=stage(),n=sel().length,need=(st+1)*n-msTotal(),pct=st>=5?100:Math.round((msTotal()-st*n)/n*100);
- if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-talk="1" aria-label="Tap your hero">${TALK?`<span class="bubble"><small>${TALK[0]} says</small>${TALK[1]}</span>`:""}${avatar(st)}</button>${S.epic?(()=>{const i=arcStage(),t=arcT(),nx=ARC_GATE[i+1],nd=i>=6?0:nx-t,pc=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100);return `<div class="rank">${ARC_RANK[i][0]}<span class="dev">${ARC_RANK[i][1]}</span><small class="rankEn">${EN[ARC_RANK[i][0]]} · Book ${i+1} of the ${EPICS[S.epic.id].n}</small></div>
+ if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-herosheet="1" aria-label="Open your hero and gear">${avatar(st)}<span class="avtap">Tap to see your gear</span></button>${S.epic?(()=>{const i=arcStage(),t=arcT(),nx=ARC_GATE[i+1],nd=i>=6?0:nx-t,pc=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100);return `<div class="rank">${ARC_RANK[i][0]}<span class="dev">${ARC_RANK[i][1]}</span><small class="rankEn">${EN[ARC_RANK[i][0]]} · Book ${i+1} of the ${EPICS[S.epic.id].n}</small></div>
   <div class="track"><i style="width:${pc}%"></i></div><small>${i>=6?"The highest title":`${nd} more trial${nd===1?"":"s"} to ${ARC_RANK[i+1][0]}`}</small>`})():`<div class="rank">${RANKS[st][0]}<span class="dev">${RANKS[st][1]}</span><small class="rankEn">${EN[RANKS[st][0]]}</small></div>
   <div class="track"><i style="width:${pct}%"></i></div><small>${st>=5?"The highest rank":`${need} more trial${need===1?"":"s"} to ${RANKS[st+1][0]}`}</small>`}</div>
   <div class="stat3" style="margin-top:12px"><button class="stat" data-streak="1"><b>${S.streak}</b><small>Day streak</small></button><div class="stat"><b>${S.goal}</b><small>Streak goal</small></div><div class="stat"><b>${S.best}</b><small>Best streak</small></div></div>
@@ -1182,7 +1262,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1190,17 +1270,19 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.herosheet){heroSheet();return}
+ if(d.gear!==undefined){const[k,v]=d.gear.split(":");S.gear=S.gear||{};S.gear[k]=v;save();render();heroSheet(true);return}
  if(d.epicSetup){EP=d.epicSetup==="edit"&&S.epic?{step:1,id:S.epic.id,dest:[...S.epic.dest],foe:S.epic.foe,edit:true}:{step:0,id:"",dest:[],foe:"",edit:false};epicSetup();return}
- if(d.epic){epicSheet();return}
+ if(d.epic){closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();window.scrollTo(0,0);return}
  if(d.ep){const[a,v]=d.ep.split(":");
-  if(a==="play"){closeLayer();playStage(+v);return}
+  if(a==="play"){playStage(+v);return}
   if(!EP)return;
   if(a==="id"){EP.id=v;EP.step=1;if(!EP.dest.length)EP.dest=DESTS.filter(x=>x[2].some(p=>sel().includes(p))).map(x=>x[0]).slice(0,3)}
   if(a==="dest"){EP.dest=EP.dest.includes(v)?EP.dest.filter(x=>x!==v):EP.dest.length<3?[...EP.dest,v]:EP.dest;if(!EP.dest.includes(v)&&EP.dest.length>=3)toast("Pick up to 3")}
   if(a==="next")EP.step=2;
   if(a==="foe")EP.foe=v;
   if(a==="begin"){if(EP.edit){S.epic.dest=EP.dest;S.epic.foe=EP.foe;EP=null;save();closeLayer();render();toast("Your epic is updated");return}
-   S.epic={id:EP.id,start:td(),base:0,dest:EP.dest,foe:EP.foe,seen:0,cut:0};EP=null;const i=arcStage();S.epic.seen=i;S.epic.cut=headsCut();save();closeLayer();render();playStage(i);return}
+   S.epic={id:EP.id,start:td(),base:0,dest:EP.dest,foe:EP.foe,seen:0,cut:0};EP=null;const i=arcStage();S.epic.seen=i;S.epic.cut=headsCut();save();closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();playStage(i);return}
   epicSetup();return}
  if(d.fbk){const tx=$("#fbtext");if(tx)FB.t=tx.value;FB.k=d.fbk;feedbackSheet();return}
  if(d.fbsend){fbSend(d.fbsend);return}
