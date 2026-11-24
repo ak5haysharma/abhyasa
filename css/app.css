@@ -804,3 +804,11 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .stepr b{font-size:17px}.stepr .mini{min-width:48px;font-size:20px}
 .stepr.big b{font-size:24px}
 .ownl{margin-top:8px}
+.ep-miss{background:var(--gold-bg);border:1.5px solid var(--gold);border-radius:16px;padding:14px;margin:4px 0 12px}
+.ep-miss b{display:block;font-size:16px}.ep-miss p{margin:4px 0 10px;font-size:14px;line-height:1.5}
+.hall{display:grid;gap:8px;margin-top:8px}
+.hall-i{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:14px;padding:10px 12px}
+.hall-m{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--mute);font-size:14px}
+.hall-i.won .hall-m{background:var(--gold);color:var(--bg)}
+.hall-i b{display:block;font-size:14.5px}.hall-i small,.hall-i em{display:block;font-size:12.5px;color:var(--mute);font-style:normal}
+.morep{margin-top:12px}.morep summary{cursor:pointer;font-weight:600;color:var(--mute);padding:8px 0}

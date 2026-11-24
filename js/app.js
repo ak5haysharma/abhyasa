@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.17.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.18.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -172,11 +172,11 @@ function buildPlan(keep){
  const ps=sel(),C=ctx(),items=keep.slice();
  anchorsToday(C.c).forEach(a=>{if(items.some(x=>x.kind==="anchor"&&x.aid===a.id))return;const sr=C.c.sore.filter(k=>a.load.some(l=>SORE[k].includes(l)));
   items.push({id:uid(),kind:"anchor",aid:a.id,pid:a.pid,t:a.n,m:a.m,load:a.load,done:false,why:sr.length?`Your ${SORE_L[sr[0]]} is sore: go light, or skip it today`:""})});
- const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),rem=Math.max(0,S.time-used),wf=focusPid(),wsum=ps.reduce((a,p)=>a+(p===wf?1.6:1),0);
+ const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),rem=Math.max(0,S.time-used),wf=focusPid(),ep=(S.epic&&S.epic.goal&&!(S.epic.cur>=S.epic.ms[6]))?(S.epic.goal.combo?(SYN.find(x=>x.id===S.epic.goal.combo)||{p:[]}).p:[S.epic.goal.pid]):[],wt=p=>(p===wf?1.6:1)*(ep.includes(p)?1.3:1),wsum=ps.reduce((a,p)=>a+wt(p),0);
  ps.forEach(pid=>{
   const pr=S.prog[pid];
   if(pr.m<5&&pr.xp>=NEED[pr.m]&&!items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done))items.push({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});
-  const hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*(pid===wf?1.6:1)/wsum,cap=hasA?Math.min(15,share):share,maxN=hasA?1:2;
+  const hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*wt(pid)/wsum,cap=hasA?Math.min(15,share):share,maxN=hasA?1:2;
   const list=ranked(pid,C,td()+pid+S.time+items.length+JSON.stringify(C.c),items.map(x=>x.t));
   let left=cap,n=items.filter(x=>x.kind==="task"&&x.pid===pid).length;
   for(const o of list){if(n>=maxN)break;if(o.x.m<=left+3){items.push(mkT(pid,o));left-=o.x.m;n++}}
@@ -576,9 +576,12 @@ const roundTo=(v,s)=>Math.round(v/s)*s,fmtN=v=>(+v.toFixed(2)).toString();
 const msOf=(base,tgt,st)=>Array.from({length:7},(_,k)=>k===6?tgt:Math.max(base+st,roundTo(base+(tgt-base)*(k+1)/7,st)));
 const arcStage=()=>S.epic?Math.min(6,S.epic.ms.filter(v=>S.epic.cur>=v).length):0;
 const epicDone=()=>S.epic&&S.epic.cur>=S.epic.ms[6];
-const headsCut=()=>S.epic?Math.min(10,Math.floor(S.epic.ms.filter(v=>S.epic.cur>=v).length/7*10)):0;
+const headsCut=()=>S.epic?(epicDone()?10:Math.min(9,S.epic.ms.filter(v=>S.epic.cur>=v).length+(S.epic.wins||0))):0;
 const foeName=()=>{const f=(S.epic.foes||[]).map(k=>(FOES.find(x=>x[0]===k)||[0,0,""])[2]).filter(Boolean);return `${EPICS[S.epic.id].foe} of ${f.length?f.length>1?f.slice(0,-1).join(", ")+" and "+f[f.length-1]:f[0]:"old habits"}`};
-const goalText=g=>EGOALS[g.pid].t.replace("{n}",fmtN(g.n));
+const TPL=g=>g.combo?ECOMBO[g.combo]:EGOALS[g.pid][g.ti||0];
+const goalText=g=>TPL(g).t.replace("{n}",fmtN(g.n));
+const comboOf=id=>SYN.find(x=>x.id===id);
+const tiFor=pid=>((S.hall||[]).filter(h=>h.pid===pid).length+(S.epicN||0))%EGOALS[pid].length;
 const destText=()=>S.epic?goalText(S.epic.goal).toLowerCase():"";
 const daysLeft=()=>S.epic?diff(td(),S.epic.end):0;
 const sizeFor=pid=>{const m=S.prog[pid].m;return m<=1?0:m<=3?1:2};
@@ -586,62 +589,79 @@ const bestEpicFor=pid=>{let b="ramayana";Object.entries(EPICS).forEach(([k,E])=>
 function goalSuggest(){const ps=sel();if(!ps.length)return [];const mins={};ps.forEach(p=>mins[p]=0);
  for(let i=0;i<14;i++){const by=dayMinsBy(addD(td(),-i));ps.forEach(p=>mins[p]+=by[p]||0)}
  const byAct=[...ps].sort((a,b)=>mins[b]-mins[a]),top=byAct[0],low=byAct[byAct.length-1];
- const out=[{why:"Build on momentum",note:`${PATHS[top].name} is your most active path lately`,pid:top,size:sizeFor(top)}];
- if(low!==top)out.push({why:"Lift what’s lagging",note:`${PATHS[low].name} has had the least time`,pid:low,size:Math.max(0,sizeFor(low)-(mins[low]?0:0))});
+ const out=[{why:"Build on momentum",note:`${PATHS[top].name} is your most active path lately`,pid:top,ti:tiFor(top),size:sizeFor(top)}];
+ if(low!==top)out.push({why:"Lift what’s lagging",note:`${PATHS[low].name} has had the least time`,pid:low,ti:tiFor(low),size:sizeFor(low)});
+ const cb=SYN.filter(x=>ECOMBO[x.id]&&x.p.length===2&&x.p.every(p=>ps.includes(p))).sort((a,b)=>(S.syn.includes(b.id)?1:0)-(S.syn.includes(a.id)?1:0))[0];
  const mid=byAct.find(p=>p!==top&&p!==low);const up=Math.min(2,sizeFor(top)+1);
- if(up>sizeFor(top))out.push({why:"Stretch yourself",note:`A bigger ${PATHS[top].name} goal`,pid:top,size:up});else if(mid)out.push({why:"Something new",note:`Give ${PATHS[mid].name} a clear target`,pid:mid,size:sizeFor(mid)});
+ if(cb)out.push({why:"Combine two paths",note:`Grows ${cb.p.map(p=>PATHS[p].name).join(" and ")} together`,pid:cb.p[0],combo:cb.id,size:Math.min(...cb.p.map(sizeFor))});
+ else if(up>sizeFor(top))out.push({why:"Stretch yourself",note:`A bigger ${PATHS[top].name} goal`,pid:top,ti:tiFor(top),size:up});else if(mid)out.push({why:"Something new",note:`Give ${PATHS[mid].name} a clear target`,pid:mid,ti:tiFor(mid),size:sizeFor(mid)});
  return out.slice(0,3)}
 function headsSvg(big){const n=10,cut=headsCut(),w=big?220:150,h=big?34:22,r=big?8:5.2;let g="";
  for(let i=0;i<n;i++){const x=r+2+i*((w-2*r-4)/(n-1)),y=h/2+(Math.abs(i-4.5)/4.5)*(big?6:4)-(big?2:1),dead=i<cut;
   g+=dead?`<g opacity=".35"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="none" stroke="var(--mute)" stroke-width="1.5"/><path d="M${(x-r).toFixed(1)} ${(y+r).toFixed(1)}L${(x+r).toFixed(1)} ${(y-r).toFixed(1)}" stroke="var(--mute)" stroke-width="1.5"/></g>`
   :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="#b5442c" stroke="${K}" stroke-width="1.5"/><path d="M${(x-r*.6).toFixed(1)} ${(y-r*.7).toFixed(1)}l${(r*.3).toFixed(1)} -${(r*.7).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} -${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.7).toFixed(1)}z" fill="#d9a441" stroke="${K}" stroke-width="1"/>`}
  return `<svg class="heads" viewBox="0 -6 ${w} ${h+6}" width="${w}" height="${h+6}" aria-label="${n-cut} of ${n} heads left">${g}</svg>`}
-function goalCard(s,i){const G=EGOALS[s.pid],n=G.n[s.size],E=EPICS[bestEpicFor(s.pid)];
- return `<button class="gcard" data-ep="pick:${i}" style="--c:${PATHS[s.pid].c}"><small>${s.why}</small><b>${G.t.replace("{n}",fmtN(n))}</b><span>${medal(s.pid,"xs")}${PATHS[s.pid].name} · ${GSIZE[s.size]} · ${G.w[s.size]} weeks · ${E.n}</span><em>${s.note}</em></button>`}
+function goalCard(s,i){const G=TPL(s),n=G.n[s.size],E=EPICS[bestEpicFor(s.pid)];
+ return `<button class="gcard" data-ep="pick:${i}" style="--c:${PATHS[s.pid].c}"><small>${s.why}</small><b>${G.t.replace("{n}",fmtN(n))}</b><span>${s.combo?comboOf(s.combo).p.map(p=>medal(p,"xs")).join(""):medal(s.pid,"xs")}${s.combo?comboOf(s.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[s.pid].name} · ${GSIZE[s.size]} · ${G.w[s.size]} weeks · ${E.n}</span><em>${s.note}</em></button>`}
 function epicBody(){
  if(!S.epic){const sg=goalSuggest();EP=EP&&EP.list?EP:{list:sg};EP.list=sg;
   return `<div class="ep-why"><h3>Have a goal? Turn it into an epic.</h3><p>Abhyasa is about your daily practice. An epic is <b>optional</b>: one clear goal with a deadline, told as a story in 7 books. Each milestone you reach opens the next book.</p></div>
   <div class="block"><h2>Suggested for you</h2><p class="sub">Based on your paths, your level and the last 14 days.</p>${sg.map(goalCard).join("")}
-  <button class="cta alt" style="width:100%;margin-top:4px" data-ep="own">Pick my own goal</button></div>`}
- const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],g=S.epic.goal,G=EGOALS[g.pid],dl=daysLeft(),cur=S.epic.cur,pc=Math.min(100,Math.round((cur-g.base)/Math.max(1e-9,g.n-g.base)*100));
- if(epicDone())return `<div class="ep-why"><h3>Goal reached 🎉</h3><p>${CAP(destText())}. You completed the ${E.n}.</p><button class="cta" style="width:100%" data-ep="play:6">Watch Book 7 again</button><button class="cta alt" style="width:100%;margin-top:8px" data-ep="close">Start a new epic</button></div>`;
- return `<p class="ep-note">An optional story for one goal. Your daily tasks help, and logging progress opens the next book.</p>
+  <button class="cta alt" style="width:100%;margin-top:4px" data-ep="own">Pick my own goal</button></div>${(S.hall||[]).length?`<div class="block"><h2>Hall of epics</h2>${hallView()}</div>`:""}`}
+ const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],g=S.epic.goal,G=TPL(g),dl=daysLeft(),cur=S.epic.cur,pc=Math.min(100,Math.round((cur-g.base)/Math.max(1e-9,g.n-g.base)*100));
+ if(epicDone())return `<div class="ep-why"><h3>Goal reached 🎉</h3><p>${CAP(destText())}. You completed the ${E.n}.</p><button class="cta" style="width:100%" data-ep="play:6">Watch Book 7 again</button><button class="cta alt" style="width:100%;margin-top:8px" data-ep="finish">Add to your Hall and start a new epic</button></div>`;
+ const miss=dl<0?`<div class="ep-miss"><b>The deadline has passed</b><p>No shame in that. Most goals take longer than planned. What would you like to do?</p><button class="cta" style="width:100%" data-ep="miss">Decide what’s next</button></div>`:"";
+ return `${miss}<p class="ep-note">An optional story for one goal. Your daily tasks help, and logging progress opens the next book.</p>
  <div class="ep-goal" style="--c:${PATHS[g.pid].c}"><small>${E.n} · Book ${i+1} of 7 · ${st.n}</small><b>${CAP(destText())}</b>
   <span class="eb-bar"><i style="width:${pc}%"></i></span><span class="eb-row"><em>${fmtN(cur)} of ${fmtN(g.n)} ${G.u}</em><em>${dl>0?`${dl} days left`:dl===0?"Deadline today":`${-dl} days past the deadline`}</em></span>
   <button class="cta" style="width:100%;margin-top:10px" data-ep="log">Update progress</button></div>
- <div class="foe">${headsSvg(true)}<div><b>${foeName()}</b><small>${10-headsCut()} of 10 heads left. Heads fall as you reach milestones.</small></div></div>
+ <div class="foe">${headsSvg(true)}<div><b>${foeName()}</b><small>${10-headsCut()} of 10 heads left. A head falls at each milestone, and each week you beat your obstacles.</small></div></div>
  <ol class="books">${E.stages.map((b,k)=>{const v=k?S.epic.ms[k-1]:g.base;return `<li class="${k<i?"done":k===i?"now":""}"><span class="bn">${k<i?"✓":k+1}</span><span class="bt"><b>${b.n}</b><small>${k===0?"Start":`At ${fmtN(v)} ${G.u}`} · ${k<i?"Done":k===i?"You are here":"Locked"}</small></span>${k<=i?`<button class="mini" data-ep="play:${k}">Watch</button>`:""}</li>`}).join("")}
   <li class="${epicDone()?"done":""}"><span class="bn">★</span><span class="bt"><b>Goal</b><small>${fmtN(g.n)} ${G.u} by ${S.epic.end.split("-").reverse().join(".")}</small></span></li></ol>
  <button class="linkbtn" data-ep="close">End this epic</button>`}
-function goalSheet(){const g=EP.g,G=EGOALS[g.pid];
- sheet(PATHS[g.pid].c,`<div class="kick" style="color:${PATHS[g.pid].c}">${PATHS[g.pid].name} · ${EPICS[bestEpicFor(g.pid)].n}</div><h2>${G.t.replace("{n}",fmtN(g.n))}</h2>
+function toHall(won,why){S.hall=S.hall||[];S.hall.push({id:S.epic.id,pid:S.epic.goal.pid,combo:S.epic.goal.combo||"",goal:goalText(S.epic.goal),cur:S.epic.cur,u:TPL(S.epic.goal).u,start:S.epic.start,end:td(),won:!!won,why:why||[]});S.epic=null;EP=null;save()}
+function missSheet(){EP=EP&&EP.miss?EP:{miss:true,why:[]};const ext=S.epic.ext;
+ sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">${EPICS[S.epic.id].n} · Deadline passed</div><h2>${CAP(destText())}</h2><p class="sub">You reached ${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${TPL(S.epic.goal).u}. That still counts. What got in the way?</p>
+ <div class="cchips">${MISSWHY.map(([k,l])=>`<button class="chip" data-ep="why:${k}" aria-pressed="${EP.why.includes(k)}">${l}</button>`).join("")}</div>
+ ${ext?"":`<div class="qlabel">Keep going</div><div class="row"><button class="cta alt" data-ep="ext:2">Extend 2 weeks</button><button class="cta alt" data-ep="ext:4">Extend 4 weeks</button></div>`}
+ <div class="qlabel">Or</div><button class="cta" style="width:100%" data-ep="missclose">Close it and keep the lessons</button>
+ <p class="sub" style="margin-top:10px">Your rank, gear and trials stay either way.${ext?" You have already extended this epic once.":""}</p>`)}
+function hallView(){const H=(S.hall||[]).slice().reverse();if(!H.length)return `<p class="sub">Finished and closed epics appear here.</p>`;
+ return `<div class="hall">${H.map(h=>`<div class="hall-i${h.won?" won":""}" style="--c:${PATHS[h.pid]?PATHS[h.pid].c:"var(--gold)"}"><span class="hall-m">${h.won?"★":"◐"}</span><span><b>${esc(h.goal)}</b><small>${EPICS[h.id]?EPICS[h.id].n:""} · ${h.start.split("-").reverse().join(".")} – ${h.end.split("-").reverse().join(".")}</small><em>${h.won?"Goal reached":`Reached ${fmtN(h.cur||0)} ${h.u||""}${h.why&&h.why.length?" · "+h.why.map(k=>(MISSWHY.find(x=>x[0]===k)||[0,""])[1].toLowerCase()).join(", "):""}`}</em></span></div>`).join("")}</div>`}
+function goalSheet(){const g=EP.g,G=TPL(g);
+ sheet(PATHS[g.pid].c,`<div class="kick" style="color:${PATHS[g.pid].c}">${g.combo?comboOf(g.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[g.pid].name} · ${EPICS[bestEpicFor(g.pid)].n}</div><h2>${G.t.replace("{n}",fmtN(g.n))}</h2>
  <div class="qlabel">Goal</div><div class="stepr"><button class="mini" data-ep="n:-">−</button><b>${fmtN(g.n)} ${G.u}</b><button class="mini" data-ep="n:+">+</button></div>
  <div class="qlabel">Where you are now</div><div class="stepr"><button class="mini" data-ep="b:-">−</button><b>${fmtN(g.base)} ${G.u}</b><button class="mini" data-ep="b:+">+</button></div>
  <div class="qlabel">Deadline</div><div class="cchips">${[4,8,12].map(w=>`<button class="chip" data-ep="w:${w}" aria-pressed="${g.w===w}">${w} weeks</button>`).join("")}</div>
  <div class="qlabel">What stands in your way? Up to 3</div><div class="cchips">${FOES.map(([k,l])=>`<button class="chip" data-ep="foe:${k}" aria-pressed="${g.foes.includes(k)}">${l}</button>`).join("")}</div>
  <p class="sub" style="margin-top:12px">Your goal is split into 7 milestones, one per book. Your obstacles become ${EPICS[bestEpicFor(g.pid)].foe}, with 10 heads.</p>
  <button class="cta" style="width:100%" data-ep="begin" ${g.n>g.base?"":"disabled"}>Begin the ${EPICS[bestEpicFor(g.pid)].n}</button>`)}
-function ownSheet(){sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Pick my own goal</div><h2>Choose a path</h2><p class="sub">Your active paths come first.</p>
- <div class="ownl">${[...sel(),...ORDER.filter(p=>!S.paths.includes(p))].map(p=>{const G=EGOALS[p],z=sizeFor(p);return `<button class="gcard" data-ep="ownp:${p}" style="--c:${PATHS[p].c}"><b>${G.t.replace("{n}",fmtN(G.n[z]))}</b><span>${medal(p,"xs")}${PATHS[p].name} · ${GSIZE[z]}</span></button>`}).join("")}</div>`)}
-function logSheet(){const g=S.epic.goal,G=EGOALS[g.pid],v=EP.v,nx=S.epic.ms.find(x=>x>v);
+function ownSheet(){const ps=sel(),cbs=SYN.filter(x=>ECOMBO[x.id]&&x.p.every(p=>ps.includes(p)));
+ const row=(p,ti)=>{const G=EGOALS[p][ti],z=sizeFor(p);return `<button class="gcard" data-ep="ownp:${p}:${ti}" style="--c:${PATHS[p].c}"><b>${G.t.replace("{n}",fmtN(G.n[z]))}</b><span>${medal(p,"xs")}${PATHS[p].name} · ${GSIZE[z]}</span></button>`};
+ sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Pick my own goal</div><h2>Choose a goal</h2><p class="sub">Sizes fit your level. You can change the number on the next screen.</p>
+ ${cbs.length?`<div class="qlabel">Combine two paths</div>${cbs.map(x=>{const z=Math.min(...x.p.map(sizeFor)),G=ECOMBO[x.id];return `<button class="gcard" data-ep="ownc:${x.id}" style="--c:${PATHS[x.p[0]].c}"><b>${G.t.replace("{n}",fmtN(G.n[z]))}</b><span>${x.p.map(p=>medal(p,"xs")).join("")}${x.p.map(p=>PATHS[p].name).join(" + ")} · ${GSIZE[z]}</span></button>`}).join("")}`:""}
+ ${ps.map(p=>`<div class="qlabel">${PATHS[p].name}</div>${EGOALS[p].map((_,ti)=>row(p,ti)).join("")}`).join("")}
+ <details class="morep"><summary>Other paths</summary>${ORDER.filter(p=>!ps.includes(p)).map(p=>`<div class="qlabel">${PATHS[p].name}</div>${EGOALS[p].map((_,ti)=>row(p,ti)).join("")}`).join("")}</details>`)}
+function logSheet(){const g=S.epic.goal,G=TPL(g),v=EP.v,nx=S.epic.ms.find(x=>x>v);
  sheet(PATHS[g.pid].c,`<div class="kick" style="color:${PATHS[g.pid].c}">Update progress</div><h2>${CAP(destText())}</h2><p class="sub">Where are you now?</p>
  <div class="stepr big"><button class="mini" data-ep="v:-">−</button><b>${fmtN(v)} ${G.u}</b><button class="mini" data-ep="v:+">+</button></div>
  <p class="sub" style="text-align:center">${nx!==undefined?`Next milestone: ${fmtN(nx)} ${G.u}`:"That reaches your goal"}</p>
  <button class="cta" style="width:100%" data-ep="save">Save</button>`)}
-function startGoal(pid,size){const G=EGOALS[pid];EP={g:{pid,size,n:G.n[size],base:0,w:G.w[size],foes:[]}};goalSheet()}
+function startGoal(x){const G=TPL(x);EP={g:{pid:x.pid,ti:x.ti||0,combo:x.combo||"",size:x.size,n:G.n[x.size],base:0,w:G.w[x.size],foes:[]}};goalSheet()}
 function playStage(i,after){const E=EPICS[S.epic.id],st=E.stages[i],pid=S.epic.goal.pid,g=CHAR[pid];
  const sub=x=>x.replace("{G}",PEOPLE[g].n).replace("{FOE}",foeName()).replace("{DEST}",destText());
  const cards=st.scenes.map((sc,k)=>{const w=sc.who.map(x=>x==="G"?g:x).filter((x,j,a)=>a.indexOf(x)===j);return {kick:k?"":`Book ${i+1} · ${st.n}`,svg:sceneInner({bg:sc.bg,chars:w.length>1?two(w[0],w[1]):one(w[0],k?"float":"rise")}),cap:sub(sc.cap)}});
- const G=EGOALS[S.epic.goal.pid],nx=S.epic.ms[i];
+ const G=TPL(S.epic.goal),nx=S.epic.ms[i];
  cards.push({kick:"Your goal",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${CAP(destText())}</b><p>${i<6?`Next milestone: ${fmtN(nx)} ${G.u}. That opens Book ${i+2}.`:`Last step: ${fmtN(S.epic.goal.n)} ${G.u}.`}</p>${headsSvg(true)}</div>`,cap:`${10-headsCut()} heads of ${foeName()} remain. ${daysLeft()} days left.`});
  openPlayer({label:`Book ${i+1}`,title:E.n,sub:`Book ${i+1} of 7 · ${st.n}`,cast:[pid],cards,auto:false,after})}
 function playWin(){const E=EPICS[S.epic.id],g=S.epic.goal,c=CHAR[g.pid];
  openPlayer({label:"Goal reached",title:E.n,sub:"Goal reached",cast:[g.pid],auto:false,cards:[
   {kick:"Goal reached",svg:sceneInner({bg:"lamps",chars:two("rama",c)}),cap:`${CAP(destText())}. Ravana falls, and Ayodhya lights every lamp for you.`},
-  {kick:"",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${E.n} complete</b><p>Your rank, gear and trials stay with you. When you are ready, pick your next goal.</p></div>`,cap:""}]})}
+  {kick:"",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${E.n} complete</b><p>${(S.hall||[]).some(h=>h.won)?"":"You earned the <b>Ayodhya diya</b>, a companion for your hero. "}Your rank, gear and trials stay with you. When you are ready, pick your next goal.</p></div>`,cap:""}]})}
 function epicCheck(){if(!S.epic||EPCHK)return;EPCHK=true;setTimeout(()=>{EPCHK=false;if(!S.on||!S.epic||$(".scrim")||queue.length)return;
  if(epicDone()&&!S.epic.won){S.epic.won=td();save();playWin();render();return}
- const i=arcStage();if(i>(S.epic.seen??-1)){S.epic.seen=i;save();playStage(i)}},700)}
+ const i=arcStage();if(i>(S.epic.seen??-1)){S.epic.seen=i;save();playStage(i);return}
+ if(daysLeft()<0&&!epicDone()&&!S.epic.missAsk){S.epic.missAsk=td();save();EP=null;missSheet()}},700)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -665,8 +685,8 @@ const GEAR=[
  ["vajra","Indra’s vajra","making",2,"hand"],["pushpaka","Pushpaka vimana","making",4,"comp"],
  ["stylus","Valmiki’s stylus","art",2,"hand"],["manuscript","Ramayana manuscript","art",4,"back"],
  ["basket","Shabari’s basket","gratitude",2,"hand"],["ashram","Ashram lamp","gratitude",4,"hand"],
- ["crown","Golden crown","",4,"head"],["halo","Sun halo","",4,"aura"],["rays","Rays of Surya","",5,"aura"]];
-const gearOwned=g=>g[2]?(S.prog[g[2]]&&S.prog[g[2]].m>=g[3]):stage()>=g[3];
+ ["crown","Golden crown","",4,"head"],["diya","Ayodhya diya","epic",1,"comp"],["halo","Sun halo","",4,"aura"],["rays","Rays of Surya","",5,"aura"]];
+const gearOwned=g=>g[2]==="epic"?((S.hall||[]).filter(h=>h.won).length+(S.epic&&S.epic.won?1:0))>=g[3]:g[2]?(S.prog[g[2]]&&S.prog[g[2]].m>=g[3]):stage()>=g[3];
 const gearIn=slot=>GEAR.filter(g=>g[4]===slot&&gearOwned(g));
 function gearOn(slot){S.gear=S.gear||{};const own=gearIn(slot);if(Object.prototype.hasOwnProperty.call(S.gear,slot)){const id=S.gear[slot];return own.some(g=>g[0]===id)?id:""}
  if(!own.length)return "";const act=own.filter(g=>!g[2]||S.paths.includes(g[2]));const L=(act.length?act:own);return L[L.length-1][0]}
@@ -704,6 +724,7 @@ function gearSvg(id,c){const{sh,O,O2,hx,hy,lx}=c,ln=(x1,y1,x2,y2,col,w)=>`<line 
  case "basket":{const y=hy+6;return `<path d="M${hx-10} ${y-2} q10 -14 20 0" stroke="${K}" stroke-width="2.5" fill="none"/><path d="M${hx-14} ${y} h28 l-4 16 h-20z" fill="#c9a07a" ${O2}/><path d="M${hx-12} ${y+5} h24 M${hx-10} ${y+10} h20" stroke="${K}" stroke-width="1"/><circle cx="${hx-6}" cy="${y-2}" r="3" fill="${RED}" stroke="${K}" stroke-width="1"/><circle cx="${hx+1}" cy="${y-4}" r="3" fill="#a8263a" stroke="${K}" stroke-width="1"/><circle cx="${hx+7}" cy="${y-2}" r="3" fill="${RED}" stroke="${K}" stroke-width="1"/>`}
  case "lion":return `<g transform="translate(20 168)"><ellipse cx="14" cy="40" rx="22" ry="16" fill="${GOLD}" ${O}/><circle cx="0" cy="18" r="17" fill="#a8641e" ${O}/><circle cx="0" cy="20" r="10" fill="${GOLD}" ${O2}/><circle cx="-4" cy="18" r="1.6" fill="${K}"/><circle cx="4" cy="18" r="1.6" fill="${K}"/><path d="M-3 24 q3 3 6 0" stroke="${K}" stroke-width="1.5" fill="none"/><path d="M34 34 q10 -10 4 -20" stroke="${K}" stroke-width="3" fill="none"/></g>`;
  case "pushpaka":return `<g transform="translate(6 6)"><path d="M0 30 h44 l-6 10 h-32z" fill="${GOLD}" ${O2}/><path d="M8 30 v-12 l14 -10 l14 10 v12" fill="#f3ead6" ${O2}/><path d="M22 8 v-6" stroke="${RED}" stroke-width="2"/><path d="M0 32 q-10 -8 -6 -16 q6 6 10 12 M44 32 q10 -8 6 -16 q-6 6 -10 12" fill="#fbfaf5" ${O2}/></g>`;
+ case "diya":return `<g transform="translate(26 36)"><circle r="20" fill="#f2c94c" opacity=".25"/><path d="M-13 2 q13 15 26 0z" fill="${GOLD}" ${O2}/><path d="M0 0 q-7 -9 0 -20 q7 11 0 20z" fill="#f2a43a" stroke="${RED}" stroke-width="1.5"/></g>`;
  case "crown":return `<path d="M82 38 L86 22 L93 32 L100 16 L107 32 L114 22 L118 38 Z" fill="${GOLD}" ${O}/><circle cx="100" cy="30" r="2.8" fill="${RED}"/>`;
  case "halo":return `<circle cx="100" cy="66" r="62" fill="${GOLD}" ${O}/><circle cx="100" cy="66" r="50" fill="var(--surface)" ${O}/>`;
  case "rays":{let s="";for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=60,r2=74;s+=`<path d="M${100+r1*Math.cos(a-.11)} ${66+r1*Math.sin(a-.11)} L${100+r2*Math.cos(a)} ${66+r2*Math.sin(a)} L${100+r1*Math.cos(a+.11)} ${66+r1*Math.sin(a+.11)}Z" fill="${RED}" ${O2}/>`}return s+gearSvg("halo",c)}}
@@ -736,7 +757,7 @@ function avatar(st,only){
 }
 function itemIcon(id){const c={sh:28,O:`stroke="${K}" stroke-width="3"`,O2:`stroke="${K}" stroke-width="2"`,hx:134,hy:151,lx:66};const g=GEAR.find(x=>x[0]===id);
  const box={hand:"84 10 90 220",back:"30 20 150 200",neck:"60 70 80 60",arms:"50 85 100 70",waist:"55 110 90 50",head:"75 -10 60 60",aura:"30 -10 140 150",comp:"0 0 80 230"}[g[4]];
- const vb=id==="ring"?"52 135 28 28":id==="lion"?"-4 160 70 70":id==="pushpaka"?"-8 0 70 52":box;
+ const vb=id==="ring"?"52 135 28 28":id==="lion"?"-4 160 70 70":id==="pushpaka"?"-8 0 70 52":id==="diya"?"2 12 48 48":box;
  return `<svg viewBox="${vb}" class="gico" aria-hidden="true"><g>${gearSvg(id,c)}</g></svg>`}
 let HS=null;
 function heroSheet(keep){const st=stage(),ps=sel();if(!HS||!keep){const pid=ps.length?ps[Math.floor(Math.random()*ps.length)]:null;HS={pid,line:pid?GUIDE_LINES[pid][Math.floor(Math.random()*GUIDE_LINES[pid].length)]:""}}
@@ -747,7 +768,7 @@ function heroSheet(keep){const st=stage(),ps=sel();if(!HS||!keep){const pid=ps.l
  <h2 style="margin-top:14px">Your gear</h2><p class="sub">${owned} of ${GEAR.length} gifts earned. Each path gives a gift at skills 2 and 4. Tap to equip or take off.</p>
  ${SLOTS.map(([k,l])=>{const own=gearIn(k),on=gearOn(k),next=GEAR.filter(g=>g[4]===k&&!gearOwned(g)&&(!g[2]||S.paths.includes(g[2])))[0];
   return `<div class="slot"><div class="slh"><b>${l}</b><small>${on?GEAR.find(g=>g[0]===on)[1]:"Empty"}</small></div>
-  ${own.length?`<div class="slitems">${own.map(g=>`<button class="gitem" data-gear="${k}:${g[0]}" aria-pressed="${on===g[0]}">${itemIcon(g[0])}<span>${g[1]}</span><small>${g[2]?PATHS[g[2]].hero:"Rank gift"}</small></button>`).join("")}${on?`<button class="gitem off" data-gear="${k}:">${""}<span>Take off</span></button>`:""}</div>`:""}
+  ${own.length?`<div class="slitems">${own.map(g=>`<button class="gitem" data-gear="${k}:${g[0]}" aria-pressed="${on===g[0]}">${itemIcon(g[0])}<span>${g[1]}</span><small>${g[2]==="epic"?"Epic gift":g[2]?PATHS[g[2]].hero:"Rank gift"}</small></button>`).join("")}${on?`<button class="gitem off" data-gear="${k}:">${""}<span>Take off</span></button>`:""}</div>`:""}
   ${next?`<p class="slnext">${own.length?"Next: ":"Earn "}${next[1]} · ${next[2]?`${PATHS[next[2]].name} skill ${next[3]}`:`reach ${RANKS[next[3]][0]}`}</p>`:own.length?"":`<p class="slnext">Add more paths to earn gifts here.</p>`}</div>`}).join("")}
  <button class="cta" style="width:100%;margin-top:14px" data-close="1">Done</button>`);
  document.querySelectorAll(".gico").forEach(v=>{try{const r=v.firstChild.getBBox(),m=Math.max(r.width,r.height)+8;if(m>8)v.setAttribute("viewBox",`${(r.x+r.width/2-m/2).toFixed(1)} ${(r.y+r.height/2-m/2).toFixed(1)} ${m.toFixed(1)} ${m.toFixed(1)}`)}catch(e){}});
@@ -828,15 +849,18 @@ function playReview(mon){const W=weekStats(mon),ps=sel(),top=Object.keys(W.by).s
   {kick:"Where your time went",html:`<div class="rvbars">${ps.map(p=>{const v=W.by[p]||0;return `<div class="rvb" style="--c:${PATHS[p].c}"><span>${PATHS[p].name}</span><i><b style="width:${v/max*100}%"></b></i><em>${v} min</em></div>`}).join("")}</div>`,cap:ps.filter(p=>!W.by[p]).length?`Nothing on ${ps.filter(p=>!W.by[p]).map(p=>PATHS[p].name).join(" and ")} this week.`:"Every path got some time this week."},
   {kick:"Best day and a word from your guide",html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(top,"lg")}</div><p class="gq">“${guideComment(W)}”</p><small class="mute">${PATHS[top].hero}</small></div>`,cap:W.best>=0?`Your best day was <b>${DAYS[new Date(W.days[W.best]+"T12:00:00").getDay()]}</b>, with ${W.per[W.best]} min.`:"No practice logged yet this week."}];
  if(W.own.length)cards.push({kick:"Your own tasks",html:`<p class="sub">Was each one worth your time? “No” means Abhyasa won’t suggest it again.</p><div class="worthl">${W.own.map((o,i)=>`<div class="worth"><span><b>${esc(o.t)}</b><small>${PATHS[o.pid]?PATHS[o.pid].name:""}</small></span><span class="wbtn"><button class="mini" data-worth="${i}:1" aria-pressed="${RV.worth[o.t]===1}">Yes</button><button class="mini" data-worth="${i}:0" aria-pressed="${RV.worth[o.t]===0}">No</button></span></div>`).join("")}</div>`,cap:""});
+ if(S.epic&&!epicDone()){const prevF=(S.reviews[mon]||{}).foe||"";RV.foe=prevF;cards.push({kick:"Your obstacles",html:`<div class="foe" style="margin-top:0">${headsSvg(true)}<div><b>${foeName()}</b></div></div><p class="sub">Did you beat them this week? An honest “yes” cuts off one head.</p><div class="cchips" id="rvfoe">${[["win","Yes, I beat them"],["mostly","Mostly"],["lost","They won this week"]].map(([k,l])=>`<button class="chip" data-rvfoe="${k}" aria-pressed="${prevF===k}">${l}</button>`).join("")}</div>`,cap:""})}
  cards.push({kick:"Next week’s focus",html:`<p class="sub">Pick one path to lean into. It gets more of your daily time next week.</p><div class="cchips" id="rvfocus">${ps.map(p=>`<button class="chip" data-rvfocus="${p}" aria-pressed="${RV.focus===p}">${PATHS[p].name}</button>`).join("")}</div><button class="cta" style="width:100%;margin-top:16px" data-rvdone="1">Finish review</button>`,cap:""});
  RV.own=W.own;openPlayer({label:"Weekly review",title:"Your week",sub:rng7(mon),cast:[top],cards,auto:false});
  const nx=$('.story .row [data-pnext]');if(nx)nx.dataset.rv="1";
 }
 function finishReview(){const r=RV;if(!r)return;
  r.own.forEach(o=>{const v=r.worth[o.t];if(v===0){const L=L_(o.t);L.never=true;if(S.custom[o.pid])S.custom[o.pid]=S.custom[o.pid].filter(c=>c.t!==o.t)}});injectCustom();
- const W=weekStats(r.mon);S.reviews[r.mon]={done:true,act:W.act,tot:W.tot,by:W.by,worth:r.worth,focus:r.focus};
+ const W=weekStats(r.mon),pf=(S.reviews[r.mon]||{}).foe||"";let headMsg="";
+ if(S.epic&&r.foe==="win"&&pf!=="win"){S.epic.wins=(S.epic.wins||0)+1;headMsg=` A head of ${EPICS[S.epic.id].foe} falls.`}else if(S.epic&&pf==="win"&&r.foe&&r.foe!=="win")S.epic.wins=Math.max(0,(S.epic.wins||0)-1);
+ S.reviews[r.mon]={done:true,act:W.act,tot:W.tot,by:W.by,worth:r.worth,focus:r.focus,foe:r.foe||""};
  S.wfocus={w:r.nextMon,pid:r.focus};const k=Object.keys(S.reviews).sort();while(k.length>12)delete S.reviews[k.shift()];
- RV=null;closeLayer();replan();toast(`Review saved. ${PATHS[r.focus].name} is your focus for the week.`)}
+ RV=null;closeLayer();replan();toast(`Review saved. ${PATHS[r.focus].name} is your focus for the week.${headMsg}`)}
 function reviewHistory(){const k=Object.keys(S.reviews).filter(w=>S.reviews[w].done).sort().reverse().slice(0,4),cur=monOf(td()),W=weekStats(cur);
  return `<button class="revcard" data-review="${cur}"><span class="revi">${ic("path")}</span><span><b>This week so far</b><small>${W.act} active days · ${W.tot} min. Tap to review now.</small></span></button>
  ${k.length?k.map(w=>{const R=S.reviews[w];return `<div class="lrow"><span><b>${rng7(w)}</b><small>${R.act} days · ${R.tot} min${R.focus&&PATHS[R.focus]?` · then focused on ${PATHS[R.focus].name}`:""}</small></span></div>`}).join(""):`<p class="sub">Past reviews appear here.</p>`}`}
@@ -1099,7 +1123,7 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  if(S.lore!=="well"&&learnLeft()){const nx=LEARN.find(x=>!S.learned.includes(x.id));out.splice(Math.min(out.length,1),0,card("gold",'data-learn="1"',`<span class="sci gold">${ic("learn")}</span>`,"New to these stories?","Start here",`Next: ${nx.t}`))}
  out.push(card("",'data-today-cal="1"',`<span class="sci gold">${ic("calm")}</span>`,cal.fest?"Today’s festival":"Story for today",cal.n,cal.t));
  if(c.d===t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in",`${E_L[c.energy]} energy`,`${c.sore.length?"Sore "+c.sore.map(k=>SORE_L[k]).join(", "):"No soreness"} · tap to change`));
- if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=EGOALS[S.epic.goal.pid];out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Your epic · Book ${i+1} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
+ if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Your epic · Book ${i+1} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
  else out.push(card("gold",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Your epic","Have a goal? Make it an epic","3 goals suggested for you"));
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
  return `<div class="strip" role="list">${out.join("")}</div>`}
@@ -1172,6 +1196,7 @@ function heroView(){const sg=segOf("hero","hero");let body="";
   <div class="block"><h2>Weekly reviews</h2>${reviewHistory()}</div><div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>`}
  if(sg==="coll"){const items=[];sel().forEach(pid=>PATHS[pid].skills.forEach((s2,k)=>{if(s2.item)items.push({pid,s2,k})}));const total=sel().reduce((a,p)=>a+CHAPTERS[CHAR[p]].length,0);
   body=`<div class="block" style="margin-top:4px"><h2>Your guides</h2><div class="guides" style="margin-top:10px">${sel().map(pid=>{const c=CHAR[pid];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${PEOPLE[c].n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
+  <div class="block"><h2>Hall of epics</h2>${hallView()}</div>
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
  if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><button class="revcard" data-feedback="1"><span class="revi">${ic("love")}</span><span><b>Send feedback</b><small>Ideas, bugs or stories. It helps shape Abhyasa.</small></span></button><div class="block"><h2>Calendar</h2><p class="sub">What shows on your Calendar tab and morning cards. The story for each day stays in every option.</p><div class="cchips">${[["indian","Indian festivals and ritus"],["seasons","Spring, summer, autumn, winter"],["none","No calendar"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div><div class="block"><h2>App</h2>${appCard()}${S.lastBackup?`<p class="sub">Last backup: ${S.lastBackup.split("-").reverse().join(".")}</p>`:""}</div>
@@ -1291,7 +1316,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1305,20 +1330,26 @@ document.addEventListener("click",e=>{
  if(d.epic){closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();window.scrollTo(0,0);return}
  if(d.ep){const[a,v]=d.ep.split(":");
   if(a==="play"){playStage(+v);return}
-  if(a==="pick"){const x=goalSuggest()[+v];if(x)startGoal(x.pid,x.size);return}
+  if(a==="pick"){const x=goalSuggest()[+v];if(x)startGoal(x);return}
   if(a==="own"){ownSheet();return}
-  if(a==="ownp"){startGoal(v,sizeFor(v));return}
+  if(a==="ownp"){const ti=+d.ep.split(":")[2]||0;startGoal({pid:v,ti,size:sizeFor(v)});return}
+  if(a==="ownc"){const x=comboOf(v);startGoal({pid:x.p[0],combo:v,size:Math.min(...x.p.map(sizeFor))});return}
   if(a==="log"){EP={v:S.epic.cur};logSheet();return}
-  if(a==="v"){const st=EGOALS[S.epic.goal.pid].st;EP.v=Math.max(0,+(EP.v+(v==="+"?st:-st)).toFixed(2));logSheet();return}
+  if(a==="v"){const st=TPL(S.epic.goal).st;EP.v=Math.max(0,+(EP.v+(v==="+"?st:-st)).toFixed(2));logSheet();return}
   if(a==="save"){const was=arcStage();S.epic.cur=EP.v;EP=null;save();closeLayer();render();const now=arcStage();toast(epicDone()?"Goal reached!":now>was?`Milestone reached. Book ${now+1} opens`:"Progress saved");return}
+  if(a==="finish"){if(!S.epic)return;toHall(true);closeLayer();render();toast("Added to your Hall of epics");return}
+  if(a==="miss"){EP=null;missSheet();return}
+  if(a==="why"){EP.why=EP.why.includes(v)?EP.why.filter(x=>x!==v):[...EP.why,v];missSheet();return}
+  if(a==="ext"){S.epic.end=addD(td(),+v*7);S.epic.ext=true;S.epic.missAsk="";EP=null;save();closeLayer();render();toast(`Deadline moved to ${S.epic.end.split("-").reverse().join(".")}`);return}
+  if(a==="missclose"){const w=EP&&EP.why||[];toHall(false,w);closeLayer();render();toast("Epic closed. The lessons stay with you");return}
   if(a==="close"){if(!S.epic)return;if(!EP||EP.confirm!=="close"){EP={confirm:"close"};sheet("var(--ink)",`<h2>End this epic?</h2><p class="sub">Your rank, gear and trials stay. Only this goal and its books close.</p><div class="row"><button class="cta alt" data-close="1">Keep going</button><button class="cta" data-ep="close">End it</button></div>`);return}
-   S.hall=S.hall||[];S.hall.push({id:S.epic.id,goal:goalText(S.epic.goal),start:S.epic.start,end:td(),won:!!S.epic.won||epicDone()});S.epic=null;EP=null;save();closeLayer();render();toast("Epic closed. Pick a new goal any time");return}
-  if(!EP||!EP.g)return;const g=EP.g,G=EGOALS[g.pid];
+   toHall(!!S.epic.won||epicDone());closeLayer();render();toast("Epic closed. Pick a new goal any time");return}
+  if(!EP||!EP.g)return;const g=EP.g,G=TPL(g);
   if(a==="n")g.n=Math.max(G.st,+(g.n+(v==="+"?G.st:-G.st)).toFixed(2));
   if(a==="b")g.base=Math.max(0,Math.min(g.n-G.st,+(g.base+(v==="+"?G.st:-G.st)).toFixed(2)));
   if(a==="w")g.w=+v;
   if(a==="foe")g.foes=g.foes.includes(v)?g.foes.filter(x=>x!==v):g.foes.length<3?[...g.foes,v]:(toast("Pick up to 3"),g.foes);
-  if(a==="begin"){const id=bestEpicFor(g.pid);S.epic={id,goal:{pid:g.pid,size:g.size,n:g.n,base:g.base},foes:g.foes,start:td(),end:addD(td(),g.w*7),ms:msOf(g.base,g.n,G.st),cur:g.base,seen:0};EP=null;save();closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();playStage(0);return}
+  if(a==="begin"){const id=bestEpicFor(g.pid);S.epicN=(S.epicN||0)+1;S.epic={id,goal:{pid:g.pid,ti:g.ti,combo:g.combo,size:g.size,n:g.n,base:g.base},foes:g.foes,start:td(),end:addD(td(),g.w*7),ms:msOf(g.base,g.n,G.st),cur:g.base,seen:0};EP=null;save();closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();playStage(0);return}
   const sh=$(".sheet"),y=sh?sh.scrollTop:0;goalSheet();if($(".sheet"))$(".sheet").scrollTop=y;return}
  if(d.fbk){const tx=$("#fbtext");if(tx)FB.t=tx.value;FB.k=d.fbk;feedbackSheet();return}
  if(d.fbsend){fbSend(d.fbsend);return}
@@ -1339,6 +1370,7 @@ document.addEventListener("click",e=>{
  if(d.focusManage){focusManage();return}
  if(d.review){playReview(d.review);return}
  if(d.worth){const[i,v]=d.worth.split(":");const o=RV&&RV.own[+i];if(!o)return;RV.worth[o.t]=+v;t.parentNode.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b===t?"true":"false"));return}
+ if(d.rvfoe){if(!RV)return;RV.foe=d.rvfoe;document.querySelectorAll("#rvfoe .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rvfoe===RV.foe?"true":"false"));return}
  if(d.rvfocus){if(!RV)return;RV.focus=d.rvfocus;document.querySelectorAll("#rvfocus .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rvfocus===RV.focus?"true":"false"));return}
  if(d.rvdone){finishReview();return}
  if(d.qlore){Q.lore=d.qlore;quiz();return}

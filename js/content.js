@@ -1242,3 +1242,35 @@ EPICS.ramayana.stages[5].scenes[1].cap="Your {FOE} has lost most of its heads. N
 EPICS.ramayana.stages[5].scenes[2].cap="Book 6 asks: do not slip at the end. One more milestone, then the goal itself.";
 EPICS.ramayana.stages[6].scenes[1].cap="You are almost home to your Ayodhya: {DEST}.";
 EPICS.ramayana.stages[6].scenes[2].cap="One last step. Reach your goal and the city lights every lamp for you.";
+
+/* ================= epic goals v2: 3 templates per path + two-path combos ================= */
+(()=>{const add={
+ body:[{t:"Do {n} push-ups in a row",u:"push-ups",st:1,n:[10,25,50]},{t:"Train strength on {n} days",u:"days",st:1,n:[12,24,40]}],
+ flex:[{t:"Hold a plank for {n} seconds",u:"seconds",st:10,n:[60,120,240]},{t:"Stretch hips and hamstrings on {n} days",u:"days",st:1,n:[14,30,60]}],
+ bonds:[{t:"Share {n} meals with family, phones away",u:"meals",st:1,n:[6,12,24]},{t:"Ask elders {n} questions about family history",u:"questions",st:1,n:[5,10,20]}],
+ love:[{t:"Write {n} notes of appreciation to your partner",u:"notes",st:1,n:[5,12,25]},{t:"Have {n} phone-free evenings together",u:"evenings",st:1,n:[6,12,24]}],
+ learn:[{t:"Study a new skill for {n} hours",u:"hours",st:1,n:[10,25,50]},{t:"Learn {n} new words in a language",u:"words",st:10,n:[100,300,600]}],
+ focus:[{t:"Have {n} days with under 1 hour of social media",u:"days",st:1,n:[14,30,60]},{t:"Finish {n} important tasks before noon",u:"tasks",st:1,n:[10,25,50]}],
+ music:[{t:"Practise your instrument on {n} days",u:"days",st:1,n:[14,30,60]},{t:"Record {n} songs and listen back",u:"recordings",st:1,n:[2,5,10]}],
+ calm:[{t:"Go to bed on time on {n} nights",u:"nights",st:1,n:[14,30,60]},{t:"Take {n} walks without your phone",u:"walks",st:1,n:[8,20,40]}],
+ friend:[{t:"Meet friends in person {n} times",u:"times",st:1,n:[4,8,16]},{t:"Help a friend with something {n} times",u:"times",st:1,n:[3,6,12]}],
+ money:[{t:"Save something every week for {n} weeks",u:"weeks",st:1,n:[4,8,12]},{t:"Go {n} days without an impulse buy",u:"days",st:1,n:[14,30,60]}],
+ courage:[{t:"Speak up in {n} meetings or groups",u:"times",st:1,n:[3,8,15]},{t:"Have {n} hard conversations you have been avoiding",u:"conversations",st:1,n:[1,3,5]}],
+ wisdom:[{t:"Read {n} chapters of a classic text",u:"chapters",st:1,n:[6,18,36]},{t:"Spend {n} evenings with no screens after 21:00",u:"evenings",st:1,n:[7,20,40]}],
+ making:[{t:"Fix or repair {n} things at home",u:"things",st:1,n:[3,8,15]},{t:"Spend {n} hours building or making",u:"hours",st:1,n:[10,25,50]}],
+ art:[{t:"Draw, write or create on {n} days",u:"days",st:1,n:[14,30,60]},{t:"Share {n} finished pieces with someone",u:"pieces",st:1,n:[2,5,10]}],
+ gratitude:[{t:"Thank {n} people in person or by message",u:"people",st:1,n:[10,25,50]},{t:"Do {n} small acts of service",u:"acts",st:1,n:[7,20,40]}]};
+ Object.keys(EGOALS).forEach(p=>{const a=EGOALS[p];EGOALS[p]=[a,...add[p]].map(x=>Object.assign({w:[4,8,12]},x))})})();
+const ECOMBO={
+ prana:{t:"Practise music on {n} days, right after exercise",u:"days",st:1,n:[10,24,40]},
+ seva:{t:"Do {n} active outings with family",u:"outings",st:1,n:[4,8,16]},
+ sangat:{t:"Play or sing for family {n} times",u:"times",st:1,n:[2,5,10]},
+ sangam:{t:"Host {n} evenings with movement, food and music",u:"evenings",st:1,n:[1,3,6]},
+ sarathi:{t:"Do {n} focused sessions together with a friend",u:"sessions",st:1,n:[4,10,20]},
+ setu:{t:"Build or fix {n} things that take physical work",u:"things",st:1,n:[2,5,10]},
+ bhakti:{t:"Thank a family member every day for {n} days",u:"days",st:1,n:[14,30,60]},
+ gana:{t:"Make {n} pieces for people you love",u:"pieces",st:1,n:[2,5,10]},
+ diksha:{t:"Breathe 10 min, then play 10 min, on {n} days",u:"days",st:1,n:[14,30,60]},
+ yama:{t:"Have {n} deep conversations with your partner",u:"conversations",st:1,n:[4,8,16]}};
+Object.values(ECOMBO).forEach(x=>x.w=[4,8,12]);
+const MISSWHY=[["big","The goal was too big"],["busy","Life got busy"],["sick","I was ill or tired"],["interest","I lost interest"],["foes","My obstacles won"],["plan","I had no clear plan"]];

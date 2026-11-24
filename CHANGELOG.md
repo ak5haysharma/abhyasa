@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.18.0 · 24.11.2026
+- Epics complete: 3 goal templates per path (45) plus 10 two-path combo goals tied to bridges; suggestions now include a combo card and rotate templates. Weekly review asks if you beat your obstacles; a yes cuts a head. Missed deadline: reflect on what got in the way, extend once by 2 or 4 weeks, or close and keep the lessons. Goal reached: finale scene, Hall of epics (Epic tab and Collection), and the Ayodhya diya companion gift for your first win. Daily plan gives the goal's path(s) about 30% more time.
+
 ## 1.17.0 · 24.11.2026
 - Epics are now goal-based (MVP). Journey > Epic suggests 3 goals from your paths, level and last 14 days. Set the goal number, where you are now, a 4/8/12-week deadline and up to 3 obstacles. The goal splits into 7 milestones; logging progress opens the next book. Hero rank is now one lifelong progression (7 titles by total trials) that also drives your avatar's look. Old trial-based epics are cleared.
 
