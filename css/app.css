@@ -953,3 +953,20 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .zmk svg{width:28px;height:28px;border-radius:50%;background:#e9d7c0}
 .zhint{text-align:center;font-size:12.5px;color:var(--mute);margin:8px 0 0}
 .zb{white-space:nowrap;font-size:14px}.zctl{flex-wrap:nowrap}
+
+/* ===== inner enemies (v1.29) ===== */
+.encard{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px;color:var(--ink)}
+.encard.on{border-color:#6b1f2a;background:#f6e6e6}
+.encard>span:nth-child(2){flex:1;min-width:0}.encard .medal{flex:none}
+.encard b{display:block;font-size:15px}.encard b .dev{color:var(--mute);font-weight:400}
+.encard em{display:block;font-style:normal;font-weight:700;font-size:13px;color:#8a2a36;margin:1px 0 3px}
+.encard small{display:block;font-size:12.5px;color:var(--mute)}
+.encard>i{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-weight:700;color:#fff}
+.encard.on>i{background:#6b1f2a;border-color:#6b1f2a}
+.enl{display:grid;gap:8px;margin-top:6px}
+.enrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--ink)}
+.enrow>span:nth-child(2){flex:1;min-width:0}.enrow b{display:block;font-size:15px}.enrow small{display:block;font-size:12.5px;color:var(--mute)}
+.enw{display:flex;gap:5px;margin:4px 0 6px}.enw i{width:16px;height:16px;border-radius:50%;background:var(--line)}.enw i.won{background:#3f8a5c}.enw i.close{background:#d9a441}.enw i.lost{background:#b0182f}
+.enh{display:flex;flex-wrap:wrap;gap:8px}.enh span{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 3px;font-size:13px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .encard.on{background:#3a2024}}
+:root[data-theme="dark"] .encard.on{background:#3a2024}

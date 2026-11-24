@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.29.0 · 24.11.2026
+- The six inner enemies (Shadripu): craving (Ravana), anger (Hiranyakashipu), greed (Shakuni), blind attachment (Dhritarashtra), pride (Mahishasura) and envy (Duryodhana). Each is shown as a great figure undone by one weakness, with how it shows up today, tips and the mentors who stand against it. Pick up to 2 (a daily question, Settings or Hero > Collection); the weekly review asks 'Did it win this week?' and keeps a record of your wins.
+
 ## 1.28.0 · 24.11.2026
 - 12 new mentors (wave 2a): Sita (Courage), Markandeya and Buddha (Meditation), Radha (Love), Vishwamitra (Focus), Karna (Gratitude), Bharata (Family), Nala (Making), Vyasa (Art), Sudama (Friendship), Tumburu (Music) and Vasishtha (Wisdom). Each has a portrait, intro, lines, 4 journey chapters, identity lines, a task style and a tattoo symbol. Every path now has at least 2 mentors to choose from; Meditation has 3. 35 mentors in total.
 
