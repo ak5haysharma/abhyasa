@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.24.1";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.25.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -876,6 +876,32 @@ function fitBody(o,pre){const ps=o.paths;return `${LIFEQ.map(([k,l,opts])=>`<div
  ${ps.filter(p=>KITP[p]).map(p=>`<div class="qlabel">${PATHS[p].name}: what do you have?</div><div class="cchips">${KITP[p].map(([k,l])=>`<button class="chip" data-${pre}kit="${k}" aria-pressed="${o.kit.includes(k)}">${l}</button>`).join("")}</div>`).join("")}`}
 function fitSheet(){FX=FX||{life:JSON.parse(JSON.stringify(S.life||{})),kit:[...S.kit],paths:sel()};FX.life.busy=FX.life.busy||[];
  const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Fit your tasks</div><h2>Your life and your kit</h2><p class="sub">A few taps, so Abhyasa only suggests what fits your day. Everything stays on this phone.</p>${fitBody(FX,"f")}<button class="cta" style="width:100%;margin-top:16px" data-fsave="1">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y}
+/* ================= one question a day after a fast start (v1.25) ================= */
+const OQ=[
+ {k:"mentor",t:"Who will awaken in you?",s:"Pick the mentor for each path",ok:()=>sel().some(p=>MENTORS[p])},
+ {k:"fit",t:"Fit tasks to your life",s:"Your kit, your space, your busy days",ok:()=>!S.fitDone},
+ {k:"routine",t:"What do you already do each week?",s:"Your routine counts as practice",ok:()=>ACTS.some(a=>S.paths.includes(a.pid))},
+ {k:"ident",t:"Who are you becoming?",s:"One line for one path",ok:()=>sel().some(p=>!idOf(p))},
+ {k:"tags",t:"What do you focus on?",s:"Tasks match what you care about",ok:()=>sel().some(p=>PATHS[p].tags&&PATHS[p].tags.length)},
+ {k:"lore",t:"How well do you know these stories?",s:"So explanations fit you",ok:()=>true}];
+function onbNext(){const O=S.onb;if(!O||diff(O.start,td())<1||O.skip===td()||O.lastDone===td())return null;return OQ.find(q=>!O.asked.includes(q.k)&&q.ok())||null}
+function onbDone(k){const O=S.onb;if(O&&!O.asked.includes(k)){O.asked.push(k);O.lastDone=td()}}
+let OX=null;
+function onbOpen(k){
+ if(k==="mentor"){const ps=sel().filter(p=>MENTORS[p]);sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>Who will awaken in you?</h2><p class="sub">Each path has a mentor. Tap to switch, or keep the default.</p>${ps.map(p=>`<div class="qlabel">${PATHS[p].name}</div><div class="mlist">${MENTORS[p].map(g=>mCard(p,g,CHAR[p]===g,`data-omsel="${p}:${g}"`)).join("")}</div>`).join("")}<button class="cta" style="width:100%;margin-top:14px" data-odone="mentor">Done</button>`);return}
+ if(k==="fit"){FX=null;fitSheet();return}
+ if(k==="routine"){OX=OX||{a:JSON.parse(JSON.stringify(S.anchors||{}))};const acts=ACTS.filter(a=>S.paths.includes(a.pid));
+  const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>What do you already do each week?</h2><p class="sub">Tap the days. These count as practice, and new tasks are planned around them.</p><div class="rtable">${acts.map(a=>`<div class="rrow"><div class="rname"><span class="dot" style="--c:${PATHS[a.pid].c}"></span>${a.n}<small>about ${a.m} min</small></div><div class="rdays">${[1,2,3,4,5,6,0].map(d=>`<button class="day" data-oday="${a.id}:${d}" aria-pressed="${(OX.a[a.id]||[]).includes(d)}">${DAYS[d].slice(0,2)}</button>`).join("")}</div></div>`).join("")}</div><button class="cta" style="width:100%;margin-top:14px" data-osave="routine">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y;return}
+ if(k==="ident"){const p=sel().find(x=>!idOf(x));IDX=null;identSheet(p);return}
+ if(k==="tags"){OX=OX||{t:JSON.parse(JSON.stringify(S.tags||{}))};const ps=sel().filter(p=>PATHS[p].tags&&PATHS[p].tags.length);
+  const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>What do you focus on?</h2><p class="sub">Pick any. Tasks will match.</p>${ps.map(p=>`<div class="qlabel">${PATHS[p].name}</div><div class="cchips">${PATHS[p].tags.map(([t,l])=>`<button class="chip" data-otag="${p}:${t}" aria-pressed="${(OX.t[p]||[]).includes(t)}">${l}</button>`).join("")}</div>`).join("")}<button class="cta" style="width:100%;margin-top:14px" data-osave="tags">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y;return}
+ if(k==="lore"){sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>How well do you know these stories?</h2><p class="sub">The Ramayana, Mahabharata and Puranas. You don’t need to be religious.</p><div class="mlist">${[["well","I know them well","Fewer explanations"],["some","A little","Short intros"],["new","They’re new to me","Intros and explainers along the way"]].map(([v,l,d])=>`<button class="idsug" data-olore="${v}"><b>${l}</b><br><span class="mute">${d}</span></button>`).join("")}</div>`)}}
+function todayHead(){const ps=todayPs(),n=ps.length,sw=n<=3?9:7,gap=2,R0=30;let svg="",tD=0,tP=0;
+ ps.forEach((pid,i)=>{const r=R0-i*(sw+gap),C=2*Math.PI*r,m=todayMins(pid),f=m.plan?Math.min(1,m.done/m.plan):0;tD+=m.done;tP+=m.plan;const P=PATHS[pid];
+  svg+=`<circle cx="36" cy="36" r="${r}" fill="none" stroke="${P.c}" stroke-opacity=".16" stroke-width="${sw}"/><circle class="tr-p" data-p="${pid}" cx="36" cy="36" r="${r}" fill="none" stroke="${P.c}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" style="--C:${C.toFixed(1)}" transform="rotate(-90 36 36)"/>`});
+ const tasks=S.plan.items.filter(x=>x.kind==="task"||x.kind==="anchor"),dn=tasks.filter(x=>x.done).length,many=sel().length>DAYMAX;
+ return `<div class="thd"><button class="thd-r" data-seg-go="journey:paths" aria-label="Today: ${tD} of ${tP} minutes done"><svg viewBox="0 0 72 72">${svg}</svg><span class="thd-t"><b>${tD}<small> / ${tP} min</small></b><small>${dn} of ${tasks.length} tasks${tP&&tD>=tP?" · all closed 🎉":""}</small></span></button>
+ <button class="thd-m" ${many?'data-daypick="1"':'data-seg-go="journey:paths"'} aria-label="Today’s mentors">${ps.map(p=>medalA(p,"xs")).join("")}${many?"<em>Change</em>":""}</button></div>`}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -1173,7 +1199,7 @@ function playIntro(pids,done){pids=pids.filter(p=>!S.intro.includes(CHAR[p]));if
   {kick:`What ${pp.n} teaches you`,html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><p class="gq">“${GUIDE_LINES[pid][0]}”</p></div>`,cap:`${I.teach}<br><small class="mute">From the ${I.src}. Abhyasa uses these as stories to learn from. You don’t need to be religious to walk this path.</small>`}];
  openPlayer({label:`Meet ${pp.n}`,title:`Meet ${pp.n}`,sub:`Guide for ${P.name}`,cast:[pid],cards,auto:false,after:()=>playIntro(pids.slice(1),done)});
 }
-function tipCard(){const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return"";const n=L.indexOf(t)+1;
+function tipCard(){if(S.tipD===td())return"";const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return"";const n=L.indexOf(t)+1;
  return `<div class="wrap"><div class="tip1" role="note"><span class="tipi">${ic("sun")}</span><div><small>Tip ${n} of ${L.length}</small><p>${t[1]}</p><div class="nacts"><button class="mini pri" data-tip="${S.view}:${t[0]}">Got it</button><button class="mini" data-tips-off="1">Skip all tips</button></div></div></div></div>`}
 function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${[["well","I know these stories"],["some","A little"],["new","New to me"]].map(([k,l])=>`<button class="chip" data-lore="${k}" aria-pressed="${S.lore===k}">${l}</button>`).join("")}</div>
  <p class="sub">${S.lore==="well"?"Guide intros are off.":"New guides introduce themselves with 3 short cards."}</p>
@@ -1358,7 +1384,8 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  {const a=stAvail(),c=SS().cur;if(c&&stReady())out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,"Story trial complete","Claim your title",STRIALS[c.i].n));else if(a>=0)out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,`Story trial ready · Book ${a+1}`,STRIALS[a].n,`Pass it to become ${ARC_RANK[Math.min(6,a+1)][0]}`))}
  if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Sankalpa · milestone ${i} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
  else out.push(card("",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Sankalpa","Have a goal? Take a vow","3 goals suggested for you"));
- if(!S.fitDone&&sel().length)out.push(card("",'data-fit="1"',`<span class="sci">${ic("sun")}</span>`,"New · 1 minute","Fit tasks to your life","Your kit, your space, your busy days"));
+ if(!S.fitDone&&!S.onb&&sel().length)out.push(card("",'data-fit="1"',`<span class="sci">${ic("sun")}</span>`,"New · 1 minute","Fit tasks to your life","Your kit, your space, your busy days"));
+ {const q=onbNext();if(q)out.unshift(card("gold",`data-oq="${q.k}"`,`<span class="sci gold">${ic("learn")}</span>`,"One question · 30 sec",q.t,q.s,`<button class="scx" data-oqx="1" aria-label="Later">×</button>`))}
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
  return `<div class="strip" role="list">${out.join("")}</div>`}
 function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${it.id}" aria-label="${it.done?"Undo":"Mark done"}: ${esc(it.t)}">${ic("check")}</button>`;
@@ -1383,7 +1410,7 @@ function todayView(){
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
  const eve=S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
- ${mentorRow()}${activityRings()}${stripCards()}
+ ${todayHead()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
  ${stStepRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
@@ -1448,16 +1475,19 @@ function heroView(){const sg=segOf("hero","hero");let body="";
 /* ================= questionnaire ================= */
 let Q=null;
 const KIT_FOR={gym:"gym",climb:"wall",swim:"pool"};
-function newQ(){return{life:Object.assign({busy:[]},JSON.parse(JSON.stringify(S.life||{}))),mentor:Object.assign({},S.mentor||{}),i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
-function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));st.push("fit","routine","time","goal","reveal");return st}
+function newQ(){return{full:S.paths.length>0,life:Object.assign({busy:[]},JSON.parse(JSON.stringify(S.life||{}))),mentor:Object.assign({},S.mentor||{}),i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
+function qSteps(){if(!Q.full)return["welcome","paths","levels","reveal"];const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));st.push("fit","routine","time","goal","reveal");return st}
 function quiz(){
  if(!Q)Q=newQ();
  const steps=qSteps();Q.i=Math.min(Q.i,steps.length-1);const step=steps[Q.i],pct=Math.round(Q.i/(steps.length-1)*100);
- if(step==="welcome"){setBg(pageScene());$("#app").innerHTML=`<div class="quiz"><div class="wrap"><div class="welcome"><div class="big">अभ्यास</div><h1>Abhyasa</h1><p>Steady practice over a long time. A few quick questions, then your paths open, starting from where you are today.</p></div><div class="qfoot" style="flex-direction:column"><button class="cta" data-q="next">Start</button></div></div></div>`;return}
+ if(step==="welcome"){setBg(pageScene());$("#app").innerHTML=`<div class="quiz"><div class="wrap"><div class="welcome"><div class="big">अभ्यास</div><h1>Abhyasa</h1><p>Steady practice over a long time. Three quick steps, about a minute, and your first tasks are ready.</p>${Q.full?"":`<input class="name" id="qname" autocomplete="given-name" placeholder="Your first name (optional)" value="${esc(Q.name)}" style="margin-top:14px">`}</div><div class="qfoot" style="flex-direction:column"><button class="cta" data-q="next">Start</button></div></div></div>`;const wi=$("#qname");if(wi)wi.addEventListener("input",e=>Q.name=e.target.value);return}
  let body="",foot="";
  if(step==="name"){body=`<h1>What should we call you?</h1><p class="lead">Used only to greet you. You can skip this.</p><input class="name" id="qname" autocomplete="given-name" placeholder="Your first name" value="${esc(Q.name)}">`;foot=`<button class="cta alt" data-q="skip">Skip</button><button class="cta" data-q="next">Continue</button>`}
- else if(step==="paths"){const ok=Q.paths.length>0;body=`<h1>Choose up to 8 things to grow</h1><p class="lead">Pick what matters most in your life right now. Each path has a guide from Indian stories. Each day you walk with up to 4 of them, and you can change this any time.</p>
- ${REALMS.map(R=>`<div class="qrealm"><div class="rh"><b>${R.n}</b><span class="dev">${R.d}</span><small>${R.s} · ${R.about}</small></div><div class="opts">${ORDER.filter(p=>PATHS[p].realm===R.id).map(p=>{const P=PATHS[p];return `<button class="opt" data-qpath="${p}" aria-pressed="${Q.paths.includes(p)}" style="--c:${P.c}"><span class="pi">${ic(p)}</span><div><b>${P.name}</b><small>${P.about} · with ${P.hero}</small></div><span class="tick">${ic("check")}</span></button>`}).join("")}${SOON.filter(x=>x[2]===R.id).map(([n,h])=>`<div class="opt" style="opacity:.5"><span class="pi" style="--c:var(--faint)">${ic("calm")}</span><div><b>${n}</b><small>Coming soon · with ${h}</small></div></div>`).join("")}</div></div>`).join("")}`;foot=`<button class="cta" data-q="next" ${ok?"":"disabled"}>${ok?`Continue with ${Q.paths.length} of ${MAXP}`:"Pick at least one"}</button>`}
+ else if(step==="paths"){const ok=Q.paths.length>0;body=`<h1>${Q.full?"Choose up to 8 things to grow":"What do you want to grow?"}</h1><p class="lead">${Q.full?"Pick what matters most in your life right now. Each path has a guide from Indian stories. Each day you walk with up to 4 of them, and you can change this any time.":"Start with 3. Fewer paths means faster growth, and you can add more any time. Each path has a mentor from Indian stories."}</p>
+ ${REALMS.map(R=>`<div class="qrealm"><div class="rh"><b>${R.n}</b><span class="dev">${R.d}</span><small>${R.s} · ${R.about}</small></div><div class="opts">${ORDER.filter(p=>PATHS[p].realm===R.id).map(p=>{const P=PATHS[p];return `<button class="opt" data-qpath="${p}" aria-pressed="${Q.paths.includes(p)}" style="--c:${P.c}"><span class="pi">${ic(p)}</span><div><b>${P.name}</b><small>${P.about} · with ${P.hero}</small></div><span class="tick">${ic("check")}</span></button>`}).join("")}${SOON.filter(x=>x[2]===R.id).map(([n,h])=>`<div class="opt" style="opacity:.5"><span class="pi" style="--c:var(--faint)">${ic("calm")}</span><div><b>${n}</b><small>Coming soon · with ${h}</small></div></div>`).join("")}</div></div>`).join("")}`;foot=`${!Q.full&&Q.paths.length>3?`<p class="sub" style="width:100%;text-align:center;margin:0 0 6px">${Q.paths.length} paths: growth on each will be slower. 3 is a good start.</p>`:""}<button class="cta" data-q="next" ${ok?"":"disabled"}>${ok?`Continue with ${Q.paths.length} path${Q.paths.length===1?"":"s"}`:"Pick at least one"}</button>`}
+ else if(step==="levels"){const ps=ORDER.filter(p=>Q.paths.includes(p));ps.forEach(p=>{if(Q.level[p]===undefined)Q.level[p]=0});
+  body=`<h1>Where are you now?</h1><p class="lead">Be honest. Your first tasks start here.</p><div class="lvrows">${ps.map(p=>{const P=PATHS[p],lv=Q.level[p];return `<div class="lvrow" style="--c:${P.c}"><div class="lvh">${medal(p,"xs")}<b>${P.name}</b><small>with ${P.hero}</small></div><div class="lvbtns">${["Starting","A little","Regular","Strong"].map((l,k)=>`<button class="lvb" data-qlvl="${p}:${k}" aria-pressed="${lv===k}">${l}</button>`).join("")}</div><small class="lvd">${P.levels[lv]||""}</small></div>`}).join("")}</div>`;
+  foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step.startsWith("p:")){const pid=step.slice(2),P=PATHS[pid],lv=Q.level[pid],tg=Q.tags[pid]||[],ok=lv!==undefined;
   body=`<div class="sub" style="color:${P.c};font-weight:600;margin:0 0 4px">${P.name}</div><h1>${P.q}</h1><p class="lead">Be honest. Your tasks start here, not where you wish you were.</p>
   <div class="steps">${P.levels.map((l,k)=>`<button class="lvl" style="--c:${P.c}" data-qlvl="${pid}:${k}" aria-pressed="${lv===k}"><span class="bars">${[0,1,2,3].map(b=>`<i class="${b<=k?"on":""}" style="height:${6+b*4.5}px"></i>`).join("")}</span>${l}</button>`).join("")}</div>
@@ -1470,7 +1500,7 @@ function quiz(){
  else if(step==="lore"){body=`<h1>How well do you know these stories?</h1><p class="lead">Each path has a guide from Indian stories: the Ramayana, Mahabharata and Puranas. You don’t need to be religious or know them already.</p><div class="opts">${[["well","I know them well","Skip the introductions"],["some","A little","Short intros for each guide"],["new","They’re new to me","Short intros, plus explainers along the way"]].map(([v,l,d])=>`<button class="opt" data-qlore="${v}" aria-pressed="${Q.lore===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next" ${Q.lore?"":"disabled"}>${Q.lore?"Continue":"Pick one"}</button>`}
  else if(step==="goal"){body=`<div class="flame big" style="margin:0 0 8px">${DIYA}</div><h1>Commit to a daily streak</h1><p class="lead">One task a day keeps your lamp lit. Choosing your own goal makes it easier to keep.</p><div class="opts">${[[7,"7 days","A good start"],[14,"14 days","Getting serious"],[30,"30 days","A real habit"],[50,"50 days","Fully committed"]].map(([v,l,d])=>`<button class="opt" data-qgoal="${v}" aria-pressed="${Q.goal===v}" style="--c:var(--ink)"><div><b>${l}</b><small>${d}</small></div><span class="tick">${ic("check")}</span></button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Commit to my goal</button>`}
  else if(step==="reveal"){const ps=ORDER.filter(p=>Q.paths.includes(p)),wk=ACTS.filter(a=>ps.includes(a.pid)&&(Q.anchors[a.id]||[]).length).map(a=>`${a.n}: ${[1,2,3,4,5,6,0].filter(d=>Q.anchors[a.id].includes(d)).map(d=>DAYS[d].slice(0,3)).join(", ")}`);
-  body=`<div style="width:130px;margin:0 auto">${avatar(0)}</div><h1 style="text-align:center">Your paths are open</h1><p class="lead" style="text-align:center">Daily tasks fill your meters. Each trial earns a skill, and some bring weapons and gifts.</p>
+  body=`<div style="width:130px;margin:0 auto">${avatar(0)}</div><h1 style="text-align:center">Your paths are open</h1><p class="lead" style="text-align:center">${Q.full?"Daily tasks fill your meters. Each trial earns a skill, and some bring weapons and gifts.":"Your first tasks are ready. Each day one small question helps Abhyasa fit you better."}</p>
   <div class="reveal">${ps.map(p=>{const P=PATHS[p],k=Q.level[p]||0;return `<div class="rv" style="--c:${P.c}"><span class="pi">${ic(p)}</span><div><b>${P.name} with ${P.hero}</b><small>${k?`Starting at ${RANKS[k][0]}: ${k} skill${k>1?"s":""} already earned`:"Starting at the first step"}</small></div></div>`}).join("")}</div>
   ${wk.length?`<p class="sub" style="margin-top:14px">Your week: ${wk.join(" · ")}</p>`:""}`;
   foot=`<button class="cta" data-q="go">Begin</button>`}
@@ -1480,11 +1510,11 @@ function quiz(){
 }
 function finishQuiz(){
  const redo=S.paths.length>0;
- S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.mentor=Object.assign({},S.mentor||{},Q.mentor||{});applyMentors();S.life=Q.life||S.life;S.kitSeen=[...new Set([...(S.kitSeen||[]),...S.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1;S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
+ if(!Q.full){Q.lore=Q.lore||"some";S.onb=S.onb||{start:td(),asked:[],skip:""}}S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.mentor=Object.assign({},S.mentor||{},Q.mentor||{});applyMentors();if(Q.full){S.life=Q.life||S.life;S.kitSeen=[...new Set([...(S.kitSeen||[]),...S.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1}S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
  S.paths.forEach(p=>{const k=Q.level[p]||0;if(S.prog[p].m<k)S.prog[p]={m:k,xp:0}});
  S.syn=S.syn.filter(id=>SYN.find(s=>s.id===id).p.every(p=>S.paths.includes(p)));
  SYN.forEach(s=>{if(!S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=s.req))S.syn.push(s.id)});
- S.seen=Math.max(S.seen,stage());S.rk=Math.max(S.rk||0,lifeRank());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();if(S.lore==="new")setTimeout(()=>playPack("tour",()=>playIntro(sel())),400);else if(wantIntros())setTimeout(()=>playIntro(sel()),400);window.scrollTo(0,0);
+ S.seen=Math.max(S.seen,stage());S.rk=Math.max(S.rk||0,lifeRank());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();const fast=!!(S.onb&&S.onb.start===td()),ip=fast?[companionPid()].filter(Boolean):sel();if(S.lore==="new")setTimeout(()=>playPack("tour",()=>playIntro(ip)),400);else if(wantIntros())setTimeout(()=>playIntro(ip),400);window.scrollTo(0,0);
  toast(redo?"Your plan is updated":"Your first tasks are ready");
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 }
@@ -1548,7 +1578,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1556,17 +1586,25 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.oq){closeLayer();OX=null;onbOpen(d.oq);return}
+ if(d.oqx){if(S.onb)S.onb.skip=td();save();render();toast("Later. It will come back tomorrow");return}
+ if(d.omsel){const[p,g]=d.omsel.split(":");S.mentor=S.mentor||{};S.mentor[p]=g;applyMentors();save();const y=$(".sheet").scrollTop;onbOpen("mentor");$(".sheet").scrollTop=y;return}
+ if(d.odone){onbDone(d.odone);save();closeLayer();replan("Your mentors are set");return}
+ if(d.oday){const[a,x]=d.oday.split(":");const arr=OX.a[a]=OX.a[a]||[],dd=+x,i=arr.indexOf(dd);i<0?arr.push(dd):arr.splice(i,1);onbOpen("routine");return}
+ if(d.otag){const[p,t]=d.otag.split(":");const arr=OX.t[p]=OX.t[p]||[],i=arr.indexOf(t);i<0?arr.push(t):arr.splice(i,1);onbOpen("tags");return}
+ if(d.osave){if(d.osave==="routine")S.anchors=OX.a;if(d.osave==="tags")S.tags=OX.t;onbDone(d.osave);OX=null;closeLayer();replan(d.osave==="routine"?"Your routine is planned in":"Tasks now match your focus");return}
+ if(d.olore){S.lore=d.olore;onbDone("lore");save();closeLayer();render();toast("Thanks. Explanations will fit you");return}
  if(d.tf){const[id,v]=d.tf.split(":");tfApply(id,v);return}
  if(d.fit){closeLayer();FX=null;fitSheet();return}
  if(d.flife){const[k,v]=d.flife.split(":");FX.life[k]=FX.life[k]===v?"":v;fitSheet();return}
  if(d.fbusy){const v=+d.fbusy;FX.life.busy=FX.life.busy.includes(v)?FX.life.busy.filter(x=>x!==v):[...FX.life.busy,v];fitSheet();return}
  if(d.fkit){const v=d.fkit;FX.kit=FX.kit.includes(v)?FX.kit.filter(x=>x!==v):[...FX.kit,v];fitSheet();return}
- if(d.fsave){S.life=FX.life;S.kit=FX.kit;S.kitSeen=[...new Set([...(S.kitSeen||[]),...FX.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1;FX=null;closeLayer();replan("Your tasks now fit your life");return}
+ if(d.fsave){S.life=FX.life;S.kit=FX.kit;S.kitSeen=[...new Set([...(S.kitSeen||[]),...FX.paths.flatMap(p=>(KITP[p]||[]).map(x=>x[0]))])];S.fitDone=1;onbDone("fit");FX=null;closeLayer();replan("Your tasks now fit your life");return}
  if(d.qlife){const[k,v]=d.qlife.split(":");Q.life[k]=Q.life[k]===v?"":v;quiz();return}
  if(d.qbusy){const v=+d.qbusy;Q.life.busy=Q.life.busy.includes(v)?Q.life.busy.filter(x=>x!==v):[...Q.life.busy,v];quiz();return}
  if(d.ident){IDX=null;identSheet(d.ident);return}
  if(d.idsug!==undefined){const g=CHAR[IDX.pid];IDX.v=(IDLINES[g]||[])[+d.idsug]||"";identSheet(IDX.pid);return}
- if(d.idsave){const v=(($("#idin")||{}).value||"").trim().replace(/^I am becoming\s*/i,"").replace(/\.$/,"");S.ident=S.ident||{};if(v)S.ident[IDX.pid]=v.slice(0,90);else delete S.ident[IDX.pid];const p=IDX.pid;IDX=null;save();closeLayer();render();toast(v?`Your inner ${PATHS[p].hero} heard you`:"Line removed");return}
+ if(d.idsave){const v=(($("#idin")||{}).value||"").trim().replace(/^I am becoming\s*/i,"").replace(/\.$/,"");S.ident=S.ident||{};if(v){S.ident[IDX.pid]=v.slice(0,90);onbDone("ident")}else delete S.ident[IDX.pid];const p=IDX.pid;IDX=null;save();closeLayer();render();toast(v?`Your inner ${PATHS[p].hero} heard you`:"Line removed");return}
  if(d.idclear){S.ident=S.ident||{};delete S.ident[IDX.pid];IDX=null;save();closeLayer();render();return}
  if(d.pvals){PVX=null;pvalSheet();return}
  if(d.pv){PVX.v=PVX.v.includes(d.pv)?PVX.v.filter(x=>x!==d.pv):PVX.v.length<4?[...PVX.v,d.pv]:(toast("Pick up to 4"),PVX.v);pvalSheet();return}
@@ -1647,7 +1685,7 @@ document.addEventListener("click",e=>{
  if(d.rvdone){finishReview();return}
  if(d.qlore){Q.lore=d.qlore;quiz();return}
  if(d.intro){closeLayer();S.intro=S.intro.filter(g=>g!==CHAR[d.intro]);playIntro([d.intro]);return}
- if(d.tip){S.tips.push(d.tip);save();render();return}
+ if(d.tip){S.tips.push(d.tip);S.tipD=td();save();render();return}
  if(d.tipsOff){Object.keys(TIPS).forEach(v=>TIPS[v].forEach(t=>{const k=v+":"+t[0];if(!S.tips.includes(k))S.tips.push(k)}));save();render();toast("Tips off");return}
  if(d.lore){S.lore=d.lore;save();render();return}
  if(d.calmode){S.cal=d.calmode;save();render();toast(d.calmode==="indian"?"Indian calendar on":d.calmode==="seasons"?"Seasons on":"Calendar off");return}

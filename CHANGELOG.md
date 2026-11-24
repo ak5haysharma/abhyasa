@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.25.0 · 24.11.2026
+- Fast start: setup is now 3 steps (name, paths, where you are now on one screen) and takes about a minute, with a nudge to start with 3 paths. Everything else comes as one optional question a day on Today (mentors, life and kit, weekly routine, who you are becoming, focus, story knowledge), with a Later button. Day one introduces only today's mentor, and tips show one per day. Today's big rings card is now a compact header: small rings with minutes and tasks, plus today's mentors.
+
 ## 1.24.1 · 24.11.2026
 - Removed the sample profile from the welcome screen. Reset everything now fully clears saved data and restarts the app.
 

@@ -906,3 +906,21 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .fbar span{font-weight:600;white-space:nowrap}
 .fbar button{background:transparent;border:1px solid rgba(255,255,255,.35);color:var(--bg);border-radius:999px;padding:6px 10px;font-size:13px;white-space:nowrap}
 .busyn{background:var(--gold-bg);border:1px solid var(--gold);border-radius:12px;padding:8px 12px;font-size:13.5px;margin:8px 0}
+
+/* ===== fast start + compact header (v1.25) ===== */
+.thd{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+.thd-r{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px 12px;text-align:left;color:var(--ink)}
+.thd-r svg{width:58px;height:58px;flex:none}
+.thd-t b{display:block;font-size:22px;line-height:1.1}.thd-t b small{font-size:13px;font-weight:500;color:var(--mute)}
+.thd-t>small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.thd-m{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px 10px;min-height:74px;color:var(--ink)}
+.thd-m{flex-direction:row;flex-wrap:wrap;max-width:118px}
+.thd-m .medal{margin:0 -3px}
+.thd-m em{flex-basis:100%;text-align:center;font-style:normal;font-size:12px;font-weight:600;color:var(--gold)}
+.lvrows{display:grid;gap:12px}
+.lvrow{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:14px;padding:10px 12px}
+.lvh{display:flex;align-items:center;gap:8px}.lvh b{font-size:15px}.lvh small{color:var(--mute);font-size:12.5px}
+.lvbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.lvb{border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 2px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.lvb[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.lvd{display:block;font-size:12.5px;color:var(--mute);margin-top:6px;min-height:16px}
