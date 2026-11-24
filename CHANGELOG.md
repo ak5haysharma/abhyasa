@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.13.0 · 24.11.2026
+- Three new paths: Making (Vishwakarma), Art and writing (Valmiki) and Gratitude (Shabari), with portraits, skills, trials, tasks, intros and journey chapters. Six new bridges with animated stories: Sarathi Sakha, Setu Bandha, Bhakti, Ramayana Gana, Mantra Diksha and Before Yama. Bridges you already qualify for now open automatically.
+
 ## 1.12.0 · 24.11.2026
 - Four new paths: Friendship (Krishna), Money (Lakshmi), Courage (Durga) and Wisdom (Nachiketa), each with portraits, 5 skills, trials, about 18 tasks, guide intros and 4 journey chapters. Also fixes the light-mode colour contrast from 1.10, which hadn't applied.
 

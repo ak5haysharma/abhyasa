@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.12.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.13.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -37,7 +37,14 @@ Object.assign(ICO,{
  Trident:'<path d="M12 21V5M7 4c0 4 2 6 5 6s5-2 5-6M12 2v3"/>',
  Lion:'<circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="4.5"/><path d="M10.5 12h.01M13.5 12h.01"/>',
  Lamp:'<path d="M12 3c2 2.5 3 4 3 6a3 3 0 0 1-6 0c0-2 1-3.5 3-6z"/><path d="M5 15h14c-1 3-3.5 5-7 5s-6-2-7-5z"/>',
- Scroll:'<path d="M7 4h11v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1h12M7 4a2 2 0 0 0-2 2v11"/><path d="M9 8h6M9 11h6"/>'});
+ Scroll:'<path d="M7 4h11v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1h12M7 4a2 2 0 0 0-2 2v11"/><path d="M9 8h6M9 11h6"/>',
+ making:'<path d="M14 6l4 4-9 9H5v-4z"/><path d="M12 8l4 4M16 4l4 4"/>',
+ art:'<path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M14 7l3 3"/>',
+ gratitude:'<path d="M12 21c-5-3-8-6-8-10a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 4-3 7-8 10z"/><path d="M9 11h6"/>',
+ Vajra:'<path d="M12 3v18M8 5c1 3 1 4 4 5 3-1 3-2 4-5M8 19c1-3 1-4 4-5 3 1 3 2 4 5"/>',
+ Chariot:'<path d="M3 14h14l3-5H8"/><circle cx="7" cy="17" r="3"/><circle cx="16" cy="17" r="3"/>',
+ Stylus:'<path d="M5 19 17 7l2 2L7 21H5z"/><path d="M15 5l4 4"/>',
+ Basket:'<path d="M4 10h16l-2 9H6z"/><path d="M8 10l4-6 4 6"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="14" r="1"/>'});
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]||ICO.calm}</svg>`;
 const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"him",HIS=g=>PEOPLE[g].pr==="she"?"her":"his",CAP=w=>w[0].toUpperCase()+w.slice(1);
 
@@ -424,6 +431,22 @@ function portraitG(id){
   <path d="M90 108 c-6 -8 -4 -16 0 -22 c4 6 6 14 0 22z" fill="#f0a334" stroke="${K}" stroke-width="1.6"/><path d="M80 110 h20 c-2 6 -6 9 -10 9 s-8 -3 -10 -9z" fill="#b9622b" stroke="${K}" stroke-width="1.6"/>
   <rect x="54" y="86" width="12" height="14" fill="#a8744c" ${O2}/><circle cx="60" cy="68" r="21" fill="#c98b5e" ${O}/><path d="M39 64 C39 46 81 46 81 64 C75 54 45 54 39 64Z" fill="${K}"/><path d="M60 47 C58 40 62 36 60 30" stroke="${K}" stroke-width="3" fill="none" stroke-linecap="round"/>
   <path d="M51 67 q3 -2 6 0M63 67 q3 -2 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/><circle cx="54" cy="69" r="1.5" fill="${K}"/><circle cx="66" cy="69" r="1.5" fill="${K}"/><path d="M56 78 q4 1.5 8 0" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/><path d="M57 52 h6" stroke="#f3ead6" stroke-width="2"/>`;
+ if(id==="vishwakarma")return `<path d="M100 120 L100 50" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M100 120 L100 50" stroke="#8a5424" stroke-width="2.6"/><rect x="88" y="36" width="24" height="14" rx="2" fill="#9aa3ad" ${O2}/>
+  <path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="#c9a227" ${O}/><path d="M34 99 L86 124" stroke="#8a5424" stroke-width="5"/>
+  <rect x="53" y="80" width="14" height="14" fill="#b98560" ${O2}/><circle cx="60" cy="60" r="24" fill="#d9a27a" ${O}/>
+  <path d="M38 66 Q60 112 82 66 Q76 88 60 90 Q44 88 38 66Z" fill="#f1ece0" ${O2}/><path d="M50 74 q10 -4 20 0" fill="none" stroke="#f1ece0" stroke-width="5" stroke-linecap="round"/>
+  <path d="M38 44 L42 22 L51 32 L60 14 L69 32 L78 22 L82 44Z" fill="#d9a441" ${O}/><circle cx="60" cy="30" r="3" fill="#3f6fb8" ${O2}/>
+  ${eyes(60)}<path d="M50 54 q4 -3 8 0M62 54 q4 -3 8 0" fill="none" stroke="#f1ece0" stroke-width="2.2" stroke-linecap="round"/><path d="M57 46 v8M63 46 v8" stroke="#f3ead6" stroke-width="1.8"/>`;
+ if(id==="valmiki")return `<rect x="84" y="66" width="30" height="40" rx="3" fill="#e6c98f" ${O2} transform="rotate(10 99 86)"/><path d="M90 78 h18M90 85 h18M90 92 h14" stroke="#8a5424" stroke-width="1.5" transform="rotate(10 99 86)"/>
+  <path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="#e8dcc0" ${O}/><path d="M30 101 L78 124" stroke="#c4472d" stroke-width="5"/>
+  <rect x="53" y="80" width="14" height="14" fill="#a8744c" ${O2}/><circle cx="60" cy="60" r="23" fill="#c98b5e" ${O}/>
+  <path d="M38 64 Q60 116 82 64 Q76 88 60 92 Q44 88 38 64Z" fill="#f1ece0" ${O2}/>
+  <path d="M37 56 C37 34 83 34 83 56 C77 44 43 44 37 56Z" fill="#f1ece0" ${O2}/><circle cx="60" cy="32" r="10" fill="#f1ece0" ${O2}/>
+  <path d="M51 60 q3 2.5 6 0M63 60 q3 2.5 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/><path d="M56 44 h8M56 48 h8M56 52 h8" stroke="#f3ead6" stroke-width="1.6"/><circle cx="60" cy="51" r="1.4" fill="#d0492e"/>`;
+ if(id==="shabari")return `<path d="M80 112 h30 l-4 12 h-22z" fill="#a8743a" ${O2}/>${[0,1,2,3,4].map(i=>`<circle cx="${84+i*5}" cy="${108-(i%2)*3}" r="3.5" fill="#b0182f" stroke="${K}" stroke-width="1"/>`).join("")}
+  <path d="M28 70 C26 30 94 30 92 70 L96 112 L24 112Z" fill="#cfc8bb" ${O}/><path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="#8a6b4a" ${O}/><path d="M26 104 Q60 118 94 104" fill="none" stroke="#c9a227" stroke-width="3"/>
+  <rect x="53" y="80" width="14" height="14" fill="#9b6a44" ${O2}/><circle cx="60" cy="62" r="23" fill="#b57a50" ${O}/><path d="M37 60 C37 40 83 40 83 60 C77 48 43 48 37 60Z" fill="#d9d3c6" ${O2}/>
+  <path d="M50 64 q3 2.5 6 0M64 64 q3 2.5 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/><path d="M48 58 q4 -2 8 0M64 58 q4 -2 8 0" fill="none" stroke="#7a5236" stroke-width="1.2"/><path d="M53 74 q7 5 14 0" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/><circle cx="60" cy="53" r="1.8" fill="#d0492e"/>`;
  if(id==="rama")return `<path d="M24 12 Q-4 66 24 120" fill="none" stroke="${K}" stroke-width="8" stroke-linecap="round"/><path d="M24 12 Q-4 66 24 120" fill="none" stroke="#d9a441" stroke-width="3.5" stroke-linecap="round"/><path d="M24 12 V120" stroke="#f3ead6" stroke-width="1.4"/>
  <g transform="rotate(20 96 70)"><rect x="88" y="40" width="16" height="56" rx="3" fill="#8a5a2b" ${O}/><path d="M92 40 l-2 -14M96 40 v-15M100 40 l2 -14" stroke="${K}" stroke-width="2"/></g>
  <path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="#e9b445" ${O}/><path d="M34 99 L86 124" stroke="#d0492e" stroke-width="6"/>
@@ -749,6 +772,7 @@ let lastView="",GI=0,GANIM=false,TALK=null;
 function render(){
  if(!S.on){quiz();return}
  dayTick();ensurePlan();
+ SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","hero"].includes(S.view))S.view="today";
  const v=S.view,app=$("#app");
  app.innerHTML=(v==="hero"?heroView():v==="journey"?journeyView():todayView())+tabs();
@@ -787,7 +811,7 @@ function companionCard(){const t=td(),pid=companionPid(t);if(!pid)return"";const
  return `<div class="comp ${st}" style="--c:${PATHS[pid].c}"><div class="cmain"><span class="cav">${medal(pid)}</span><div class="ctext"><small>Today’s companion · ${pp.n}</small><b>${body}</b><div class="track"><i style="width:${tasks.length?done/tasks.length*100:0}%"></i></div><span class="cmeta">${done} of ${tasks.length} tasks · chapter ${CHAPTERS[g].indexOf(C)+1} of ${CHAPTERS[g].length}</span></div></div>${btn?`<div class="cact">${btn}</div>`:""}${ret}</div>`}
 function eveCard(){const t=td(),d=S.days[t];if(S.closed===t)return `<div class="evedone">Day closed${d&&d.mood?` · ${MOODS.find(m=>m[0]===d.mood)[1].toLowerCase()}`:""}${d&&d.note?` · “${esc(d.note)}”`:""}</div>`;
  return `<button class="evecard${new Date().getHours()>=17?" late":""}" data-eve="1"><span class="moon">${ic("moon")}</span><span><b>Close your day</b><small>How it felt, and one line. Your companion sets out tonight.</small></span></button>`}
-const TREEC={friend:"#ffb347",money:"#e6c44a",courage:"#ff6b7f",wisdom:"#9fb8d6",body:"#ff8a65",flex:"#5ec8dc",bonds:"#5cd6a2",love:"#f490a6",learn:"#8db2ff",focus:"#b39cff",music:"#ee93dc",calm:"#b4dc72"},TGOLD="#f5c76a";
+const TREEC={making:"#c9a07a",art:"#ff6fa8",gratitude:"#d7a3c9",friend:"#ffb347",money:"#e6c44a",courage:"#ff6b7f",wisdom:"#9fb8d6",body:"#ff8a65",flex:"#5ec8dc",bonds:"#5cd6a2",love:"#f490a6",learn:"#8db2ff",focus:"#b39cff",music:"#ee93dc",calm:"#b4dc72"},TGOLD="#f5c76a";
 function treeSvg(){TPOS={};
  const L=sel(),n=L.length,CX=200,CY=220,base=Object.fromEntries(L.map((p,i)=>[p,-90+i*360/Math.max(1,n)]));
  const pos=(p,j)=>{const a=(base[p]+j*7)*Math.PI/180,r=58+j*30;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]};

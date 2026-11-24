@@ -885,3 +885,188 @@ Object.assign(CHAPTERS,{
 WHO[0][1].push(["Krishna","कृष्ण","Friendship. Playful, wise friend and Arjuna’s charioteer.","friend"],["Lakshmi","लक्ष्मी","Money. Goddess of prosperity and good fortune.","money"],["Durga","दुर्गा","Courage. Warrior goddess riding a lion.","courage"],["Nachiketa","नचिकेता","Wisdom. Boy who questioned Death.","wisdom"]);
 ["Krishna","Lakshmi","Durga"].forEach(n=>{const g=WHO[1][1];const i=g.findIndex(x=>x[0]===n);if(i>=0)g.splice(i,1)});
 {const g=WHO[4][1],i=g.findIndex(x=>x[0]==="Nachiketa");if(i>=0)g.splice(i,1)}
+
+/* ================= new paths, batch 2 (v1.13): Making, Art and writing, Gratitude ================= */
+Object.assign(PATHS,{
+ making:{name:"Making",realm:"craft",about:"Repairs, cooking, handcraft, growing",hero:"Vishwakarma",heroDev:"विश्वकर्मा",c:"var(--making)",
+  q:"How often do you make or fix things?",
+  levels:["I rarely make things","I fix or cook now and then","I make something most weeks","Making is a big part of my life"],
+  tags:[["diy","Repairs and DIY"],["cook","Cooking"],["craft","Handcraft"],["grow","Growing plants"]],
+  skills:[
+   {n:"Shilpa",d:"शिल्प",s:"Vishwakarma, architect of the gods, begins every creation with a plan.",perk:"swap"},
+   {n:"Vajra",d:"वज्र",s:"The thunderbolt he forged for Indra: strength shaped by skill.",perk:"xp",item:"Vajra",itemName:"Indra’s vajra"},
+   {n:"Yantra",d:"यन्त्र",s:"Good tools, kept in order, make every job lighter.",perk:"shield"},
+   {n:"Pushpaka",d:"पुष्पक",s:"The flying chariot he built: ambition made with care.",perk:"xp",item:"Chariot",itemName:"Pushpaka vimana"},
+   {n:"Dwaraka",d:"द्वारका",s:"The golden city he raised for Krishna by the sea: mastery.",perk:"all"}],
+  trials:[
+   {def:"Make or fix one thing from start to finish"},
+   {def:"Repair something you’d normally throw away",cook:"Cook a full meal for others from scratch",grow:"Grow something from seed to its first leaves"},
+   {def:"Finish a project that takes more than a week"},
+   {def:"Teach someone to make something you can make"},
+   {def:"Make something you’re proud to give as a gift"}],
+  pool:[
+   X("Fix one small thing at home",15,{tags:"diy|any",place:"home",en:1,g:["A loose screw, a wobbly chair, a dripping tap","Find the right tool first","Finish it fully"]}),
+   X("Organise your tools",15,{tags:"diy|craft",place:"home",en:1,g:["Put every tool in one place","Throw away what’s broken","Note what you’re missing"]}),
+   X("Sharpen a knife or tool",10,{tags:"diy|cook",lo:1,place:"home",en:1,g:["Use a sharpener or whetstone carefully","Test it on paper or a tomato"]}),
+   X("Learn one repair from a video",20,{tags:"diy",en:1,g:["Something you actually need: a zip, a plug, a bike chain","Watch once, then do it alongside"]}),
+   X("Cook something new",40,{tags:"cook",en:2,place:"home",g:["Pick a recipe with fewer than 10 ingredients","Read it all before you start","Taste as you go"]}),
+   X("Master one base recipe",30,{tags:"cook",lo:1,place:"home",en:2,g:["Dal, rice, a sauce or bread","Make it three times this month","Change one thing each time"]}),
+   X("Cook a dish from your childhood",45,{tags:"cook",lo:1,place:"home",en:2,g:["Ask family how they make it","Write the recipe down as you go"]}),
+   X("Sketch a plan before you build",10,{tags:"craft|diy",en:1,g:["Draw what you’re making, with sizes","List materials and steps"]}),
+   X("30 minutes on a craft project",30,{tags:"craft",en:2,g:["Woodwork, sewing, knitting, pottery or models","Stop while it’s still fun"],tool:{type:"timer",sec:1800}}),
+   X("Mend a piece of clothing",20,{tags:"craft|diy",en:1,quiet:true,g:["A button, a seam or a small hole","Thread, needle and a calm evening"]}),
+   X("Make a small gift",45,{tags:"craft|cook",lo:1,en:2,g:["A card, a bake, a small object","For someone specific"]}),
+   X("Water and check your plants",5,{tags:"grow",en:1,g:["Feel the soil before watering","Turn pots toward the light"]}),
+   X("Plant some seeds",15,{tags:"grow",en:1,g:["Herbs are easy: basil, coriander, mint","Label them with the date"]}),
+   X("Repot one plant",15,{tags:"grow",lo:1,en:1,g:["A slightly bigger pot, fresh soil","Water well afterwards"]}),
+   X("Build something with your hands",60,{tags:"craft|diy",lo:2,en:2,g:["A shelf, a box, a frame or a stool","Measure twice, cut once"]}),
+   X("Clean and care for your workspace",10,{en:1,g:["Clear the surface, put tools away","A tidy bench invites the next project"]})]},
+ art:{name:"Art and writing",realm:"joy",about:"Writing, drawing, photography, poetry",hero:"Valmiki",heroDev:"वाल्मीकि",c:"var(--art)",
+  q:"How is your creative life?",
+  levels:["I haven’t made art in years","I sketch or write sometimes","I create most weeks","I share my work regularly"],
+  tags:[["write","Writing"],["draw","Drawing and painting"],["photo","Photography"],["poetry","Poetry"]],
+  skills:[
+   {n:"Adikavi",d:"आदिकवि",s:"Valmiki is called the first poet. Every artist starts with a first line.",perk:"swap"},
+   {n:"Shloka",d:"श्लोक",s:"Grief at a bird’s death came out of Valmiki as the first verse.",perk:"xp",item:"Stylus",itemName:"Valmiki’s stylus"},
+   {n:"Rasa",d:"रस",s:"Art carries a feeling from one heart to another.",perk:"shield"},
+   {n:"Kavya",d:"काव्य",s:"Poetry, shaped and finished, line by line.",perk:"xp",item:"Scroll",itemName:"Ramayana manuscript"},
+   {n:"Gana",d:"गान",s:"Valmiki’s students sang his poem before Rama himself: art that reaches its audience.",perk:"all"}],
+  trials:[
+   {def:"Make something every day for a week, however small"},
+   {def:"Finish one piece: a poem, drawing, photo set or short story"},
+   {def:"Share a piece of your work with someone and ask what they felt"},
+   {def:"Make a series of 5 related pieces"},
+   {def:"Share your work publicly: online, at an event or in print"}],
+  pool:[
+   X("Morning pages: write one page",15,{tags:"write|any",en:1,g:["Write without stopping, whatever comes","Don’t reread it today"],tool:{type:"timer",sec:900}}),
+   X("Write 200 words",20,{tags:"write",en:2,g:["A scene, a memory or an idea","Stop at 200, even mid-sentence"],tool:{type:"timer",sec:1200}}),
+   X("Describe one person in five sentences",10,{tags:"write",en:1,g:["Someone you saw today","What they wore, did and might be thinking"]}),
+   X("Edit one old piece",20,{tags:"write|poetry",lo:1,en:2,g:["Cut 20% of the words","Read it aloud"]}),
+   X("Write a four-line poem",10,{tags:"poetry",en:1,g:["About something small: a cup, a window, a sound","End on an image, not an explanation"]}),
+   X("Write a haiku a day",5,{tags:"poetry",en:1,g:["Three lines: 5, 7 and 5 syllables","One moment from today"]}),
+   X("Read a poem aloud, twice",5,{tags:"poetry",en:1,quiet:true,g:["Any poet: Kabir, Tagore, Rumi, Mary Oliver","Notice which line stays with you"]}),
+   X("Ten-minute sketch",10,{tags:"draw",en:1,g:["Draw something in front of you","Don’t erase, just keep going"],tool:{type:"timer",sec:600}}),
+   X("Draw your hand",15,{tags:"draw",en:2,g:["Five different poses","Look at the hand more than the paper"]}),
+   X("Paint or colour for 20 minutes",20,{tags:"draw",lo:1,place:"home",en:1,g:["Watercolour, pencils or an app","Play with colour, not perfection"],tool:{type:"timer",sec:1200}}),
+   X("A photo walk",30,{tags:"photo",place:"out",en:1,load:["cardio"],travel:true,g:["Pick one theme: shadows, red, doors, faces","Take 20 photos, keep the best 3"]}),
+   X("One photo, edited well",15,{tags:"photo",lo:1,en:1,g:["Pick your best photo this week","Adjust light, crop and colour, gently"]}),
+   X("Study one artwork",10,{en:1,g:["A painting, photo or poem you admire","Ask: why does it work?"]}),
+   X("Share one piece with a friend",5,{lo:1,en:2,g:["Something you made recently","Ask what they felt, not whether it’s good"]}),
+   X("Start a series",15,{lo:2,en:2,g:["Choose a theme for 5 pieces","Make the first one today"]}),
+   X("Post or print one piece",10,{lo:2,en:2,g:["Online, on your wall or in a zine","Let it go out into the world"]})]},
+ gratitude:{name:"Gratitude",realm:"peace",about:"Thankfulness, service, simple living",hero:"Shabari",heroDev:"शबरी",c:"var(--gratitude)",
+  q:"How often do you notice what’s good?",
+  levels:["Rarely","Sometimes","I practise gratitude weekly","It’s a daily habit"],
+  tags:[["notice","Noticing the good"],["thank","Thanking others"],["serve","Service"],["simple","Simple living"]],
+  skills:[
+   {n:"Pratiksha",d:"प्रतीक्षा",s:"Shabari waited for years, sweeping the path every morning in case Rama came that day.",perk:"swap"},
+   {n:"Badari",d:"बदरी",s:"She tasted each berry so that only the sweetest reached Rama.",perk:"xp",item:"Basket",itemName:"Shabari’s basket"},
+   {n:"Kritajnata",d:"कृतज्ञता",s:"Remembering what others have done for you.",perk:"shield"},
+   {n:"Atithya",d:"आतिथ्य",s:"Hospitality: welcoming whoever comes to your door as an honoured guest.",perk:"xp",item:"Lamp",itemName:"Ashram lamp"},
+   {n:"Bhakti",d:"भक्ति",s:"Devotion: love given freely, which Rama honoured above every ritual.",perk:"all"}],
+  trials:[
+   {def:"Write three things you’re grateful for every day for a week"},
+   {def:"Thank three people for something specific, in person or in writing"},
+   {def:"Do an act of service for someone without being asked"},
+   {def:"Spend a week with one less comfort, and notice what you have",serve:"Volunteer for a few hours"},
+   {def:"Write a gratitude letter and read it to the person"}],
+  pool:[
+   X("Three good things",5,{tags:"notice|any",en:1,quiet:true,g:["Write three things that went well today","Add why each one happened"]}),
+   X("Notice one beautiful thing",3,{tags:"notice",en:1,g:["Stop and look for 30 seconds","A sky, a face, a sound"]}),
+   X("Savour one meal",15,{tags:"notice|simple",en:1,g:["No screens","Notice the taste and who made it possible"]}),
+   X("Thank someone specifically",5,{tags:"thank",en:1,g:["Not just “thanks”: say what they did and what it meant"]}),
+   X("Write a thank-you note",10,{tags:"thank",en:1,g:["On paper if you can","Leave it where they’ll find it"]}),
+   X("Thank someone who serves you",3,{tags:"thank|serve",en:1,travel:true,g:["A driver, cleaner, cook or shop worker","Use their name if you know it"]}),
+   X("Tell a teacher what they gave you",15,{tags:"thank",lo:1,en:1,g:["A message or email to a teacher or mentor","Name one lesson you still use"]}),
+   X("Help someone without being asked",15,{tags:"serve",en:2,g:["Carry, clean, cook or listen","Don’t mention it afterwards"]}),
+   X("Give away one thing you don’t use",10,{tags:"simple|serve",en:1,g:["Clothes, a book or a tool","To someone who will use it"]}),
+   X("A one-hour volunteer shift",60,{tags:"serve",lo:1,en:2,g:["A food bank, shelter, temple kitchen or community garden","Go with a friend if you like"]}),
+   X("One less comfort today",3,{tags:"simple",en:1,g:["Skip one small luxury","Notice how much you already have"]}),
+   X("Tidy one corner",10,{tags:"simple",place:"home",en:1,g:["Clear a shelf or drawer","Keep only what you use or love"]}),
+   X("Gratitude walk",20,{tags:"notice",place:"out",en:1,load:["cardio"],g:["Name one thing you’re grateful for at each corner"],tool:{type:"timer",sec:1200}}),
+   X("Remember someone who helped you",5,{tags:"thank|notice",en:1,quiet:true,g:["Picture them and what they did","Let yourself feel it"]}),
+   X("Welcome a guest well",30,{tags:"serve",lo:1,en:1,g:["Tea, a clean space, full attention","Treat them as Shabari treated Rama"]}),
+   X("Write a gratitude letter",30,{lo:2,en:2,g:["To someone who changed your life","300 words: what they did and what it meant"]})]}
+});
+ORDER.push("making","art","gratitude");SOON.length=0;
+Object.assign(RELATED,{making:["focus","art"],art:["music","making"],gratitude:["calm","bonds"]});
+RELATED.music.push("art");RELATED.calm.push("gratitude");RELATED.money.push("making");
+Object.assign(CHAR,{making:"vishwakarma",art:"valmiki",gratitude:"shabari"});
+Object.assign(PEOPLE,{
+ vishwakarma:{n:"Vishwakarma",d:"विश्वकर्मा",pid:"making",pr:"he",bio:"The divine architect and craftsman of the gods. He built golden Lanka, the city of Dwarka and the flying chariot Pushpaka, and forged Indra’s thunderbolt. Workshops in India honour him each year."},
+ valmiki:{n:"Valmiki",d:"वाल्मीकि",pid:"art",pr:"he",bio:"The sage honoured as the first poet, traditionally credited with the Ramayana. Later legend says he was once a robber named Ratnakara, changed by a single question."},
+ shabari:{n:"Shabari",d:"शबरी",pid:"gratitude",pr:"she",bio:"An elderly woman of a forest community who served the sage Matanga and waited many years for Rama. Her simple devotion is one of the most loved moments of the Ramayana."}
+});
+Object.assign(GUIDE_LINES,{
+ making:["Every great city starts as a sketch.","Keep your tools sharp and in their place.","Make it, then make it better.","What you build with care outlasts you.","Teach someone. Craft grows when shared."],
+ art:["The first line is the bravest one.","Turn what you feel into something others can feel.","Finish it. A finished poem beats a perfect idea.","Look closely. Art begins with attention.","Share your song. It is complete only when heard."],
+ gratitude:["Sweep the path each morning. Something good may come.","Notice the sweet berries in your day.","Remember who helped you get here.","Welcome whoever comes as an honoured guest.","Love given simply is the highest offering."]
+});
+Object.assign(GUIDE_INTRO,{
+ vishwakarma:{who:"Vishwakarma is the divine architect and craftsman in Hindu stories, the maker of the gods’ palaces, chariots and weapons.",moment:"He built golden Lanka, the city of Dwarka by the sea, and Pushpaka, a chariot that could fly through the sky.",teach:"Plan carefully, use good tools, and make things that last.",src:"Vedas, epics and Puranas",bg:"city"},
+ valmiki:{who:"Valmiki is the sage honoured as the first poet of Sanskrit, traditionally credited with writing the Ramayana.",moment:"Seeing a hunter kill one of a pair of birds, his grief came out as a perfect verse: the first shloka.",teach:"Turn what you feel into words or images others can share.",src:"Ramayana",bg:"river"},
+ shabari:{who:"Shabari is an elderly woman in the Ramayana who lived in the forest ashram of the sage Matanga.",moment:"She waited years for Rama. When he came, she offered him berries she had tasted herself to be sure they were sweet, and he ate them with joy.",teach:"Notice the good, and give simply and with love.",src:"Ramayana",bg:"forest"}
+});
+Object.assign(EN,{"Shilpa":"Craft","Vajra":"The thunderbolt","Yantra":"The tool","Pushpaka":"The flying chariot","Dwaraka":"The golden city",
+ "Adikavi":"The first poet","Shloka":"The verse","Rasa":"Feeling","Kavya":"Poetry","Gana":"Sharing your song",
+ "Pratiksha":"Patient waiting","Badari":"The berries","Kritajnata":"Gratitude","Atithya":"Hospitality","Bhakti":"Devotion",
+ "Sarathi Sakha":"The friend who steers","Setu Bandha":"Building the bridge","Ramayana Gana":"Singing the Ramayana","Mantra Diksha":"Receiving a mantra","Before Yama":"Facing Death"});
+Object.assign(CHAPTERS,{
+ vishwakarma:[
+  {dest:"Indra’s forge",charm:["Thunderbolt spark","Strength shaped by skill."],scenes:[{bg:"clouds",chars:one("vishwakarma"),cap:"The gods need a weapon strong enough to defeat the serpent demon Vritra."},{bg:"glow",chars:one("vishwakarma","rise"),cap:"Vishwakarma forges the vajra, the thunderbolt, for Indra."}]},
+  {dest:"Golden Lanka",charm:["Golden brick","Build to last."],scenes:[{bg:"city",chars:one("vishwakarma"),cap:"On an island in the sea, he builds a city of gold."},{bg:"city",chars:one("vishwakarma","float"),cap:"In later stories it becomes Ravana’s Lanka, still shining when Hanuman arrives."}]},
+  {dest:"Pushpaka",charm:["Chariot wheel","Ambition with care."],scenes:[{bg:"clouds",chars:one("vishwakarma"),cap:"He builds Pushpaka, a chariot that flies through the sky."},{bg:"lamps",chars:one("vishwakarma","float"),cap:"After the war, it carries Rama home to Ayodhya."}]},
+  {dest:"Dwarka",charm:["Sea shell","Mastery by the sea."],scenes:[{bg:"sea",chars:one("vishwakarma"),cap:"Krishna asks for a safe city for his people."},{bg:"city",chars:one("vishwakarma","rise"),cap:"Vishwakarma raises golden Dwarka from the sea, said to be built in a single night."}]}],
+ valmiki:[
+  {dest:"The Tamasa river",charm:["Heron feather","Grief that became song."],scenes:[{bg:"river",chars:one("valmiki"),cap:"By the river, Valmiki watches a pair of krauncha birds."},{bg:"glow",chars:one("valmiki","float"),cap:"A hunter’s arrow kills one, and his grief pours out as a perfect verse: the first shloka."}]},
+  {dest:"Narada’s visit",charm:["Veena string","A story worth telling."],scenes:[{bg:"clouds",chars:two("narada","valmiki"),cap:"Valmiki asks Narada: is there anyone truly good and brave alive?"},{bg:"scroll",chars:one("valmiki","rise"),cap:"Narada tells him Rama’s story, and Valmiki begins to write."}]},
+  {dest:"The forest ashram",charm:["Ashram leaf","Shelter for the lost."],scenes:[{bg:"forest",chars:one("valmiki"),cap:"Years later, Sita comes to his ashram alone."},{bg:"forest",chars:one("valmiki","float"),cap:"He gives her shelter, and her twin sons Lava and Kusha grow up as his students."}]},
+  {dest:"Rama’s court",charm:["Singer’s bell","Art that reaches its audience."],scenes:[{bg:"city",chars:one("valmiki"),cap:"Valmiki teaches the boys his whole poem."},{bg:"lamps",chars:one("valmiki","rise"),cap:"They sing the Ramayana before Rama himself, who hears his own story."}]}],
+ shabari:[
+  {dest:"Matanga’s ashram",charm:["Ashram broom","Humble work, done daily."],scenes:[{bg:"forest",chars:one("shabari"),cap:"As a young woman, Shabari serves the sage Matanga in his forest ashram."},{bg:"glow",chars:one("shabari","float"),cap:"Before he dies, he tells her: Rama will come here one day."}]},
+  {dest:"The long wait",charm:["Swept path","Readiness, every morning."],scenes:[{bg:"forest",chars:one("shabari"),cap:"Every morning for years, she sweeps the path and gathers fruit."},{bg:"stars",chars:one("shabari","float"),cap:"Her hair turns white. She still sweeps the path."}]},
+  {dest:"Rama arrives",charm:["Sweet berry","The best of what you have."],scenes:[{bg:"forest",chars:two("rama","shabari"),cap:"At last, Rama and Lakshmana come to her door."},{bg:"glow",chars:one("shabari","rise"),cap:"She offers berries she has tasted to be sure they are sweet. Rama eats them with joy."}]},
+  {dest:"The way to Sugriva",charm:["Forest path","Kindness repaid."],scenes:[{bg:"hills",chars:one("shabari"),cap:"Shabari tells Rama where to find Sugriva and the vanaras."},{bg:"glow",chars:one("shabari","float"),cap:"Her simple help leads Rama to Hanuman, and to Sita."}]}]
+});
+SYN.push(
+ {id:"sarathi",p:["friend","focus"],req:2,n:"Sarathi Sakha",d:"सारथी सखा",s:"Krishna and Arjuna: lifelong friends, one at the reins and one with the bow.",q:"Ask a friend for honest advice on one work decision"},
+ {id:"setu",p:["making","body"],req:2,n:"Setu Bandha",d:"सेतु बन्ध",s:"Nala, son of Vishwakarma, designs the bridge to Lanka, and Hanuman’s army carries the stones.",q:"Build or fix something that needs physical effort"},
+ {id:"bhakti",p:["gratitude","bonds"],req:2,n:"Bhakti",d:"भक्ति",s:"Shabari’s berries for Rama: gratitude and family love in one small offering.",q:"Thank a family member for something specific"},
+ {id:"gana",p:["art","bonds"],req:2,n:"Ramayana Gana",d:"रामायण गान",s:"Valmiki’s students sing Rama’s own story to him: art that carries a family’s memory.",q:"Write or draw one family memory"},
+ {id:"diksha",p:["music","calm"],req:2,n:"Mantra Diksha",d:"मन्त्र दीक्षा",s:"Narada gives young Dhruva a mantra: music and stillness meet in sacred sound.",q:"Chant or hum one mantra or melody slowly for 5 minutes"},
+ {id:"yama",p:["love","wisdom"],req:2,n:"Before Yama",d:"यम के सम्मुख",s:"Savitri and Nachiketa both stood before Death, and both won with calm, wise words.",q:"Have one calm, honest conversation about something that matters"}
+);
+Object.assign(STORIES,{
+ sarathi:{cast:["friend","focus"],note:"Mahabharata",scenes:[
+  {bg:"city",chars:two("krishna","arjuna"),cap:"Krishna and Arjuna are cousins and close friends from youth."},
+  {bg:"hills",chars:two("krishna","arjuna"),cap:"Before the great war, both sides ask Krishna for help. Arjuna chooses Krishna himself, unarmed, over his whole army."},
+  {bg:"hills",chars:[["arjuna",50,80,.8,"bow"],["krishna",190,60,.9,"rise"]],cap:"On the battlefield Arjuna loses heart. His friend at the reins speaks the Bhagavad Gita."},
+  {bg:"glow",chars:two("krishna","arjuna"),cap:"A friend who tells you the truth, and steers you through your hardest day."}]},
+ setu:{cast:["making","body"],note:"Ramayana, Yuddha Kanda",scenes:[
+  {bg:"sea",chars:[["hanuman",120,50,.95,"float"]],cap:"Rama’s army reaches the ocean. Lanka lies across the water."},
+  {bg:"glow",chars:[["vishwakarma",120,50,.95,"rise"]],cap:"Nala, the son of Vishwakarma, has his father’s gift: stones he places will float."},
+  {bg:"bridge",chars:two("vishwakarma","hanuman"),cap:"Hanuman and the vanaras carry rocks and trees, and Nala sets each one in place."},
+  {bg:"bridge",chars:[["hanuman",60,70,.8,"rise"],["vishwakarma",190,70,.8,"rise"]],cap:"In five days the bridge is done. Skill and strength, working together."}]},
+ bhakti:{cast:["gratitude","bonds"],note:"Ramayana, Aranya Kanda",scenes:[
+  {bg:"forest",chars:[["shabari",120,50,.95,"float"]],cap:"Old Shabari has swept the forest path every morning for years."},
+  {bg:"forest",chars:two("rama","shabari"),cap:"One day Rama arrives at her door."},
+  {bg:"glow",chars:[["shabari",50,70,.85,"bow"],["rama",190,60,.9,"rise"]],cap:"She offers him berries she has tasted herself, so only the sweet ones reach him."},
+  {bg:"glow",chars:two("rama","shabari"),cap:"Rama eats them with joy. A simple gift, given with love, is worth more than any ritual."}]},
+ gana:{cast:["art","bonds"],note:"Ramayana, Uttara Kanda",scenes:[
+  {bg:"forest",chars:[["valmiki",120,50,.95,"float"]],cap:"In his forest ashram, Valmiki teaches two boys, Lava and Kusha, his poem of Rama."},
+  {bg:"city",chars:[["valmiki",120,55,.9,"rise"]],cap:"He brings them to Rama’s great ceremony in Ayodhya."},
+  {bg:"lamps",chars:[["rama",120,50,.95,"float"]],notes:[[40,60],[260,70]],cap:"The boys sing, and Rama listens to his own life as a song."},
+  {bg:"glow",chars:two("valmiki","rama"),cap:"He learns the singers are his own sons. Art carries what families forget."}]},
+ diksha:{cast:["music","calm"],note:"Vishnu and Bhagavata Puranas",scenes:[
+  {bg:"forest",chars:[["dhruva",120,55,.95,"float"]],cap:"Five-year-old Dhruva walks into the forest, hurt and determined."},
+  {bg:"clouds",chars:two("narada","dhruva"),notes:[[160,40]],cap:"Narada meets him, tests his resolve, then gives him a mantra."},
+  {bg:"stars",chars:[["dhruva",120,55,.95,"rise"]],cap:"Dhruva repeats it, breath after breath, through every season."},
+  {bg:"stars",chars:two("narada","dhruva"),cap:"Sound, repeated with stillness, carries him to the sky as the pole star."}]},
+ yama:{cast:["love","wisdom"],note:"Mahabharata and Katha Upanishad",scenes:[
+  {bg:"forest",chars:[["savitri",120,50,.95,"float"]],cap:"Savitri follows Yama as he carries away her husband, speaking with calm wisdom."},
+  {bg:"glow",chars:[["savitri",120,50,.95,"rise"]],cap:"Moved, Yama grants her wishes, and her husband returns to life."},
+  {bg:"stars",chars:[["nachiketa",120,55,.95,"float"]],cap:"Long before, the boy Nachiketa waited three days at Yama’s door."},
+  {bg:"glow",chars:two("savitri","nachiketa"),cap:"Two who faced Death without fear, and won with love and questions."}]}
+});
+WHO[0][1].push(["Vishwakarma","विश्वकर्मा","Making. Divine architect and craftsman.","making"],["Valmiki","वाल्मीकि","Art and writing. The first poet.","art"],["Shabari","शबरी","Gratitude. Devotee who waited years for Rama.","gratitude"]);
+["Valmiki","Shabari"].forEach(n=>{const g=WHO[2][1],i=g.findIndex(x=>x[0]===n);if(i>=0)g.splice(i,1)});
