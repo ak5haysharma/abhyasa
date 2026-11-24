@@ -12,6 +12,7 @@ abhyasa-app/
 ├─ manifest.webmanifest    App name, colours and icons for installing
 ├─ sw.js                   Service worker: offline mode and updates
 ├─ css/app.css             All styles
+├─ css/fonts.css           Bundled fonts (files in fonts/, SIL Open Font License)
 ├─ js/content.js           ALL CONTENT: paths, tasks, skills, stories, chapters, festivals
 ├─ js/app.js               App logic
 ├─ icons/                  App icons (icon.svg is the source)
@@ -140,4 +141,5 @@ Paths sit inside five realms (`REALMS`): Body, Bonds, Craft, Joy and Peace. User
 
 - Stories are condensed retellings. Valmiki episodes, later tellings and folk tales are labelled in the text. Have someone who knows the texts well review them before a public launch.
 - Festival dates from November to December 2026 come from Drik Panchang. Dates for 2027 are approximate and marked `approx:true` until the official panchang is out.
-- Fonts: Inter, Literata and Tiro Devanagari Hindi from Google Fonts.
+- Fonts: Inter, Literata and Tiro Devanagari Hindi, bundled in `fonts/` from Fontsource (SIL Open Font License). The app makes no requests to Google or any other outside server.
+- Feedback: set `FEEDBACK_EMAIL` at the bottom of `js/content.js` to add an Email button to the feedback sheet. Share and Copy always work.

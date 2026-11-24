@@ -1,11 +1,12 @@
 /* Abhyasa service worker: offline support and safe updates.
    VERSION must change on every release (tools/bump_version.py does it),
    otherwise phones keep the old cached app. */
-const VERSION = "1.9.0";
+const VERSION = "1.10.0";
 const CACHE = "abhyasa-" + VERSION;
 const FONTS = "abhyasa-fonts";
 const SHELL = [
-  "./", "index.html", "css/app.css", "js/content.js", "js/app.js", "manifest.webmanifest",
+  "./", "index.html", "css/fonts.css", "css/app.css",
+  "fonts/inter-latin-400-normal.woff2", "fonts/inter-latin-500-normal.woff2", "fonts/inter-latin-600-normal.woff2", "fonts/inter-latin-ext-400-normal.woff2", "fonts/inter-latin-ext-500-normal.woff2", "fonts/inter-latin-ext-600-normal.woff2", "fonts/literata-latin-400-normal.woff2", "fonts/literata-latin-600-normal.woff2", "fonts/literata-latin-ext-400-normal.woff2", "fonts/literata-latin-ext-600-normal.woff2", "fonts/tiro-devanagari-hindi-devanagari-400-normal.woff2", "js/content.js", "js/app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
 ];
 

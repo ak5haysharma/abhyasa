@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.9.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.10.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],trialLog:[],reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -225,7 +225,7 @@ const queue=[];
 function pushModal(h){queue.push(h);if(!$(".scrim"))nextModal()}
 function nextModal(){const h=queue.shift();if(h)openLayer(`<div class="scrim center" data-close="1"><div class="modal" role="dialog" aria-modal="true">${h}<button class="cta" style="width:100%" data-close="1">Continue</button></div></div>`)}
 function openLayer(h){const s=$(".scrim");if(s)s.remove();document.body.insertAdjacentHTML("beforeend",h)}
-function closeLayer(){const s=$(".scrim");if(s){if(s.querySelector(".tool"))stopTool();s.remove()}if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
+function closeLayer(){const s=$(".scrim");if(s){if(s.querySelector(".tool"))stopTool();s.remove();if(LASTF&&LASTF.isConnected&&!queue.length)try{LASTF.focus({preventScroll:true})}catch(e){}}if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
 
 /* ================= actions ================= */
 const GOALS=[7,14,30,50,100,365];
@@ -661,6 +661,22 @@ function fmCmd(v,ev){if(!FM)return;
  if(v.startsWith("step|")){const i=+v.split("|")[1];FM.ck[i]=!FM.ck[i];if(FM.ck[i])beep(1180,.05,.12);fmPaint()}}
 
 
+
+/* ================= feedback ================= */
+const FBK=[["idea","Idea"],["bug","Something broke"],["story","Story or content"],["like","Something I like"]];let FB=null;
+function feedbackSheet(){FB=FB||{k:"idea",t:""};sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Feedback</div><h2>Tell us what you think</h2><p class="sub">It goes straight to the person building Abhyasa. Nothing is sent automatically.</p>
+ <div class="cchips">${FBK.map(([k,l])=>`<button class="chip" data-fbk="${k}" aria-pressed="${FB.k===k}">${l}</button>`).join("")}</div>
+ <label class="qlabel" for="fbtext" style="display:block">Your message</label><textarea class="name" id="fbtext" rows="5" maxlength="2000" placeholder="What happened, or what would make it better?" style="font-size:16px;resize:vertical">${esc(FB.t)}</textarea>
+ <p class="sub" style="margin-top:8px">The app version and your device type are added so problems are easier to fix. Your progress is not included.</p>
+ <div class="row" style="flex-wrap:wrap"><button class="cta" data-fbsend="share">Share</button>${FEEDBACK_EMAIL?`<button class="cta alt" data-fbsend="mail">Email</button>`:""}<button class="cta alt" data-fbsend="copy">Copy</button></div>`);
+ const t=$("#fbtext");if(t){t.addEventListener("input",e=>FB.t=e.target.value);t.focus()}}
+function fbText(){const ua=navigator.userAgent,dev=/iPhone|iPad/.test(ua)?"iPhone/iPad":/Android/.test(ua)?"Android":"Desktop";return `Abhyasa feedback (${FBK.find(x=>x[0]===FB.k)[1]})\n\n${FB.t.trim()}\n\n— Version ${APP_VERSION} · ${dev} · ${isStandalone()?"installed":"browser"} · ${td()}`}
+function fbSend(how){const t=$("#fbtext");if(t)FB.t=t.value;if(!FB.t.trim()){toast("Write a message first");return}const txt=fbText();
+ if(how==="share"){if(navigator.share){navigator.share({title:"Abhyasa feedback",text:txt}).then(()=>{FB=null;closeLayer();toast("Thank you")}).catch(()=>{});return}how="copy"}
+ if(how==="mail"){location.href=`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Abhyasa feedback")}&body=${encodeURIComponent(txt)}`;return}
+ if(how==="copy"){const ok=()=>{toast("Copied. Paste it in a message to the builder");FB=null;closeLayer()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok).catch(()=>{if(t){t.value=txt;t.select()}toast("Select the text and copy it")});else{if(t){t.value=txt;t.select()}toast("Select the text and copy it")}}}
+const backupDue=()=>{const act=Object.keys(S.days).filter(d=>S.days[d].a).length;return act>=3&&(!S.lastBackup||diff(S.lastBackup,td())>=7)};
+
 /* ================= explainer pack ================= */
 function playPack(id,after){const L=LEARN.find(x=>x.id===id);if(!L)return;
  const cards=L.cards.map(c=>({kick:c.kick,svg:c.bg?sceneInner({bg:c.bg,chars:c.chars||[]}):"",html:c.bg?"":`<div class="lp-ico">${ic(c.ico||L.ico)}</div>`,cap:c.cap}));
@@ -859,6 +875,7 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  if(late)out.push(card("eve",'data-eve="1"',`<span class="sci">${ic("moon")}</span>`,"Evening","Close your day","Your companion sets out tonight"));
  const w=reviewWeek();if(w){const W=weekStats(w);out.push(card("gold",`data-review="${w}"`,`<span class="sci gold">${ic("path")}</span>`,"Weekly review","Your week in review",`${W.act} days · ${W.tot} min`))}
  if(c.d!==t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in","How are you today?","Three taps fit your plan"));
+ if(backupDue())out.push(card("",'data-act="export"',`<span class="sci">${ic("learn")}</span>`,"Keep your progress safe","Back up now",S.lastBackup?`Last backup ${diff(S.lastBackup,td())} days ago`:"Your progress lives only on this phone"));
  const pid=companionPid(t);if(pid){const g=CHAR[pid],J=S.journey,trav=J&&J.d===t&&!J.back,C=CHAPTERS[g][trav?J.ch:nextCh(g)],ret=J&&J.back&&J.ret===t;
   out.push(card("",ret?`data-chap="${J.g}:${J.ch}"`:S.days[t]&&S.days[t].a&&S.closed!==t?'data-eve="1"':`data-person="${g}"`,medal(pid,"sm"),`Companion · ${PEOPLE[g].n}`,ret?`Back from ${CHAPTERS[J.g][J.ch].dest}`:trav?`On the way to ${C.dest}`:`Waiting to travel to ${C.dest}`,ret?"Watch the chapter again":trav?"Back tomorrow morning":"One task, then close your day"))}
  const n=nudges()[0];if(n)out.push(card("",`data-nudge-act="${n.pid}:${n.act}"`,medal(n.pid,"sm"),n.t,n.act==="add"?`Add ${PATHS[n.pid].name}?`:`Pause ${PATHS[n.pid].name}?`,n.s.split(". ")[0]+".",`<button class="scx" data-nudge-x="${n.k}" aria-label="Not now">×</button>`));
@@ -937,7 +954,7 @@ function heroView(){const sg=segOf("hero","hero");let body="";
   body=`<div class="block" style="margin-top:4px"><h2>Your guides</h2><div class="guides" style="margin-top:10px">${sel().map(pid=>{const c=CHAR[pid];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${PEOPLE[c].n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
- if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><div class="block"><h2>App</h2>${appCard()}</div>
+ if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><button class="revcard" data-feedback="1"><span class="revi">${ic("love")}</span><span><b>Send feedback</b><small>Ideas, bugs or stories. It helps shape Abhyasa.</small></span></button><div class="block"><h2>App</h2>${appCard()}${S.lastBackup?`<p class="sub">Last backup: ${S.lastBackup.split("-").reverse().join(".")}</p>`:""}</div>
   <div class="links"><button class="mini" data-act="routine">Edit kit and routine</button><button class="mini" data-act="redo">Retake the questionnaire</button><button class="mini" data-act="reset">Reset everything</button></div><p class="sub" style="text-align:center;margin-bottom:30px">Abhyasa ${APP_VERSION}</p>`;
  return header("Hero")+tipCard()+`<div class="wrap">${seg("hero",[["hero","Hero"],["stats","Stats"],["coll","Collection"],["more","More"]])}<div class="segbody">${body}</div></div>`}
 
@@ -996,7 +1013,7 @@ function loadSample(){
 }
 
 /* ================= sheets ================= */
-function sheet(c,h){openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true">${h}</div></div>`)}
+let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`);const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
 function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid],rf=(S.trialLog||[]).filter(x=>x.pid===pid&&x.k===k).pop();
  sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${s.s}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
@@ -1028,7 +1045,9 @@ function appCard(){
  <div class="row" style="margin-bottom:6px"><button class="cta alt" data-act="export">Save a backup</button><button class="cta alt" data-act="import">Restore a backup</button></div>
  <input type="file" id="importf" accept="application/json,.json" hidden>`;
 }
-function exportData(){try{const blob=new Blob([JSON.stringify({app:"abhyasa",version:APP_VERSION,date:td(),state:S},null,1)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`abhyasa-backup-${td()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast("Backup saved to your downloads")}catch(e){toast("Couldn’t save the backup on this device")}}
+function exportData(){const name=`abhyasa-backup-${td()}.json`,txt=JSON.stringify({app:"abhyasa",version:APP_VERSION,date:td(),state:S},null,1);
+ try{const f=new File([txt],name,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Abhyasa backup"}).then(()=>{S.lastBackup=td();save();render();toast("Backup saved")}).catch(()=>{});return}}catch(e){}
+ try{S.lastBackup=td();save();const blob=new Blob([JSON.stringify({app:"abhyasa",version:APP_VERSION,date:td(),state:S},null,1)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`abhyasa-backup-${td()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast("Backup saved to your downloads")}catch(e){toast("Couldn’t save the backup on this device")}}
 let PENDING=null;
 function importFile(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(o.app!=="abhyasa"||!o.state||!o.state.prog)throw 0;PENDING=o;
  sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Restore</div><h2>Replace your progress?</h2><p class="sub">This backup is from ${String(o.date||"").split("-").reverse().join(".")} (version ${esc(o.version||"?")}). Your current progress on this device will be replaced.</p><div class="row"><button class="cta alt" data-close="1">Cancel</button><button class="cta" data-act="import-ok">Restore</button></div>`)}catch(e){toast("That file isn’t an Abhyasa backup")}};r.readAsText(f)}
@@ -1052,13 +1071,16 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
+ if(d.feedback){feedbackSheet();return}
+ if(d.fbk){const tx=$("#fbtext");if(tx)FB.t=tx.value;FB.k=d.fbk;feedbackSheet();return}
+ if(d.fbsend){fbSend(d.fbsend);return}
  if(d.cer){cerCmd(d.cer);return}
  if(d.learn){learnHub();return}
  if(d.pack){closeLayer();playPack(d.pack,()=>learnHub());return}

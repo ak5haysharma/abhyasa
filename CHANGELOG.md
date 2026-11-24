@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10.0 · 24.11.2026
+- Reliability: fonts bundled in the app (no Google requests, fully offline), a Send feedback sheet (Share, Copy, optional Email), a weekly backup reminder and iPhone-friendly backup via the share sheet, colour contrast raised to accessibility standard, and better keyboard and screen-reader focus in sheets.
+
 ## 1.9.0 · 24.11.2026
 - Trial ceremony: your guide asks how it felt and what helped, then an honest 'Did you truly pass?', then a skill-unlock animation with a chime and a reply from your guide. Reflections are kept on each skill. Check-in feedback: after 'Fit my plan', a summary of what was taken out, what was added and why, and which routines to take carefully.
 

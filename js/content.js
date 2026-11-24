@@ -574,3 +574,7 @@ const WHO=[
  ["People of the Mahabharata",[["Draupadi","द्रौपदी","Fierce, brilliant wife of the five Pandavas."],["Karna","कर्ण","Generous, tragic warrior on the Kaurava side."],["Bhishma","भीष्म","Elder of the family, bound by an unbreakable vow."],["Drona","द्रोण","Teacher of archery to both sides of the family."],["Ekalavya","एकलव्य","Forest archer who taught himself in front of a clay image of Drona."],["Vyasa","व्यास","Sage traditionally credited with the Mahabharata."]]],
  ["Sages and seekers",[["Nachiketa","नचिकेता","Boy who questioned Death in the Katha Upanishad."],["Gargi","गार्गी","Philosopher who questioned the sage Yajnavalkya."],["Vishwamitra","विश्वामित्र","King who became a sage after many failures and fresh starts."],["Prahlada","प्रह्लाद","Child devotee whose faith survived every danger."]]]
 ];
+
+/* ================= feedback ================= */
+// Put your email here to let testers send feedback by email. Leave empty to offer only Share and Copy.
+const FEEDBACK_EMAIL="";
