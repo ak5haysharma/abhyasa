@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.12.0 · 24.11.2026
+- Four new paths: Friendship (Krishna), Money (Lakshmi), Courage (Durga) and Wisdom (Nachiketa), each with portraits, 5 skills, trials, about 18 tasks, guide intros and 4 journey chapters. Also fixes the light-mode colour contrast from 1.10, which hadn't applied.
+
 ## 1.11.0 · 24.11.2026
 - Task library nearly doubled (109 to 203), with every path now at 22 or more tasks with guides and tools. The planner remembers the last 7 days to avoid repeats, and short tasks rest for 3 days after appearing.
 

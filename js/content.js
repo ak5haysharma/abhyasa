@@ -690,3 +690,198 @@ PATHS.calm.pool.push(
  X("Yoga nidra",20,{tags:"guided",lo:1,en:1,quiet:true,g:["Lie down, use a guided recording you trust","Stay awake and follow the voice","Rest a minute before getting up"],tool:{type:"timer",sec:1200}}),
  X("Thirty-minute sit",30,{tags:"silent",lo:3,en:2,g:["Same as your usual sit, just longer","Don’t move for the first 15 minutes"],tool:{type:"timer",sec:1800}})
 );
+
+/* ================= new paths, batch 1 (v1.12): Friendship, Money, Courage, Wisdom ================= */
+Object.assign(PATHS,{
+ friend:{name:"Friendship",realm:"bonds",about:"Close friends, new friends, community",hero:"Krishna",heroDev:"कृष्ण",c:"var(--friend)",
+  q:"How are your friendships?",
+  levels:["I feel lonely most weeks","I have friends but rarely meet","I see friends regularly","My friendships are deep and active"],
+  tags:[["close","Close friends"],["new","Making new friends"],["local","Friends nearby"],["far","Friends far away"]],
+  skills:[
+   {n:"Sakha",d:"सखा",s:"Krishna calls Arjuna his sakha: a friend who stands beside you as an equal.",perk:"swap"},
+   {n:"Sudarshana",d:"सुदर्शन",s:"Krishna’s spinning discus: it returns to the hand that sent it, as loyalty returns to a true friend.",perk:"xp",item:"Chakra",itemName:"Sudarshana chakra"},
+   {n:"Sudama",d:"सुदामा",s:"A poor childhood friend arrives with a handful of rice, and a king runs barefoot to greet him.",perk:"shield"},
+   {n:"Murali",d:"मुरली",s:"Krishna’s flute draws everyone together. Friendship is the music that gathers people.",perk:"xp",item:"Flute",itemName:"Bansuri"},
+   {n:"Sarathi",d:"सारथी",s:"Krishna drives Arjuna’s chariot: the friend who steers you through your hardest day.",perk:"all"}],
+  trials:[
+   {def:"Meet or call friends 3 times in one week",new:"Start a real conversation with someone new"},
+   {def:"Reconnect with a friend you haven’t spoken to in a year",new:"Join a club, class or group and go twice"},
+   {def:"Host a small gathering: a meal, a walk or a game night"},
+   {def:"Be there for a friend through something hard, from start to finish"},
+   {def:"Introduce two friends who become friends too"}],
+  pool:[
+   X("Message a close friend, just because",3,{tags:"close|far",en:1,g:["Share something that made you think of them","No need for a reason"]}),
+   X("Voice note to a friend far away",5,{tags:"far",en:1,g:["Two minutes about your week","Ask one real question back"]}),
+   X("Call a friend for 20 minutes",20,{tags:"close|far",en:1,call:true,g:["Ask what’s been on their mind lately","Share one thing honestly too"],tool:{type:"timer",sec:1200}}),
+   X("Plan a meetup this week",5,{tags:"local|close",en:1,g:["Suggest a day, a time and a place","Make it easy: a walk, coffee or lunch"]}),
+   X("Walk with a friend",45,{tags:"local",place:"out",en:1,load:["cardio"],g:["No screens, no agenda","Take the long way round"]}),
+   X("Remember a date that matters to a friend",5,{tags:"close",en:1,g:["A birthday, exam, interview or anniversary","Put it in your calendar with a reminder to message"]}),
+   X("Send a photo from an old memory",3,{tags:"close|far",en:1,g:["A trip, a party, a silly moment","Add: “remember this?”"]}),
+   X("Say yes to an invitation",5,{tags:"new|local",en:1,g:["Even if you’re a little tired","Stay at least an hour"]}),
+   X("Go to a meetup or class",60,{tags:"new",lo:1,en:2,g:["Something you’re curious about","Ask two people a question each","Get one contact"]}),
+   X("Follow up with someone you met",5,{tags:"new",lo:1,en:1,g:["Within a few days","Mention something they said, and suggest meeting again"]}),
+   X("Cook for friends",90,{tags:"local|close",lo:1,en:2,g:["Keep the menu simple","Ask each person to bring one thing"]}),
+   X("Ask a friend how you can help",10,{tags:"close",lo:1,en:1,g:["Especially someone going through a busy or hard time","Then actually do it"]}),
+   X("Tell a friend what they mean to you",10,{tags:"close",lo:2,en:2,g:["Be specific: a moment they helped you","Message or say it in person"]}),
+   X("Start a group chat plan",10,{tags:"close|far",lo:1,en:1,g:["Suggest a group call or a trip","Pick a date poll and send it"]}),
+   X("Play a game together, online or in person",30,{tags:"far|local",en:1,g:["A board game, a quiz or an online match","The point is laughing together"]}),
+   X("Write a birthday message that isn’t generic",5,{lo:1,en:1,g:["One memory, one wish, one line of thanks"]}),
+   X("Introduce two friends",10,{lo:2,en:2,g:["People who share an interest","Message both: “you two should meet, here’s why”"]}),
+   X("Forgive a small thing",10,{lo:2,en:2,g:["Something a friend did that still bothers you","Let it go, or talk about it kindly"]})]},
+ money:{name:"Money",realm:"craft",about:"Budget, savings, earning, giving",hero:"Lakshmi",heroDev:"लक्ष्मी",c:"var(--money)",
+  q:"How do you feel about your money?",
+  levels:["I don’t know where my money goes","I track it now and then","I budget and save regularly","I invest with a clear plan"],
+  tags:[["budget","Budgeting"],["save","Saving"],["invest","Investing basics"],["earn","Earning more"]],
+  skills:[
+   {n:"Shubha",d:"शुभ",s:"Lakshmi is said to arrive where there is order and care. It starts with seeing your money clearly.",perk:"swap"},
+   {n:"Kalasha",d:"कलश",s:"The overflowing pot of plenty: savings that grow quietly.",perk:"xp",item:"Pot",itemName:"Golden kalasha"},
+   {n:"Santosha",d:"सन्तोष",s:"Contentment. Wanting less is a quiet kind of wealth.",perk:"shield"},
+   {n:"Kamala",d:"कमल",s:"Lakshmi stands on a lotus, which rises clean from muddy water: wealth earned with integrity.",perk:"xp",item:"Lotus",itemName:"Lakshmi’s lotus"},
+   {n:"Dana",d:"दान",s:"Giving. Wealth that flows outward with wisdom brings good back.",perk:"all"}],
+  trials:[
+   {def:"Track every expense for 7 days"},
+   {def:"Make a monthly budget and keep to it for one month"},
+   {def:"Save one month of your expenses as an emergency fund",earn:"Earn your first income from a side project or skill"},
+   {def:"Set up an automatic monthly saving or investment"},
+   {def:"Write a one-page money plan for the next five years"}],
+  pool:[
+   X("Log today’s spending",5,{tags:"budget|any",en:1,g:["Every purchase, even small ones","Note one you didn’t need"]}),
+   X("Check your bank balance calmly",5,{tags:"budget",en:1,g:["Just look, without judging","Write down the number"]}),
+   X("Sort last week’s spending into groups",15,{tags:"budget",lo:1,en:2,g:["Home, food, transport, fun, other","Which group surprised you?"]}),
+   X("Cancel one subscription you don’t use",10,{tags:"budget|save",en:1,g:["Check your bank or app store subscriptions","Cancel one today"]}),
+   X("A no-spend day",3,{tags:"save",en:1,g:["Buy nothing except essentials today","Notice what you wanted, and why"]}),
+   X("Move a small amount to savings",3,{tags:"save",en:1,g:["Even a small amount builds the habit","Name the savings pot after its goal"]}),
+   X("Set a savings goal with a date",10,{tags:"save",lo:1,en:1,g:["A trip, an emergency fund or a course","Divide it by the months until then"]}),
+   X("Compare one big bill",20,{tags:"save|budget",lo:1,en:2,g:["Phone, internet, insurance or energy","Look up two alternatives"]}),
+   X("Learn one investing term",10,{tags:"invest",en:1,g:["Index fund, compound interest, diversification or inflation","Explain it in one sentence"]}),
+   X("Read about low-cost index funds",20,{tags:"invest",lo:1,en:2,g:["Use a trusted, independent source","Write down the main costs and risks"]}),
+   X("Review your investments for 10 minutes",10,{tags:"invest",lo:2,en:1,g:["Check they still match your plan","No buying or selling in a panic"]}),
+   X("List three skills people would pay for",10,{tags:"earn",en:1,g:["Things you’re good at, or could learn quickly","Who would pay, and how much?"]}),
+   X("Spend 30 minutes on a side income idea",30,{tags:"earn",lo:1,en:2,g:["The smallest step: a post, an offer or a portfolio page"],tool:{type:"timer",sec:1800}}),
+   X("Prepare for a pay conversation",20,{tags:"earn",lo:2,en:2,g:["List three results from this year, with numbers","Check typical pay for your role"]}),
+   X("Give a small amount to a good cause",5,{lo:1,en:1,g:["A cause you know and trust","Notice how it feels"]}),
+   X("Talk about money with someone you trust",20,{lo:2,en:2,call:true,g:["A partner, parent or friend","Share one goal and one worry"]}),
+   X("Write your money values",10,{en:1,g:["What should money do for you? Freedom, family, security, joy?","Rank your top three"]}),
+   X("A monthly money review",20,{lo:1,en:2,g:["Income, spending and saving this month","One thing to change next month"]})]},
+ courage:{name:"Courage",realm:"body",about:"Facing fears, speaking up, trying new things",hero:"Durga",heroDev:"दुर्गा",c:"var(--courage)",
+  q:"How does fear show up for you?",
+  levels:["Fear often stops me","I push through sometimes","I take on challenges regularly","I seek out hard things"],
+  tags:[["fears","Facing a fear"],["speak","Speaking up"],["risk","Trying new things"],["physical","Physical challenges"]],
+  skills:[
+   {n:"Abhaya",d:"अभय",s:"Durga’s raised palm says: do not fear. Courage starts with one small step.",perk:"swap"},
+   {n:"Trishula",d:"त्रिशूल",s:"Her trident: thought, word and action pointing the same way.",perk:"xp",item:"Trident",itemName:"Trishula"},
+   {n:"Dhairya",d:"धैर्य",s:"Steadiness while afraid. Not the absence of fear, but staying anyway.",perk:"shield"},
+   {n:"Simha",d:"सिंह",s:"Durga rides a lion: courage you can lean on, built by practice.",perk:"xp",item:"Lion",itemName:"Lion of Durga"},
+   {n:"Vijaya",d:"विजय",s:"Victory over the demon of doubt, celebrated every year on Vijayadashami.",perk:"all"}],
+  trials:[
+   {def:"Do one thing that scares you a little, and write down how it went"},
+   {def:"Speak up once in a group where you’d usually stay quiet"},
+   {def:"Have a difficult conversation you’ve been avoiding"},
+   {def:"Try something completely new in front of other people",speak:"Give a short talk or presentation",physical:"Complete a physical challenge you’ve never done, safely"},
+   {def:"Take on a challenge that takes weeks: a race, a performance or a talk"}],
+  pool:[
+   X("Name one fear on paper",5,{tags:"fears|any",en:1,g:["Write: “I’m afraid that…”","Then: “The worst realistic outcome is…”","Then: “I could handle it by…”"]}),
+   X("Build a fear ladder",15,{tags:"fears",en:2,g:["Pick one fear","Write 5 steps from easy to hard","Do step one this week"]}),
+   X("Climb one rung of your fear ladder",15,{tags:"fears",lo:1,en:2,g:["The next step on your ladder","Stay with the discomfort for a while before you stop"]}),
+   X("Ask one question in a meeting",5,{tags:"speak",en:2,g:["Prepare it beforehand","Ask in the first ten minutes, before the nerves build"]}),
+   X("Say no to one thing",5,{tags:"speak|any",en:2,g:["Something you don’t want to do","Short and kind: “Thanks, but I can’t this time.”"]}),
+   X("Share an opinion you usually keep to yourself",10,{tags:"speak",lo:1,en:2,g:["Something small but true","Say it calmly, without apologising"]}),
+   X("Record yourself speaking for 2 minutes",10,{tags:"speak",en:2,g:["Explain something you know well","Watch it once and note one thing you did well"],tool:{type:"timer",sec:120}}),
+   X("Order or ask for something in a new language",5,{tags:"risk|speak",en:2,travel:true,g:["At a café or shop","Mistakes are part of it"]}),
+   X("Try one food or place you’ve never tried",30,{tags:"risk",en:1,travel:true,g:["Somewhere new near you","Notice what was better than you expected"]}),
+   X("Start a conversation with a stranger",5,{tags:"risk|speak",lo:1,en:2,g:["A compliment or a simple question","Keep it light and brief"]}),
+   X("Ask for something you want",10,{tags:"speak|risk",lo:1,en:2,g:["Feedback, help, a discount or a favour","A no is just information"]}),
+   X("End your shower with 30 seconds of cool water",3,{tags:"physical",en:2,load:["cardio"],g:["Cool, not icy","Breathe slowly through it","Skip it if you have a heart condition"],tool:{type:"timer",sec:30}}),
+   X("A hard workout you’ve been avoiding",40,{tags:"physical",lo:1,en:3,load:["legs","cardio"],g:["The session you usually skip","Start, and give it 10 honest minutes before deciding"]}),
+   X("Sign up for a challenge",10,{tags:"physical|risk",lo:2,en:1,g:["A race, a climb, an open mic or a course","Pick a date at least 4 weeks away"]}),
+   X("Have one honest conversation",20,{tags:"speak|fears",lo:2,en:3,g:["Start with how you feel, not what they did","Listen to their side fully"]}),
+   X("Write about a time you were brave",10,{en:1,quiet:true,g:["What happened, what you felt, what you did anyway","Keep it for days when you doubt yourself"]}),
+   X("Breathe before the hard thing",3,{en:1,g:["In for 4, hold for 4, out for 6, three times","Then go"],tool:{type:"breath",in:4,hold:4,out:6}}),
+   X("Do the thing you’ve been putting off",15,{tags:"fears|any",en:2,g:["Just the first 15 minutes","Momentum does the rest"],tool:{type:"timer",sec:900}})]},
+ wisdom:{name:"Wisdom",realm:"peace",about:"Big questions, reflection, philosophy",hero:"Nachiketa",heroDev:"नचिकेता",c:"var(--wisdom)",
+  q:"How often do you reflect on life’s big questions?",
+  levels:["Rarely","Now and then","I read or reflect weekly","Reflection is a daily habit"],
+  tags:[["texts","Reading wisdom texts"],["reflect","Journaling"],["questions","Big questions"],["mentors","Learning from elders"]],
+  skills:[
+   {n:"Jijnasa",d:"जिज्ञासा",s:"The wish to know. Nachiketa asks the question everyone else avoids.",perk:"swap"},
+   {n:"Deepa",d:"दीप",s:"A lamp that lights only the next step, which is enough to walk by.",perk:"xp",item:"Lamp",itemName:"Lamp of knowledge"},
+   {n:"Tapas",d:"तपस्",s:"Discipline: three days at Death’s door, without food, unmoved.",perk:"shield"},
+   {n:"Shreyas",d:"श्रेयस्",s:"Choosing the good over the merely pleasant, as Yama taught Nachiketa.",perk:"xp",item:"Scroll",itemName:"Katha scroll"},
+   {n:"Atma Jnana",d:"आत्मज्ञान",s:"Self-knowledge: what in you does not change.",perk:"all"}],
+  trials:[
+   {def:"Read a wisdom story or philosophy chapter and write what it means to you"},
+   {def:"Journal every day for one week"},
+   {def:"Ask an elder or mentor three big questions and write down their answers"},
+   {def:"Spend half a day without distractions, reading and reflecting"},
+   {def:"Write a one-page personal philosophy: what you value, and why"}],
+  pool:[
+   X("Read one page of a wisdom text",10,{tags:"texts",en:1,quiet:true,g:["The Gita, an Upanishad, the Dhammapada, Marcus Aurelius or another you trust","Read slowly, then reread one line"]}),
+   X("One question, one page",15,{tags:"reflect|questions",en:2,g:["Pick one: What matters most to me? What am I avoiding?","Write without stopping for 10 minutes"],tool:{type:"timer",sec:600}}),
+   X("Three-line journal",5,{tags:"reflect",en:1,quiet:true,g:["What happened today","What I felt","What I learned"]}),
+   X("Choose the good over the pleasant",5,{tags:"questions|any",en:1,g:["Notice one choice today between what feels nice and what is good","Choose the good once"]}),
+   X("Ask an elder one big question",20,{tags:"mentors",en:1,call:true,g:["Try: what do you wish you’d known at my age?","Write down their answer"]}),
+   X("Read the story of Nachiketa",15,{tags:"texts",en:1,g:["Katha Upanishad, first chapter, in a translation you like","Note the three boons he asks for"]}),
+   X("A walk with one question",20,{tags:"questions|reflect",place:"out",en:1,load:["cardio"],g:["Take one question with you, no earphones","Let the answer come, or not"],tool:{type:"timer",sec:1200}}),
+   X("Write a letter to your future self",20,{tags:"reflect",lo:1,en:2,g:["Five years from now","What you hope, what you fear, what you promise"]}),
+   X("Explain one idea in your own words",15,{tags:"texts|questions",lo:1,en:2,g:["An idea from something you read this week","Five sentences, as if to a friend"]}),
+   X("Spend 10 minutes doing nothing",10,{tags:"reflect|any",en:1,quiet:true,g:["No phone, no book","Sit or look out of a window"],tool:{type:"timer",sec:600}}),
+   X("Talk to a mentor about a decision",30,{tags:"mentors",lo:1,en:2,g:["Bring the decision and your options","Ask what they would weigh most"]}),
+   X("Notice one assumption",5,{tags:"questions",lo:1,en:1,g:["Something you take for granted about yourself or others","Ask: is it really true?"]}),
+   X("Read about a different tradition",20,{tags:"texts",lo:1,en:1,g:["A short piece from Stoic, Buddhist, Sufi or another tradition","Note where it agrees with what you know"]}),
+   X("What would I regret?",10,{tags:"questions|reflect",lo:1,en:2,g:["Imagine you’re 80","What would you regret not doing? Write three things"]}),
+   X("A weekly reflection",20,{tags:"reflect",lo:1,en:2,g:["What went well, what didn’t, what I learned","One intention for next week"]}),
+   X("Learn from someone you disagree with",15,{tags:"questions",lo:2,en:2,g:["Read or listen to a thoughtful view you disagree with","Write the strongest version of their point"]}),
+   X("Write your own rule for living",10,{tags:"reflect|questions",lo:2,en:2,g:["One sentence you want to live by","Test it against a hard day"]})]}
+});
+ORDER.push("friend","money","courage","wisdom");
+for(let i=SOON.length-1;i>=0;i--)if(["Friendship","Money","Courage","Wisdom"].includes(SOON[i][0]))SOON.splice(i,1);
+Object.assign(RELATED,{friend:["bonds","love"],money:["focus","learn"],courage:["body","focus"],wisdom:["calm","learn"]});
+RELATED.bonds.push("friend");RELATED.focus.push("money");RELATED.calm.push("wisdom");RELATED.body.push("courage");
+Object.assign(CHAR,{friend:"krishna",money:"lakshmi",courage:"durga",wisdom:"nachiketa"});
+Object.assign(PEOPLE,{
+ krishna:{n:"Krishna",d:"कृष्ण",pid:"friend",pr:"he",bio:"A form of Vishnu, loved as a playful cowherd boy, a loyal friend and a wise guide. He was friend and charioteer to Arjuna, and never forgot his poor childhood friend Sudama."},
+ lakshmi:{n:"Lakshmi",d:"लक्ष्मी",pid:"money",pr:"she",bio:"Goddess of prosperity, good fortune and well-being. She rose from the churning of the ocean and is welcomed into homes with lamps at Diwali."},
+ durga:{n:"Durga",d:"दुर्गा",pid:"courage",pr:"she",bio:"A warrior goddess formed from the combined power of all the gods. Riding a lion, she defeated the buffalo demon Mahishasura, a victory celebrated during Navratri."},
+ nachiketa:{n:"Nachiketa",d:"नचिकेता",pid:"wisdom",pr:"he",bio:"A boy in the Katha Upanishad who went to the house of Yama, the god of death, waited three days, and refused every distraction until Death taught him the secret of the self."}
+});
+Object.assign(GUIDE_LINES,{
+ friend:["A friend is someone who runs barefoot to greet you.","Show up. That is most of friendship.","Old friends are worth a handful of rice and a whole kingdom.","Let people in, and play your flute where they can hear it.","On your hardest day, let a friend take the reins."],
+ money:["See your money clearly. Order invites plenty.","Enough is a kind of wealth.","Small, steady saving fills the pot.","Earn cleanly, like a lotus above the water.","Give a little. Wealth likes to flow."],
+ courage:["Fear is a guest. You don’t have to let it drive.","One small brave act today is enough.","Stay steady while afraid. That is courage.","Your lion grows each time you choose the hard thing.","Every demon looks smaller once you face it."],
+ wisdom:["Ask the question everyone else avoids.","The lamp shows only the next step. Take it.","Choose the good, not just the pleasant.","Wait at the door until the answer comes.","What in you does not change? Look for it."]
+});
+Object.assign(GUIDE_INTRO,{
+ krishna:{who:"Krishna is one of the most loved figures in Hinduism: a form of the god Vishnu, a mischievous cowherd boy, and later a wise prince and friend.",moment:"When his poor childhood friend Sudama came to his palace with only a handful of flattened rice, Krishna ran barefoot to embrace him.",teach:"Show up for your friends, whatever their status or yours.",src:"Bhagavata Purana and Mahabharata",bg:"city"},
+ lakshmi:{who:"Lakshmi is the goddess of prosperity, good fortune and well-being. She is shown seated on a lotus, with gold coins flowing from her hand.",moment:"She rose from the ocean of milk when the gods and demons churned it together, and chose Vishnu as her partner.",teach:"Wealth comes to order, effort and contentment, and is meant to flow.",src:"Puranas",bg:"rivers"},
+ durga:{who:"Durga is a warrior goddess, created from the combined power of all the gods when none of them alone could defeat the demon Mahishasura.",moment:"Riding a lion and holding the gods’ weapons, she fought him for nine days and won on the tenth: Vijayadashami.",teach:"Courage is not having no fear. It is facing what frightens you.",src:"Devi Mahatmya, Markandeya Purana",bg:"glow"},
+ nachiketa:{who:"Nachiketa is a young boy in the Katha Upanishad, one of the best-known philosophical texts of ancient India.",moment:"Sent to the house of Death, he waited three days without food, then refused wealth and long life until Yama taught him the truth about the self.",teach:"Keep asking the deep questions, and choose the good over the merely pleasant.",src:"Katha Upanishad",bg:"stars"}
+});
+Object.assign(EN,{"Sakha":"Friend","Sudarshana":"The returning discus","Sudama":"The old friend","Murali":"The flute","Sarathi":"The charioteer",
+ "Shubha":"An auspicious start","Kalasha":"The full pot","Santosha":"Contentment","Kamala":"The lotus","Dana":"Giving",
+ "Abhaya":"Fearlessness","Trishula":"The trident","Dhairya":"Courage under pressure","Simha":"The lion","Vijaya":"Victory",
+ "Jijnasa":"The wish to know","Deepa":"The lamp","Tapas":"Discipline","Shreyas":"The good, not the pleasant","Atma Jnana":"Self-knowledge"});
+Object.assign(CHAPTERS,{
+ krishna:[
+  {dest:"Gokul",charm:["Butter pot","Joy shared is joy doubled."],scenes:[{bg:"hills",chars:one("krishna"),cap:"As a child in Gokul, Krishna and his friends steal butter from the village pots."},{bg:"glow",chars:one("krishna","float"),cap:"He shares every stolen bite with his friends. Friendship begins with sharing."}]},
+  {dest:"Govardhan hill",charm:["Govardhan stone","Shelter for everyone."],scenes:[{bg:"clouds",chars:one("krishna"),cap:"A terrible storm floods the village."},{bg:"hills",chars:one("krishna","rise"),cap:"Krishna lifts Govardhan hill on one finger, and everyone shelters beneath it for seven days."}]},
+  {dest:"Dwarka",charm:["Handful of rice","A gift measured by love."],scenes:[{bg:"city",chars:one("krishna"),cap:"Years later, his poor friend Sudama comes to the golden city of Dwarka with only some flattened rice."},{bg:"glow",chars:one("krishna","float"),cap:"Krishna runs barefoot to greet him, eats the rice with joy, and quietly changes his friend’s life."}]},
+  {dest:"Kurukshetra",charm:["Chariot reins","The friend who steers."],scenes:[{bg:"hills",chars:two("krishna","arjuna"),cap:"Krishna refuses to fight, but agrees to drive Arjuna’s chariot."},{bg:"glow",chars:one("krishna","rise"),cap:"When Arjuna loses heart, his friend’s words become the Bhagavad Gita."}]}],
+ lakshmi:[
+  {dest:"The ocean of milk",charm:["Drop of nectar","What rises from patient effort."],scenes:[{bg:"rivers",chars:one("lakshmi"),cap:"Gods and demons churn the ocean of milk for the nectar of immortality."},{bg:"glow",chars:one("lakshmi","rise"),cap:"From the waves rises Lakshmi, seated on a lotus."}]},
+  {dest:"Vaikuntha",charm:["Garland of choice","Choose your partner wisely."],scenes:[{bg:"clouds",chars:one("lakshmi"),cap:"Every god hopes she will choose him."},{bg:"glow",chars:one("lakshmi","float"),cap:"She garlands Vishnu, the steady preserver, and chooses order over show."}]},
+  {dest:"Indra’s court",charm:["Fallen flower","Pride drives plenty away."],scenes:[{bg:"city",chars:one("lakshmi"),cap:"In a Purana story, the god Indra grows proud and careless with a sage’s gift."},{bg:"stars",chars:one("lakshmi","float"),cap:"Lakshmi leaves his kingdom, and only returns after humility and hard work."}]},
+  {dest:"Diwali night",charm:["Clay diya","Welcome with light."],scenes:[{bg:"lamps",chars:one("lakshmi"),cap:"On Diwali, families clean their homes and light lamps at every door."},{bg:"lamps",chars:one("lakshmi","float"),cap:"They welcome Lakshmi in: prosperity, and the care that keeps it."}]}],
+ durga:[
+  {dest:"The gods’ despair",charm:["Spark of light","Strength gathered from many."],scenes:[{bg:"stars",chars:[],cap:"The buffalo demon Mahishasura cannot be defeated by any god alone."},{bg:"glow",chars:one("durga","rise"),cap:"Their combined light takes one form: the goddess Durga."}]},
+  {dest:"The gift of weapons",charm:["Trident tip","The right tools for the task."],scenes:[{bg:"glow",chars:one("durga"),cap:"Shiva gives her his trident, Vishnu his discus, and the others their gifts."},{bg:"hills",chars:one("durga","float"),cap:"The mountains give her a lion to ride."}]},
+  {dest:"Nine nights",charm:["Navratri thread","Keep going, night after night."],scenes:[{bg:"stars",chars:one("durga"),cap:"Mahishasura changes shape again and again: buffalo, lion, elephant, warrior."},{bg:"glow",chars:one("durga","rise"),cap:"She meets every form, for nine nights. These are remembered as Navratri."}]},
+  {dest:"Vijayadashami",charm:["Victory flag","Doubt defeated."],scenes:[{bg:"glow",chars:one("durga","rise"),cap:"On the tenth day she defeats him."},{bg:"lamps",chars:one("durga","float"),cap:"The day is celebrated as Vijayadashami, the day of victory, and a good day to begin something brave."}]}],
+ nachiketa:[
+  {dest:"His father’s sacrifice",charm:["Old cow’s bell","Noticing what’s wrong."],scenes:[{bg:"glow",chars:one("nachiketa"),cap:"Nachiketa’s father gives away old, useless cows as offerings, and keeps the best."},{bg:"glow",chars:one("nachiketa","float"),cap:"The boy asks: “To whom will you give me?” In anger, his father says: “To Death.”"}]},
+  {dest:"Yama’s door",charm:["Three days’ dust","Patience that waits."],scenes:[{bg:"stars",chars:one("nachiketa"),cap:"Nachiketa goes to the house of Yama. Death is away."},{bg:"stars",chars:one("nachiketa","float"),cap:"He waits three days without food. Yama returns and offers him three wishes."}]},
+  {dest:"The three boons",charm:["Fire-altar brick","Ask for what matters."],scenes:[{bg:"glow",chars:one("nachiketa"),cap:"First, peace with his father. Second, the knowledge of a sacred fire."},{bg:"scroll",chars:one("nachiketa","rise"),cap:"Third: what happens to us after death?"}]},
+  {dest:"The secret of the self",charm:["Lamp of the self","The good, not the pleasant."],scenes:[{bg:"glow",chars:one("nachiketa"),cap:"Yama tempts him with gold, kingdoms and long life instead."},{bg:"stars",chars:one("nachiketa","float"),cap:"He refuses them all. So Yama teaches him that the true self is never born and never dies."}]}]
+});
+WHO[0][1].push(["Krishna","कृष्ण","Friendship. Playful, wise friend and Arjuna’s charioteer.","friend"],["Lakshmi","लक्ष्मी","Money. Goddess of prosperity and good fortune.","money"],["Durga","दुर्गा","Courage. Warrior goddess riding a lion.","courage"],["Nachiketa","नचिकेता","Wisdom. Boy who questioned Death.","wisdom"]);
+["Krishna","Lakshmi","Durga"].forEach(n=>{const g=WHO[1][1];const i=g.findIndex(x=>x[0]===n);if(i>=0)g.splice(i,1)});
+{const g=WHO[4][1],i=g.findIndex(x=>x[0]==="Nachiketa");if(i>=0)g.splice(i,1)}
