@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.33.0 · 24.11.2026
+- Today, redesigned: a ring for each path with its mentor inside (tap to open the path), today's total, and a line from today's companion. Today's practice is now a day timeline: Morning, Afternoon and Evening, with the current part of the day highlighted. Tasks are placed by their nature and when you usually do them; move any task from its page. Tips appear as a small pop-up above the tabs instead of taking space at the top.
+
 ## 1.32.0 · 24.11.2026
 - Calmer home: Today is now just your progress, one row of small bubbles (only things due today or in progress: a daily question, check-in, weekly review, closing your day, a story trial or challenge you started, your vow) and your tasks. 'Who leads today' is gone from Today and the morning cards; lead mentors are picked quietly in the background. Story trials, 'Start here', Sankalpa and companion journeys live in Journey > Story, with a small dot on Journey when a trial is ready. New Calendar tab for the season, today's story, festival challenges and what's coming up.
 

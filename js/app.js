@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.32.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.33.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1112,6 +1112,25 @@ function calView(){const t=td(),r=ritu(t),cal=todayCal(),up=upcoming(6),fo=fchOp
  ${up.length?`<div class="block"><h2>Coming up</h2><div class="upl">${up.map(k=>`<button class="upi" data-fest="${k}"><span class="ud"><b>${+k.slice(8)}</b><small>${MONS[+k.slice(5,7)-1]}</small></span><span><b>${FEST[k].n}</b><small>${inDays(k)}${FEST[k].approx?" · date approximate":""}</small></span></button>`).join("")}</div></div>`:""}
  <p class="sub" style="text-align:center;margin:18px 0 30px">Change what the calendar shows in Settings.</p></div>`}
 function yatraLog(){return `<div class="block"><h2>Companion journeys</h2><p class="sub">Each closed day sends your companion one step further</p>${sel().map(pid=>{const g=CHAR[pid],n=CHAPTERS[g].length,k=S.chap[g]||0,got=S.chapters.filter(c=>c.g===g);return `<div class="ylog" style="--c:${PATHS[pid].c}">${medal(pid,"sm")}<div><b>${PEOPLE[g].n}</b><small>${k>=n?`All ${n} chapters done.`:`Next: ${CHAPTERS[g][k%n].dest} · ${Math.min(k,n)} of ${n}`}</small><div class="ychips">${CHAPTERS[g].map((c,i)=>{const h=got.some(x=>x.ch===i);return `<button class="ych${h?" on":""}" ${h?`data-chap="${g}:${i}"`:"disabled"} aria-label="Chapter ${i+1}: ${c.dest}">${i+1}</button>`}).join("")}</div></div></div>`}).join("")}</div>`}
+/* ================= R1: path rings, day timeline, tip popup (v1.33) ================= */
+const SLOTS_D=[["morning","Morning","until 12:00",5,12],["afternoon","Afternoon","12:00–17:00",12,17],["evening","Evening","after 17:00",17,24]];
+const slotNow=()=>{const h=new Date().getHours();return h<12?"morning":h<17?"afternoon":"evening"};
+const slotOfH=h=>h<12?"morning":h<17?"afternoon":"evening";
+function slotFor(it,i){if(it.slot)return it.slot;const x=poolItem(it);
+ if(it.kind==="trial")return slotNow();if(it.kind==="bridge")return "evening";if(it.kind==="anchor")return "evening";
+ if(x){if(x.call)return "evening";if(x.en>=3)return "morning";if(x.quiet||(x.load.length===1&&x.load[0]==="mobility"))return "evening"}
+ if(["calm","gratitude","wisdom"].includes(it.pid))return i%2?"morning":"evening";
+ const ph=prefH(it.pid);if(ph!==null)return slotOfH(ph);return ["morning","afternoon","evening"][i%3]}
+function dayTimeline(items){const now=slotNow(),order=["morning","afternoon","evening"];items.forEach((it,i)=>{if(!it.slot)it.slot=slotFor(it,i)});
+ return `<div class="dtl">${SLOTS_D.map(([k,l,sub])=>{const L=items.filter(x=>x.slot===k);if(!L.length)return "";const past=order.indexOf(k)<order.indexOf(now),dn=L.filter(x=>x.done).length;
+  return `<div class="tl-sec${k===now?" now":""}${past?" past":""}"><div class="tl-h"><span class="tl-dot">${ic(k==="morning"?"sun":k==="afternoon"?"calm":"moon")}</span><b>${l}</b><small>${sub}${k===now?" · now":""}</small><em>${dn}/${L.length}</em></div><div class="tlist">${L.map(taskRow).join("")}</div></div>`}).join("")}</div>`}
+function pathRings(){const ps=sel(),lead=companionPid(),t=td();let tD=0,tP=0;
+ const rings=ps.map(pid=>{const m=todayMins(pid),f=m.plan?Math.min(1,m.done/m.plan):0,P=PATHS[pid],C=2*Math.PI*29;tD+=m.done;tP+=m.plan;
+  return `<button class="pr" data-pdetail="${pid}" style="--c:${P.c}" aria-label="${P.name}: ${m.done} of ${m.plan} minutes"><span class="pr-r"><svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="29" fill="none" stroke="${P.c}" stroke-opacity=".18" stroke-width="5"/><circle class="tr-p" data-p="${pid}" cx="34" cy="34" r="29" fill="none" stroke="${P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" style="--C:${C.toFixed(1)}" transform="rotate(-90 34 34)"/></svg>${medalA(pid,"pr-m")}${f>=1&&m.plan?`<i class="pr-ok">✓</i>`:""}</span><b>${P.name}</b><small>${m.done}/${m.plan} min</small></button>`}).join("");
+ const L=lead?GUIDE_LINES[lead]:null,line=L?L[dayNum(t)%L.length]:"",tasks=S.plan.items.filter(x=>x.kind==="task"||x.kind==="anchor"),dn=tasks.filter(x=>x.done).length;
+ return `<div class="prw"><div class="prh"><b>${tD}<small> / ${tP} min today</small></b><small>${dn} of ${tasks.length} tasks${tP&&tD>=tP?" · all rings closed 🎉":""}</small></div><div class="prs">${rings}</div>${lead?`<p class="prq">“${line}” <span>${PATHS[lead].hero}</span></p>`:""}</div>`}
+function tipFloat(){const old=$(".tipf");if(old)old.remove();if(S.tipD===td()||!S.on)return;const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return;
+ document.body.insertAdjacentHTML("beforeend",`<div class="tipf" role="note"><span class="tipi">${ic("sun")}</span><div><p>${t[1]}</p><div class="nacts"><button class="mini pri" data-tip="${S.view}:${t[0]}">Got it</button><button class="mini" data-tips-off="1">No more tips</button></div></div></div>`)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -1410,7 +1429,7 @@ function playIntro(pids,done){pids=pids.filter(p=>!S.intro.includes(CHAR[p]));if
   {kick:`What ${pp.n} teaches you`,html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><p class="gq">“${GUIDE_LINES[pid][0]}”</p></div>`,cap:`${I.teach}<br><small class="mute">From the ${I.src}. Abhyasa uses these as stories to learn from. You don’t need to be religious to walk this path.</small>`}];
  openPlayer({label:`Meet ${pp.n}`,title:`Meet ${pp.n}`,sub:`Guide for ${P.name}`,cast:[pid],cards,auto:false,after:()=>playIntro(pids.slice(1),done)});
 }
-function tipCard(){if(S.tipD===td())return"";const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return"";const n=L.indexOf(t)+1;
+function tipCard(){return "";if(S.tipD===td())return"";const L=TIPS[S.view]||[],t=L.find(x=>!S.tips.includes(S.view+":"+x[0]));if(!t)return"";const n=L.indexOf(t)+1;
  return `<div class="wrap"><div class="tip1" role="note"><span class="tipi">${ic("sun")}</span><div><small>Tip ${n} of ${L.length}</small><p>${t[1]}</p><div class="nacts"><button class="mini pri" data-tip="${S.view}:${t[0]}">Got it</button><button class="mini" data-tips-off="1">Skip all tips</button></div></div></div></div>`}
 function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${[["well","I know these stories"],["some","A little"],["new","New to me"]].map(([k,l])=>`<button class="chip" data-lore="${k}" aria-pressed="${S.lore===k}">${l}</button>`).join("")}</div>
  <p class="sub">${S.lore==="well"?"Guide intros are off.":"New guides introduce themselves with 3 short cards."}</p>
@@ -1432,6 +1451,7 @@ function render(){
  save();
  if(S.deck!==td()&&!$(".scrim")&&!queue.length)setTimeout(()=>{if(S.on&&S.deck!==td()&&!$(".scrim"))openDeck()},300);
  else epicCheck();
+ setTimeout(tipFloat,400);
  if(v==="today"&&!$(".scrim")&&!queue.length)comebackCheck();
 }
 function header(title,sub){return `<header class="bar"><div class="wrap"><div class="hgreet">${sub?`<small>${sub}</small>`:""}<b>${title||"Abhyasa"}</b></div><button class="spill" data-streak="1" aria-label="${S.streak} day streak. Open streak details">${DIYA}${S.streak}</button><button class="ibtn" data-settings="1" aria-label="Settings">${ic("gear")}</button></div></header>`}
@@ -1608,7 +1628,7 @@ function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${
  const P=PATHS[it.pid],g=it.done?it.g:Math.round(Math.max(5,it.m)*mult(it.pid)),x=poolItem(it);
  return `<div class="trow${it.done?" done":""}${it.kind==="anchor"?" anchor":""}" style="--c:${P.c}">${chk}<button class="tx" data-task="${it.id}"><b>${esc(progT(it.t))}</b><small><span class="dot"></span>${it.kind==="anchor"?"Your routine · ":""}${P.name} · ${it.m} min · +${g}${x&&x.tool&&!it.done?` · ${TOOLNAME[x.tool.type]}`:""}</small>${!it.done&&it.why?`<span class="why">${it.why}</span>`:""}</button>${!it.done&&it.kind==="task"?`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`:""}</div>`}
 function taskSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it)return;const P=PATHS[it.pid],x=poolItem(it);
- sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(progT(it.t))}</h2>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
+ sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(progT(it.t))}</h2><div class="cchips slotc">${SLOTS_D.map(([k,l])=>`<button class="chip" data-slot="${it.id}:${k}" aria-pressed="${it.slot===k}">${l}</button>`).join("")}</div>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
  ${x?guideView(it):`<p class="sub" style="margin-top:12px">${it.kind==="anchor"?"Part of your weekly routine.":"Your own task."}</p>`}
  ${it.done?"":`<button class="cta fmgo" style="width:100%;margin-top:16px" data-focus="${it.id}">${ic("sun")} Start focus mode · ${it.m} min</button>`}
  <div class="row" style="margin-top:10px">${it.kind==="task"&&!it.done?`<button class="cta alt" data-swap="${it.id}">Swap</button>`:""}<button class="cta alt" data-done="${it.id}">${it.done?"Undo":"Mark done"}</button></div>`)}
@@ -1624,9 +1644,9 @@ function todayView(){
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
  const eve=S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
- ${todayHead()}${bubbles()}
+ ${pathRings()}${bubbles()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
- ${restBanner()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
+ ${restBanner()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}${dayTimeline(timeSort(items))}
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div><button class="linkbtn restl" data-rest="1">${isRest(addD(td(),1))?"Tomorrow is a rest day · change":"Plan a rest day"}</button></div>`}
 
 /* ================= layout v2: Journey ================= */
@@ -1792,7 +1812,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1805,6 +1825,7 @@ document.addEventListener("click",e=>{
  if(d.remind){closeLayer();RM=null;remindSheet();return}
  if(d.rm){const[k,v]=d.rm.split(":").length>2?[d.rm.split(":")[0],d.rm.slice(d.rm.indexOf(":")+1)]:d.rm.split(":");if(v==="t")RM[k]=!RM[k];else RM[k]=v;remindSheet();return}
  if(d.rmgo){icsExport();return}
+ if(d.slot){const[id,k]=d.slot.split(":");const it=S.plan.items.find(x=>x.id===id);if(it){it.slot=k;save();render();taskSheet(id);toast(`Moved to ${k}`)}return}
  if(d.fch){const[a,v]=[d.fch.split(":")[0],d.fch.slice(d.fch.indexOf(":")+1)];
   if(a==="open"){closeLayer();fchSheet();return}
   if(a==="begin"){const f=fchOpen();if(!f)return;S.fch={k:f.c.k,fest:f.date,start:td(),ticks:[]};save();render();fchSheet();toast("Challenge begun. Today’s step is on your Today page");return}
@@ -1926,7 +1947,7 @@ document.addEventListener("click",e=>{
  if(d.rvdone){finishReview();return}
  if(d.qlore){Q.lore=d.qlore;quiz();return}
  if(d.intro){closeLayer();S.intro=S.intro.filter(g=>g!==CHAR[d.intro]);playIntro([d.intro]);return}
- if(d.tip){S.tips.push(d.tip);S.tipD=td();save();render();return}
+ if(d.tip){S.tips.push(d.tip);S.tipD=td();save();const f=$(".tipf");if(f)f.remove();return}
  if(d.tipsOff){Object.keys(TIPS).forEach(v=>TIPS[v].forEach(t=>{const k=v+":"+t[0];if(!S.tips.includes(k))S.tips.push(k)}));save();render();toast("Tips off");return}
  if(d.lore){S.lore=d.lore;save();render();if($(".sheet [data-set]"))settingsSheet();return}
  if(d.calmode){S.cal=d.calmode;save();render();if($(".sheet [data-set]"))settingsSheet();toast(d.calmode==="indian"?"Indian calendar on":d.calmode==="seasons"?"Seasons on":"Calendar off");return}
