@@ -1,7 +1,7 @@
 /* Abhyasa service worker: offline support and safe updates.
    VERSION must change on every release (tools/bump_version.py does it),
    otherwise phones keep the old cached app. */
-const VERSION = "1.30.0";
+const VERSION = "1.31.0";
 const CACHE = "abhyasa-" + VERSION;
 const FONTS = "abhyasa-fonts";
 const SHELL = [

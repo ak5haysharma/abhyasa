@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.30.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.31.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,7 +50,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},ink:[],hideInk:false,enemies:[],enLog:{},rest:[],ident:{},pvals:[],pshare:false,hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},ink:[],hideInk:false,enemies:[],enLog:{},rest:[],fch:null,fchDone:[],ident:{},pvals:[],pshare:false,hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S),S);
@@ -256,7 +256,7 @@ const queue=[];
 function pushModal(h){queue.push(h);if(!$(".scrim"))nextModal()}
 function nextModal(){const h=queue.shift();if(h)openLayer(`<div class="scrim center" data-close="1"><div class="modal" role="dialog" aria-modal="true">${h}<button class="cta" style="width:100%" data-close="1">Continue</button></div></div>`)}
 function openLayer(h){const s=$(".scrim");if(s)s.remove();document.body.insertAdjacentHTML("beforeend",h)}
-function closeLayer(){const s=$(".scrim");if(s){if(s.querySelector(".tool"))stopTool();s.remove();if(LASTF&&LASTF.isConnected&&!queue.length)try{LASTF.focus({preventScroll:true})}catch(e){}}if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
+function closeLayer(){sayStop();const s=$(".scrim");if(s){if(s.querySelector(".tool"))stopTool();s.remove();if(LASTF&&LASTF.isConnected&&!queue.length)try{LASTF.focus({preventScroll:true})}catch(e){}}if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
 
 /* ================= actions ================= */
 const GOALS=[7,14,30,50,100,365];
@@ -598,7 +598,7 @@ const sceneInner=sc=>`${storyBg(sc.bg)}${sc.props||""}${(sc.notes||[]).map(([x,y
 function openPlayer(o){
  stopTool();PL=Object.assign({i:0,t:null,swiped:false},o);
  openLayer(`<div class="scrim center" data-close="1"><div class="story" role="dialog" aria-modal="true" aria-label="${esc(o.label||"Story")}"><div class="segs">${o.cards.map(()=>`<i><b></b></i>`).join("")}</div>
- <div class="shead"><span class="pair">${(o.cast||[]).map(p=>medal(p,"xs")).join("")}</span><div><b>${o.title}</b><small>${o.sub||""}</small></div><button class="xbtn" data-close="1" aria-label="Close">×</button></div>
+ <div class="shead"><span class="pair">${(o.cast||[]).map(p=>medal(p,"xs")).join("")}</span><div><b>${o.title}</b><small>${o.sub||""}</small></div>${canSay()?`<button class="xbtn say${SAY?" on":""}" data-say="1" aria-label="Read aloud">${ic("sound")}</button>`:""}<button class="xbtn" data-close="1" aria-label="Close">×</button></div>
  <div class="cards" data-pnext="1">${o.cards.map((c,i)=>`<div class="card2" data-i="${i}">${c.kick?`<div class="kick2">${c.kick}</div>`:""}${c.svg?`<svg class="sstage" viewBox="0 0 360 220" role="img" aria-label="Story picture"><g class="sc">${c.svg}</g></svg>`:""}${c.html||""}${c.cap?`<p class="cap">${c.cap}</p>`:""}</div>`).join("")}</div>
  <div class="row"><button class="mini" data-pprev="1">Back</button><button class="mini pri" data-pnext="1">Next</button></div></div></div>`);
  const box=$(".story .cards");let x0=null;
@@ -614,6 +614,7 @@ function showCard(i){
  box.querySelectorAll(".segs i").forEach((sg,k)=>{sg.className=k<i?"done":k===i?(PL.auto?"now":"done"):""});
  box.querySelector('.row [data-pnext]').textContent=i<n-1?"Next":PL.deck?"Start my day":"Close";
  if(PL.auto&&i<n-1)PL.t=setTimeout(()=>showCard(i+1),6000);
+ if(SAY)sayCard();
 }
 function playStory(id){
  const st=STORIES[id],sy=SYN.find(x=>x.id===id),open=S.syn.includes(id),cast=st.cast;
@@ -987,6 +988,7 @@ function settingsSheet(){const y=$(".sheet")?$(".sheet").scrollTop:0;
   <div class="sin"><b>How well you know the stories</b><div class="cchips">${[["well","Well"],["some","A little"],["new","New to me"]].map(([k,l])=>`<button class="chip" data-lore="${k}" aria-pressed="${S.lore===k}">${l}</button>`).join("")}</div></div>
   <div class="sin"><b>Calendar</b><div class="cchips">${[["indian","Indian festivals"],["seasons","Seasons"],["none","None"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div></div>
  <div class="sgrp"><small>Your data</small>${srow("data","Save a backup",S.lastBackup?`Last: ${S.lastBackup.split("-").reverse().join(".")}`:"Never backed up",'data-act="export"')}${srow("data","Restore a backup","From a file you saved",'data-act="import"')}<input type="file" id="importf" accept="application/json,.json" hidden></div>
+ <div class="sgrp"><small>Reminders</small>${srow("bell","Add reminders to your calendar",S.remind?"Made · tap to make a new file":"Morning, evening and weekly alerts",'data-remind="1"')}</div>
  <div class="sgrp"><small>Help</small>${srow("love","Send feedback","Ideas, bugs or stories",'data-feedback="1"')}${srow("help","Show tips again","",'data-tips-on="1"')}${isStandalone()?"":srow("sun","Install Abhyasa",isIOS()?"Share → Add to Home Screen":"Add it to your home screen",DPROMPT?'data-act="install"':'data-noop="1"')}</div>
  <div class="sgrp"><small>Start over</small><button class="srow danger" data-act="reset"><span class="sri">${ic("warn")}</span><span><b>Reset everything</b><small>Erases all progress on this phone. Tap twice.</small></span></button></div>
  <p class="sub" style="text-align:center;margin:14px 0 4px">Abhyasa ${APP_VERSION}</p></div>`);
@@ -1047,6 +1049,45 @@ function comebackCheck(){if(!S.on||!S.last)return;const g=diff(S.last,td());if(g
  S.cbk=td();save();const pid=companionPid()||sel()[0];if(!pid)return;const g0=CHAR[pid],pp=PEOPLE[g0];
  const lines=[`Rama spent fourteen years in the forest. ${miss} days is nothing.`,`Even Vishwamitra began again many times. Today is one of those times.`,`I am still here. One small task, and we walk again.`,`The river does not stop because a stone fell in. Neither do you.`];
  pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="color:${PATHS[pid].c}">${pp.n} · welcome back</div><h2>“${lines[dayNum(td())%lines.length]}”</h2><p>You were away for ${miss} days. Nothing is lost: your paths, gear, marks and story are all here. Today’s plan is lighter, so one task is enough to light the lamp again.</p><button class="cta" style="width:100%" data-cbgo="1">Start small</button>`)}
+/* ================= festival challenges + reminders + read aloud (v1.31) ================= */
+Object.assign(ICO,{sound:`<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>`,bell:`<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>`});
+function fchOpen(){if(calMode()!=="indian")return null;const done=S.fchDone||[];for(const k of Object.keys(FEST).sort()){const df=diff(td(),k);if(df<-1||df>3)continue;const c=FCH.find(x=>x.re.test(FEST[k].n));if(c&&!done.includes(c.k+k.slice(0,4))&&!(S.fch&&S.fch.k===c.k))return{c,date:k}}return null}
+const fchCur=()=>S.fch?FCH.find(x=>x.k===S.fch.k):null;
+const fchDone=()=>S.fch&&S.fch.ticks.length>=fchCur().days;
+function fchSheet(){const a=S.fch?{c:fchCur(),date:S.fch.fest}:fchOpen();if(!a)return;const c=a.c,F=FEST[a.date]||{n:""},cur=S.fch&&S.fch.k===c.k?S.fch:null,n=cur?cur.ticks.length:0;
+ sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Festival challenge · ${F.n}</div><h2>${c.n}<span class="dev">${c.d}</span></h2><p class="story">${c.s}</p>
+ ${cur?`${dots(c.days,n)}<p class="sub" style="text-align:center">${n} of ${c.days} days</p>`:`<p class="sub">${c.days} days. Today’s step shows on your Today page. Reward: ${c.charm}.</p>`}
+ <ol class="fsteps">${c.steps.map((t,i)=>`<li class="${i<n?"done":i===n&&cur?"now":""}">${t}</li>`).join("")}</ol>
+ ${cur?(fchDone()?`<button class="cta" style="width:100%" data-fch="claim">Claim your ${c.charm}</button>`:cur.ticks.includes(td())?`<div class="box" style="text-align:center"><b>Done for today ✓</b></div>`:`<button class="cta" style="width:100%" data-fch="tick">I did today’s step</button>`)+`<button class="linkbtn" data-fch="quit">Stop this challenge</button>`:`<button class="cta" style="width:100%" data-fch="begin:${a.date}">Begin the challenge</button>`}`)}
+function fchRow(){const c=fchCur();if(!c||fchDone())return "";const n=S.fch.ticks.length,dn=S.fch.ticks.includes(td());return `<button class="ststep${dn?" done":""}" data-fch="open"><span class="sti">${dn?"✓":DIYA}</span><span><small>${c.n} · day ${Math.min(c.days,n+(dn?0:1))} of ${c.days}</small><b>${c.steps[Math.min(c.days-1,n-(dn?1:0))]}</b></span></button>`}
+// ---- calendar reminders (.ics): reminders without a server ----
+let RM=null;
+function remindSheet(){RM=RM||Object.assign({morning:"08:00",evening:"21:00",review:true,routine:true,trial:true},S.remind||{});
+ const chips=(k,opts)=>opts.map(v=>`<button class="chip" data-rm="${k}:${v}" aria-pressed="${RM[k]===v}">${v==="off"?"Off":v}</button>`).join("");
+ const acts=ACTS.filter(a=>S.paths.includes(a.pid)&&(S.anchors[a.id]||[]).length);
+ const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Reminders</div><h2>Add reminders to your calendar</h2><p class="sub">Abhyasa makes a calendar file with gentle alerts. Open it and choose “Add all”. Your phone does the reminding, so it works even when the app is closed.</p>
+ <div class="qlabel">Morning practice</div><div class="cchips">${chips("morning",["off","07:00","08:00","09:00"])}</div>
+ <div class="qlabel">Close your day</div><div class="cchips">${chips("evening",["off","20:00","21:00","22:00"])}</div>
+ <div class="cchips" style="margin-top:12px"><button class="chip" data-rm="review:t" aria-pressed="${RM.review}">Weekly review, Sunday 19:00</button>${acts.length?`<button class="chip" data-rm="routine:t" aria-pressed="${RM.routine}">My routine (${acts.length})</button>`:""}${SS().cur?`<button class="chip" data-rm="trial:t" aria-pressed="${RM.trial}">Story trial days</button>`:""}</div>
+ <button class="cta" style="width:100%;margin-top:16px" data-rmgo="1">Make my calendar file</button><p class="sub" style="text-align:center;margin-top:8px">To change them later, delete the events in your calendar and make a new file.</p>`);if($(".sheet"))$(".sheet").scrollTop=y}
+function icsMake(){const pad=n=>String(n).padStart(2,"0"),now=new Date(),stamp=now.toISOString().replace(/[-:]/g,"").slice(0,15)+"Z",dt=(d,hm)=>d.replace(/-/g,"")+"T"+hm.replace(":","")+"00";
+ const ev=[],url=location.href.split("#")[0],add=(sum,desc,d,hm,rule,mins)=>{const E=x=>x.replace(/\\/g,"\\\\").replace(/[,;]/g,m=>"\\"+m);sum=E(sum);desc=E(desc);ev.push(["BEGIN:VEVENT",`UID:abhyasa-${ev.length}-${now.getTime()}@abhyasa`,`DTSTAMP:${stamp}`,`DTSTART:${dt(d,hm)}`,`DURATION:PT${mins||10}M`,rule?`RRULE:${rule}`:"",`SUMMARY:${sum}`,`DESCRIPTION:${desc}`,`URL:${url}`,"BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY",`DESCRIPTION:${sum}`,"END:VALARM","END:VEVENT"].filter(Boolean).join("\r\n"))};
+ const t=td(),pid=sel()[0],hero=pid?PATHS[pid].hero:"Your mentor";
+ if(RM.morning!=="off")add(`Abhyasa · your practice`,`${hero} is waiting. One small task keeps the lamp lit.`,addD(t,1),RM.morning,"FREQ=DAILY",10);
+ if(RM.evening!=="off")add(`Abhyasa · close your day`,`Two taps to close the day and send your companion on their journey.`,t,RM.evening,"FREQ=DAILY",5);
+ if(RM.review){const sun=addD(t,(7-new Date().getDay())%7||7);add(`Abhyasa · weekly review`,`Look back at your week, and pick next week’s focus.`,sun,"19:00","FREQ=WEEKLY;BYDAY=SU",15)}
+ if(RM.routine){const BD=["SU","MO","TU","WE","TH","FR","SA"];ACTS.filter(a=>S.paths.includes(a.pid)&&(S.anchors[a.id]||[]).length).forEach(a=>{const days=S.anchors[a.id];const first=Array.from({length:7},(_,i)=>addD(t,i+1)).find(d=>days.includes(new Date(d+"T12:00:00").getDay()));if(first)add(`Abhyasa · ${a.n}`,`Part of your weekly routine.`,first,"18:00","FREQ=WEEKLY;BYDAY="+days.map(x=>BD[x]).join(","),a.m)})}
+ const c=SS().cur;if(RM.trial&&c&&STRIALS[c.i].kind==="daily"){const left=stNeed(c.i)-stProg();if(left>0)add(`Abhyasa · ${STRIALS[c.i].n}`,`Today’s step: ${c.opts.map(o=>stLabel(c.i,o)).join(" + ")}`,addD(t,1),RM.morning!=="off"?RM.morning:"08:00",`FREQ=DAILY;COUNT=${left}`,10)}
+ return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Abhyasa//Reminders//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH",...ev,"END:VCALENDAR"].join("\r\n")}
+function icsExport(){const ics=icsMake(),name="abhyasa-reminders.ics";S.remind=Object.assign({},RM);save();
+ try{const f=new File([ics],name,{type:"text/calendar"});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Abhyasa reminders"}).then(()=>toast("Open it in Calendar and choose Add all")).catch(()=>{});return}}catch(e){}
+ try{const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1000);toast("Calendar file made. Open it and choose Add all")}catch(e){toast("Could not make the file on this device")}}
+// ---- read aloud (uses the phone's own voice) ----
+let SAY=false;
+const canSay=()=>"speechSynthesis" in window;
+function sayText(t){if(!canSay())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/\s+/g," ").trim());const v=speechSynthesis.getVoices();u.voice=v.find(x=>/en[-_]IN/i.test(x.lang))||v.find(x=>/en[-_]GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null;u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
+const sayStop=()=>{try{if(canSay())speechSynthesis.cancel()}catch(e){}};
+function sayCard(){const c=PL&&$(`.story .card2[data-i="${PL.i}"]`);if(c)sayText(c.innerText)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -1528,6 +1569,7 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  if(S.lore!=="well"&&learnLeft()){const nx=LEARN.find(x=>!S.learned.includes(x.id));out.splice(Math.min(out.length,1),0,card("gold",'data-learn="1"',`<span class="sci gold">${ic("learn")}</span>`,"New to these stories?","Start here",`Next: ${nx.t}`))}
  out.push(card("",'data-today-cal="1"',`<span class="sci gold">${ic("calm")}</span>`,cal.fest?"Today’s festival":"Story for today",cal.n,cal.t));
  if(c.d===t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in",`${E_L[c.energy]} energy`,`${c.sore.length?"Sore "+c.sore.map(k=>SORE_L[k]).join(", "):"No soreness"} · tap to change`));
+ {const f=fchOpen(),fc=fchCur();if(fc&&fchDone())out.unshift(card("gold",'data-fch="open"',`<span class="sci gold">${DIYA}</span>`,"Festival challenge complete",`Claim your ${fc.charm}`,fc.n));else if(f)out.unshift(card("gold",'data-fch="open"',`<span class="sci gold">${DIYA}</span>`,`Festival challenge · ${FEST[f.date].n}`,f.c.n,`${f.c.days} days · ${inDays(f.date)==="in 0 days"?"today":diff(td(),f.date)<0?"started yesterday":diff(td(),f.date)===0?"today":inDays(f.date)}`))}
  {const a=stAvail(),c=SS().cur;if(c&&stReady())out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,"Story trial complete","Claim your title",STRIALS[c.i].n));else if(a>=0)out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,`Story trial ready · Book ${a+1}`,STRIALS[a].n,`Pass it to become ${ARC_RANK[Math.min(6,a+1)][0]}`))}
  if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Sankalpa · milestone ${i} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
  else out.push(card("",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Sankalpa","Have a goal? Take a vow","3 goals suggested for you"));
@@ -1560,7 +1602,7 @@ function todayView(){
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
  ${todayHead()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
- ${restBanner()}${stStepRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
+ ${restBanner()}${stStepRow()}${fchRow()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}<div class="tlist">${timeSort(items).map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div><button class="linkbtn restl" data-rest="1">${isRest(addD(td(),1))?"Tomorrow is a rest day · change":"Plan a rest day"}</button></div>`}
 
 /* ================= layout v2: Journey ================= */
@@ -1668,7 +1710,7 @@ function finishQuiz(){
 }
 
 /* ================= sheets ================= */
-let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`);const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
+let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;sayStop();openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`);{const st=$(".sheet .story");if(st&&canSay())st.insertAdjacentHTML("beforebegin",`<button class="listen" data-listen="1">${ic("sound")} Listen</button>`)}const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
 function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid],rf=(S.trialLog||[]).filter(x=>x.pid===pid&&x.k===k).pop();
  sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${skS(pid,s,k)}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
@@ -1726,7 +1768,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1734,6 +1776,18 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.say){SAY=!SAY;const b=$(".story .say");if(b)b.classList.toggle("on",SAY);if(SAY)sayCard();else sayStop();return}
+ if(d.listen){const sh=$(".sheet");if(sh){const t=[...sh.querySelectorAll("h2,.story,.box")].map(x=>x.innerText).join(". ");sayText(t)}return}
+ if(d.remind){closeLayer();RM=null;remindSheet();return}
+ if(d.rm){const[k,v]=d.rm.split(":").length>2?[d.rm.split(":")[0],d.rm.slice(d.rm.indexOf(":")+1)]:d.rm.split(":");if(v==="t")RM[k]=!RM[k];else RM[k]=v;remindSheet();return}
+ if(d.rmgo){icsExport();return}
+ if(d.fch){const[a,v]=[d.fch.split(":")[0],d.fch.slice(d.fch.indexOf(":")+1)];
+  if(a==="open"){closeLayer();fchSheet();return}
+  if(a==="begin"){const f=fchOpen();if(!f)return;S.fch={k:f.c.k,fest:f.date,start:td(),ticks:[]};save();render();fchSheet();toast("Challenge begun. Today’s step is on your Today page");return}
+  if(a==="tick"){if(!S.fch.ticks.includes(td()))S.fch.ticks.push(td());save();render();fchSheet();if(fchDone())toast("Challenge complete!");return}
+  if(a==="claim"){const c=fchCur();S.charms.push({n:c.charm,g:c.g,d:td()});S.fchDone=[...(S.fchDone||[]),c.k+S.fch.fest.slice(0,4)];S.fch=null;save();closeLayer();render();toast(`${c.charm} added to your charms`);return}
+  if(a==="quit"){S.fch=null;save();closeLayer();render();toast("Challenge stopped");return}
+  return}
  if(d.rest){closeLayer();RS=null;restSheet();return}
  if(d.rday){const v=d.rday;if(RS.days.includes(v))RS.days=RS.days.filter(x=>x!==v);else{const wk=monOf(v),cnt=RS.days.filter(x=>monOf(x)===wk).length+(S.rest||[]).filter(r=>r.d<td()&&monOf(r.d)===wk).length;if(cnt>=2){toast("Up to 2 rest days per week");return}RS.days=[...RS.days,v]}restSheet();return}
  if(d.rwhy){RS.why=d.rwhy;restSheet();return}

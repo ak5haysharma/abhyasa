@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.31.0 · 24.11.2026
+- Reminders without a server: Settings > Add reminders to your calendar makes a calendar file with alerts for morning practice, closing your day, the weekly review, your routine and story trial days. Read aloud: a speaker button in every story player and a Listen button on story pages, using your phone's own voice (Indian English when available). Festival challenges: short challenges open around festivals (Navratri nine nights, Diwali week, Makar Sankranti, Maha Shivaratri, Holi, Ganesh Chaturthi, Guru Purnima, Kartik lamps) with a daily step on Today and a charm when you finish.
+
 ## 1.30.0 · 24.11.2026
 - Welcome back: after 2 or more missed days, today's mentor greets you without guilt and the plan gets lighter, so one task is enough. Plan rest days (up to 2 a week) from Today or Settings: nothing is required that day and your streak is safe. Skill stories now credit their original mentor and add a line from the mentor you chose.
 
