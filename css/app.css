@@ -880,3 +880,7 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .mcard[disabled]{opacity:1}
 .mmom{font-size:13px;color:var(--mute);margin:-2px 4px 6px;line-height:1.45;font-style:italic}
 .medal.md{width:56px;height:56px}
+.inkl{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px}
+.inki{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px}
+.inki svg{width:34px;height:34px;flex:none;background:#e9d7c0;border-radius:50%}
+.inki b{display:block;font-size:13.5px}.inki small{display:block;font-size:12px;color:var(--mute)}

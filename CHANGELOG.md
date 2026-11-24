@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.22.0 · 24.11.2026
+- Mentor marks: when a mentor is awake in you (skill 2 on a path), their symbol appears on your hero as an outline tattoo; at One with you (skill 5) it is fully inked. 23 symbols, never faces of gods. Marks stay for life, even if you change mentor, and fill body spots in the order you earn them. See them on the gear screen, with a setting to hide them.
+
 ## 1.21.0 · 24.11.2026
 - Choose your inner mentor: 8 new mentors (Bhima, Shiva, Lakshmana, Parvati, Ganesha, Ekalavya, Kubera, Abhimanyu) with portraits, intros, lines and 4 journey chapters each. Pick them during setup or change any time from a path's page; progress stays with the path. Awakening: each path's mentor goes Asleep, Stirring, Awake, Rising, Radiant, One with you. Portraits fill with colour as you grow, the first task of each path each day says your inner mentor stirs, and skill unlocks show the new stage.
 

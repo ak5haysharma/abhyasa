@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.21.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.22.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,7 +50,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},ink:[],hideInk:false,hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S),S);
@@ -772,6 +772,47 @@ function stComplete(){const c=SS().cur,i=c.i,note=($("#stnote")||{}).value||"";c
 function stShare(){const c=SS().cur,T=STRIALS[c.i],txt=`I’m taking a challenge: ${T.theme} My way: ${c.opts.map(o=>stLabel(c.i,o)).join(" + ")}. Ask me how it’s going!`;
  if(navigator.share){navigator.share({text:txt}).catch(()=>{});return}
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast("Copied. Paste it in a message")).catch(()=>toast(txt));else toast(txt)}
+/* ================= tattoos (v1.22): marks of the mentors you walk with ================= */
+// Each symbol is drawn around (0,0) in about a 16px box. f: filled shapes, s: strokes
+const INKSYM={
+ hanuman:{n:"Gada and sun",f:["M-3 -4a3.4 3.4 0 1 0 6 0a3.4 3.4 0 1 0 -6 0"],s:["M0 -1V7","M-6 -8l-2 -2M6 -8l2 -2M0 -10v-3"]},
+ bhima:{n:"Mace and wind",f:["M-4 -3a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"],s:["M0 1V8","M-8 4q3 -3 6 0","M2 6q3 -3 6 0"]},
+ patanjali:{n:"Coiled serpent",f:["M4 -7a2 2 0 1 0 0.1 0"],s:["M-6 6q6 -14 10 -9q3 4 -5 6q-6 2 -1 6q4 2 7 -1"]},
+ shiva:{n:"Crescent and third eye",f:["M-2 -8a6 6 0 1 0 6 8a5 5 0 1 1 -6 -8z","M3 4a1.5 2.6 0 1 0 0.1 0"],s:[]},
+ rama:{n:"Bow and arrow",f:[],s:["M-5 -8q10 8 0 16","M-5 -8v16","M-7 0h14","M5 -2l2 2l-2 2"]},
+ lakshmana:{n:"Three arrows",f:[],s:["M-4 7v-14","M0 7v-14","M4 7v-14","M-6 -5l2 -3l2 3M-2 -5l2 -3l2 3M2 -5l2 -3l2 3"]},
+ savitri:{n:"Banyan leaf",f:["M0 -8q8 4 0 14q-8 -10 0 -14z"],s:["M0 -6v12"]},
+ parvati:{n:"Mountain and lotus",f:["M-8 6l5 -9l3 4l3 -6l5 11z"],s:["M-3 -6q3 -4 6 0"]},
+ saraswati:{n:"Lotus",f:["M0 4q-7 -3 -6 -10q4 2 6 10z","M0 4q7 -3 6 -10q-4 2 -6 10z","M0 4q-2 -8 0 -12q2 4 0 12z"],s:["M-7 6h14"]},
+ ganesha:{n:"Modak",f:["M0 -8q7 8 6 12q-6 4 -12 0q-1 -4 6 -12z"],s:["M-3 -3l1 7M0 -5v9M3 -3l-1 7"]},
+ arjuna:{n:"The bird’s eye",f:["M0 0a2 2 0 1 0 0.1 0"],s:["M-7 0q7 -8 14 0q-7 8 -14 0","M-10 9l6 -5"]},
+ ekalavya:{n:"Feather",f:["M3 -9q-10 6 -6 16q8 -6 6 -16z"],s:["M-4 9l6 -15"]},
+ narada:{n:"Veena",f:["M-6 6a3 3 0 1 0 0.1 0","M5 -5a2.5 2.5 0 1 0 0.1 0"],s:["M-4 4l8 -8"]},
+ dhruva:{n:"Pole star",f:["M0 -9l2.2 6.8l6.8 2.2l-6.8 2.2l-2.2 6.8l-2.2 -6.8l-6.8 -2.2l6.8 -2.2z"],s:[]},
+ krishna:{n:"Peacock feather",f:["M0 -2a2.4 3 0 1 0 0.1 0"],s:["M0 -9q8 6 0 12q-8 -6 0 -12","M0 3v7"]},
+ lakshmi:{n:"Kalasha",f:["M-6 0q0 8 6 8q6 0 6 -8z"],s:["M-4 0v-3h8v3","M-4 -3q-2 -4 0 -6M4 -3q2 -4 0 -6M0 -3v-6"]},
+ kubera:{n:"Coins",f:["M-6 4a6 2.4 0 1 0 12 0a6 2.4 0 1 0 -12 0","M-6 -1a6 2.4 0 1 0 12 0a6 2.4 0 1 0 -12 0"],s:["M-6 -6a6 2.4 0 1 0 12 0a6 2.4 0 1 0 -12 0"]},
+ durga:{n:"Trishula",f:[],s:["M0 9v-17","M-6 -6q0 6 6 6q6 0 6 -6","M-6 -6v-3M6 -6v-3M0 -8v-2"]},
+ abhimanyu:{n:"Chariot wheel",f:["M0 0a2 2 0 1 0 0.1 0"],s:["M-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0","M0 -7v14M-7 0h14M-5 -5l10 10M5 -5l-10 10"]},
+ nachiketa:{n:"Sacred flame",f:["M0 -9q7 7 4 12q-4 4 -8 0q-3 -5 4 -12z"],s:["M-6 8h12"]},
+ vishwakarma:{n:"Vajra",f:["M0 0a2 2 0 1 0 0.1 0"],s:["M0 -9v18","M-4 -7q4 -4 8 0M-4 7q4 4 8 0"]},
+ valmiki:{n:"Stylus and leaf",f:["M-6 6q2 -8 10 -10q-2 8 -10 10z"],s:["M-8 8l14 -14"]},
+ shabari:{n:"Berries",f:["M-3 3a3 3 0 1 0 0.1 0","M3 3a3 3 0 1 0 0.1 0"],s:["M-3 0q3 -6 0 -9M3 0q-1 -5 3 -8"]}};
+// Body spots in order of earning: [x, y, rotation] relative to body width sh
+const INKSPOT=[sh=>[100+sh+9,108,10],sh=>[100-sh-9,108,-10],sh=>[100+sh+8,134,6],sh=>[100-sh-8,134,-6],sh=>[100,100,0],sh=>[100,77,0],sh=>[100+sh-7,92,0],sh=>[100-sh+7,92,0],sh=>[100,119,0],sh=>[100-sh-6,146,0],sh=>[100+sh+6,146,0],sh=>[100-sh/2+1,110,0],sh=>[100+sh/2-1,110,0],sh=>[91,214,0],sh=>[109,214,0],sh=>[100-sh-9,121,-8]];
+const INK="#24305e";
+function inkSvg(g,full,x,y,r,k){const Y=INKSYM[g];if(!Y)return "";k=k||.8;
+ const fs=Y.f.map(d=>full?`<path d="${d}" fill="${INK}" stroke="${INK}" stroke-width="1"/>`:`<path d="${d}" fill="none" stroke="${INK}" stroke-width="1.2" stroke-dasharray="2 1.4"/>`).join(""),ss=Y.s.map(d=>`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${full?1.6:1.2}" stroke-linecap="round" ${full?"":`stroke-dasharray="2 1.4"`}/>`).join("");
+ return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${k})" opacity="${full?.88:.6}">${fs}${ss}</g>`}
+function inkCheck(){S.ink=S.ink||[];const news=[];
+ ORDER.forEach(p=>{const m=S.prog[p]?S.prog[p].m:0,g=CHAR[p];if(m<2||!INKSYM[g])return;let e=S.ink.find(x=>x.pid===p&&x.g===g);
+  if(!e&&(m>=5||!S.ink.some(x=>x.pid===p))){e={pid:p,g,full:m>=5,spot:S.ink.length%INKSPOT.length,d:td()};S.ink.push(e);news.push([e,false])}
+  else if(e&&m>=5&&!e.full){e.full=true;news.push([e,true])}});
+ return news}
+function inkLayer(sh){if(S.hideInk||!S.ink)return "";return S.ink.map(e=>{const[x,y,r]=INKSPOT[e.spot](sh);return inkSvg(e.g,e.full,x,y,r,e.spot>=13?.6:.8)}).join("")}
+function inkAnnounce(news){if(news.length>2){pushModal(`<div style="width:150px;margin:0 auto">${avatar(stage())}</div><div class="kick">Marks of your mentors</div><h2>${news.length} marks appear</h2><p>Every mentor who is awake in you leaves a mark on your hero: an outline first, fully inked when they are one with you. See them all on your gear screen.</p><button class="cta" style="width:100%" data-herosheet="1">See my marks</button>`);return}
+ news.forEach(([e,filled])=>{filled=filled||e.full;const Y=INKSYM[e.g],pp=PEOPLE[e.g];
+ pushModal(`<div style="width:150px;margin:0 auto">${avatar(stage())}</div><div class="kick">${filled?"Your mark is complete":"A new mark appears"}</div><h2>${pp.n}’s ${Y.n.toLowerCase()}</h2><p>${filled?`Your inner ${pp.n} is one with you. The mark is fully inked, and it stays for life.`:`Your inner ${pp.n} is awake. The outline of ${HIS(e.g)} mark appears on your hero. It fills in when ${HE(e.g)} is one with you.`}</p>`)})}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -854,9 +895,10 @@ function avatar(st,only){
  const arm=a=>`<path d="${a}" stroke="${K}" stroke-width="16" stroke-linecap="round" fill="none"/><path d="${a}" stroke="${sk}" stroke-width="10" stroke-linecap="round" fill="none"/>`;
  s+=arm(`M${100-sh} 88 Q${100-sh-13} 116 ${100-sh-6} 150`)+arm(`M${100+sh} 88 Q${100+sh+13} 116 ${100+sh+6} 150`);
  s+=`<path d="M${100-sh} 84 Q100 76 ${100+sh} 84 L${100+sh-8} 130 L${100-sh+8} 130 Z" fill="${sk}" ${O}/>`;
+ s+=`<rect x="94" y="66" width="12" height="18" rx="3" fill="${skd}" ${O}/>`+inkLayer(sh);
  if(st>=1)s+=`<path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="${K}" stroke-width="13" stroke-linecap="round"/><path d="M${100-sh+5} 84 L${100+sh-7} 128" stroke="${RED}" stroke-width="8" stroke-linecap="round"/>`;
  s+=I("waist")+I("arms")+I("neck");
- s+=`<rect x="94" y="66" width="12" height="18" rx="3" fill="${skd}" ${O}/><circle cx="100" cy="54" r="19" fill="${sk}" ${O}/>`;
+ s+=`<circle cx="100" cy="54" r="19" fill="${sk}" ${O}/>`;
  s+=st>=1?`<path d="M81 52 Q82 33 100 33 Q118 33 119 52 Q112 42 100 42 Q88 42 81 52Z" fill="${K}"/><circle cx="100" cy="29" r="${st>=3?9:7}" fill="${K}"/>`:`<path d="M81 52 Q82 34 100 34 Q118 34 119 52 Q110 44 100 45 Q90 44 81 52Z" fill="${K}"/>`;
  s+=`<path d="M91 56 q3 2.5 6 0M103 56 q3 2.5 6 0" stroke="${K}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
  if(st>=2)s+=`<path d="M100 40 v8" stroke="${st>=4?RED:GOLD}" stroke-width="3" stroke-linecap="round"/>`;
@@ -880,6 +922,9 @@ function heroSheet(keep){const st=stage(),ps=sel();if(!HS||!keep){const pid=ps.l
   return `<div class="slot"><div class="slh"><b>${l}</b><small>${on?GEAR.find(g=>g[0]===on)[1]:"Empty"}</small></div>
   ${own.length?`<div class="slitems">${own.map(g=>`<button class="gitem" data-gear="${k}:${g[0]}" aria-pressed="${on===g[0]}">${itemIcon(g[0])}<span>${g[1]}</span><small>${g[2]==="epic"?"Epic gift":g[2]?PATHS[g[2]].hero:"Rank gift"}</small></button>`).join("")}${on?`<button class="gitem off" data-gear="${k}:">${""}<span>Take off</span></button>`:""}</div>`:""}
   ${next?`<p class="slnext">${own.length?"Next: ":"Earn "}${next[1]} · ${next[2]?`${PATHS[next[2]].name} skill ${next[3]}`:`reach ${RANKS[next[3]][0]}`}</p>`:own.length?"":`<p class="slnext">Add more paths to earn gifts here.</p>`}</div>`}).join("")}
+ <h2 style="margin-top:16px">Your marks</h2><p class="sub">Each mentor leaves a mark: an outline when they are awake in you, fully inked when they are one with you. Marks stay for life.</p>
+ ${(S.ink||[]).length?`<div class="inkl">${S.ink.map(e=>`<div class="inki"><svg viewBox="-12 -12 24 24" aria-hidden="true">${inkSvg(e.g,e.full,0,0,0,1)}</svg><span><b>${PEOPLE[e.g].n}</b><small>${INKSYM[e.g].n} · ${e.full?"complete":"outline"}</small></span></div>`).join("")}</div>`:`<p class="slnext">Your first mark appears when a mentor is awake in you (skill 2 on any path).</p>`}
+ <div class="cchips" style="margin-top:8px"><button class="chip" data-inktog="1" aria-pressed="${!S.hideInk}">Show marks on my hero</button></div>
  <button class="cta" style="width:100%;margin-top:14px" data-close="1">Done</button>`);
  document.querySelectorAll(".gico").forEach(v=>{try{const r=v.firstChild.getBBox(),m=Math.max(r.width,r.height)+8;if(m>8)v.setAttribute("viewBox",`${(r.x+r.width/2-m/2).toFixed(1)} ${(r.y+r.height/2-m/2).toFixed(1)} ${m.toFixed(1)} ${m.toFixed(1)}`)}catch(e){}});
  if(keep&&$(".sheet"))$(".sheet").scrollTop=prev}
@@ -1074,7 +1119,7 @@ function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${
 let lastView="",GI=0,GANIM=false,TALK=null;
 function render(){
  if(!S.on){quiz();return}
- dayTick();stCheck();ensurePlan();
+ dayTick();stCheck();ensurePlan();{const nw=inkCheck();if(nw.length){save();inkAnnounce(nw)}}
  SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","hero"].includes(S.view))S.view="today";
  const v=S.view,app=$("#app");
@@ -1446,7 +1491,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1454,6 +1499,7 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.inktog){S.hideInk=!S.hideInk;save();render();heroSheet(true);return}
  if(d.mentor){mentorSheet(d.mentor);return}
  if(d.msel){const[p,g]=d.msel.split(":");if(CHAR[p]===g){closeLayer();return}S.mentor=S.mentor||{};S.mentor[p]=g;applyMentors();save();closeLayer();render();toast(`Your inner ${PEOPLE[g].n} begins to stir`);if(!S.intro.includes(g))setTimeout(()=>playIntro([p]),400);return}
  if(d.qmentor){const[p,g]=d.qmentor.split(":");Q.mentor[p]=g;quiz();return}
