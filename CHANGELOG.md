@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.14.0 · 24.11.2026
+- Every guide now has 8 journey chapters (48 new). Festivals added through November 2028. New Calendar setting in Hero → More: Indian festivals and ritus, plain seasons (Southern Hemisphere aware), or no calendar.
+
 ## 1.13.0 · 24.11.2026
 - Three new paths: Making (Vishwakarma), Art and writing (Valmiki) and Gratitude (Shabari), with portraits, skills, trials, tasks, intros and journey chapters. Six new bridges with animated stories: Sarathi Sakha, Setu Bandha, Bhakti, Ramayana Gana, Mantra Diksha and Before Yama. Bridges you already qualify for now open automatically.
 
