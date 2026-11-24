@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.24.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.24.1";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1453,7 +1453,7 @@ function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.p
 function quiz(){
  if(!Q)Q=newQ();
  const steps=qSteps();Q.i=Math.min(Q.i,steps.length-1);const step=steps[Q.i],pct=Math.round(Q.i/(steps.length-1)*100);
- if(step==="welcome"){setBg(pageScene());$("#app").innerHTML=`<div class="quiz"><div class="wrap"><div class="welcome"><div class="big">अभ्यास</div><h1>Abhyasa</h1><p>Steady practice over a long time. A few quick questions, then your paths open, starting from where you are today.</p></div><div class="qfoot" style="flex-direction:column"><button class="cta" data-q="next">Start</button><button class="cta alt" data-q="sample">Try a sample profile</button></div></div></div>`;return}
+ if(step==="welcome"){setBg(pageScene());$("#app").innerHTML=`<div class="quiz"><div class="wrap"><div class="welcome"><div class="big">अभ्यास</div><h1>Abhyasa</h1><p>Steady practice over a long time. A few quick questions, then your paths open, starting from where you are today.</p></div><div class="qfoot" style="flex-direction:column"><button class="cta" data-q="next">Start</button></div></div></div>`;return}
  let body="",foot="";
  if(step==="name"){body=`<h1>What should we call you?</h1><p class="lead">Used only to greet you. You can skip this.</p><input class="name" id="qname" autocomplete="given-name" placeholder="Your first name" value="${esc(Q.name)}">`;foot=`<button class="cta alt" data-q="skip">Skip</button><button class="cta" data-q="next">Continue</button>`}
  else if(step==="paths"){const ok=Q.paths.length>0;body=`<h1>Choose up to 8 things to grow</h1><p class="lead">Pick what matters most in your life right now. Each path has a guide from Indian stories. Each day you walk with up to 4 of them, and you can change this any time.</p>
@@ -1487,17 +1487,6 @@ function finishQuiz(){
  S.seen=Math.max(S.seen,stage());S.rk=Math.max(S.rk||0,lifeRank());S.on=true;S.view="today";S.plan={d:td(),items:S.plan.d===td()?S.plan.items.filter(x=>x.done):[],swaps:0,closed:false};S.plan.items=buildPlan(S.plan.items);if(!redo)S.deck=td();Q=null;save();render();if(S.lore==="new")setTimeout(()=>playPack("tour",()=>playIntro(sel())),400);else if(wantIntros())setTimeout(()=>playIntro(sel()),400);window.scrollTo(0,0);
  toast(redo?"Your plan is updated":"Your first tasks are ready");
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-}
-function loadSample(){
- S=fresh();Object.assign(S,{paths:["body","bonds","music"],tags:{body:["strength","climb","swim"],bonds:["parents","abroad","roots"],music:["guitar"]},kit:["gym","pool","wall","park","bands","mat"],anchors:{gym:[1,4],climb:[3],swim:[6],family:[0]},time:45,goal:7});
- for(let i=4;i>=1;i--){S.days[addD(td(),-i)]={a:1,mood:["good","okay","bright","good"][i-1]}}S.streak=4;S.best=6;S.last=yday();
- S.chap={hanuman:4,rama:2,narada:1};S.chapters=[{g:"hanuman",ch:0},{g:"hanuman",ch:1},{g:"rama",ch:0},{g:"hanuman",ch:2},{g:"narada",ch:0},{g:"rama",ch:1},{g:"hanuman",ch:3}];
- S.charms=S.chapters.map(c=>({n:CHAPTERS[c.g][c.ch].charm[0],g:c.g}));
- for(let i=1;i<=14;i++)S.hist[addD(td(),-i)]={body:[2,2],bonds:[1,1],music:[1,i%5?1:0]};S.journey={d:yday(),g:"hanuman",ch:4,back:false};
- [[1,"body","Gym: push day",40],[1,"music","Strumming patterns",20],[2,"bonds","Call your parents",15],[2,"body","Shoulder care",10],[3,"body","Bouldering",75],[3,"music","Football with friends",0],[4,"bonds","Cook a dish from home",45],[4,"music","One-minute chord changes",15],[5,"body","Swim drills",25],[7,"body","Gym: leg day",45],[8,"bonds","Video-call a friend",30]].forEach(([i,p,t,m],k)=>S.log.push({id:"s"+k,d:addD(td(),-i),t:t==="Football with friends"?"Jam with a friend":t,pid:p,m:m||30,load:[],own:t==="Football with friends"}));
- S.prog.body={m:2,xp:60};S.prog.bonds={m:2,xp:30};S.prog.music={m:1,xp:40};S.syn=[];
- SYN.forEach(s=>{if(s.p.every(p=>S.prog[p].m>=s.req))S.syn.push(s.id)});
- S.seen=stage();S.rk=lifeRank();S.on=true;Q=null;save();render();window.scrollTo(0,0);toast("Sample profile loaded. Edit it from your hero page.");
 }
 
 /* ================= sheets ================= */
@@ -1710,9 +1699,8 @@ document.addEventListener("click",e=>{
  if(d.act==="import-ok"){if(PENDING){stopTool();S=migrate(Object.assign(fresh(),PENDING.state),PENDING.state);PENDING=null;save();closeLayer();render();toast("Backup restored")}return}
  if(d.act==="redo"){stopTool();S.on=false;Q=null;quiz();window.scrollTo(0,0);return}
  if(d.act==="routine"){stopTool();S.on=false;Q=newQ();Q.i=qSteps().indexOf("routine");quiz();window.scrollTo(0,0);return}
- if(d.act==="reset"){if(!resetArm){resetArm=1;t.textContent="Tap again to erase everything";setTimeout(()=>{resetArm=0;if(t.isConnected)t.textContent="Reset everything"},3000);return}stopTool();S=fresh();Q=null;save();render();return}
+ if(d.act==="reset"){if(!resetArm){resetArm=1;t.textContent="Tap again to erase everything";setTimeout(()=>{resetArm=0;if(t.isConnected)t.textContent="Reset everything"},3000);return}stopTool();try{localStorage.removeItem(KEY)}catch(e){}S=fresh();Q=null;location.reload();return}
  if(d.q){const n=qSteps().length;
-  if(d.q==="sample"){loadSample();return}
   if(d.q==="next"||d.q==="skip"){if(d.q==="skip")Q.name="";Q.i=Math.min(n-1,Q.i+1)}
   else if(d.q==="back"){if(Q.i<=1&&S.paths.length){S.on=true;Q=null;render();return}Q.i=Math.max(0,Q.i-1)}
   else if(d.q==="go"){finishQuiz();return}

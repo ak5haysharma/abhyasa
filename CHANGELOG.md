@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.24.1 · 24.11.2026
+- Removed the sample profile from the welcome screen. Reset everything now fully clears saved data and restarts the app.
+
 ## 1.24.0 · 24.11.2026
 - Smarter routines: your mentor's style shapes your tasks (Bhima favours heavy and long, Ganesha small starts, Kubera tracking). After a task, one optional tap: too easy, right or too hard. Level and length adapt, and tasks with numbers grow or ease (plank 30 sec becomes 38). New 'Your life and kit' screen: who you live with, work, best time, space, busiest days, and kit for each path (instruments, art supplies, tools, garden). Busy day mode in the check-in or on your busiest days: one short task per mentor. Tasks are ordered by the time you usually do each path, and an 'I am becoming... 3 times a week' line makes that mentor more likely to walk with you.
 
