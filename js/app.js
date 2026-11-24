@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.6.1";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.7.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -590,6 +590,40 @@ function reviewHistory(){const k=Object.keys(S.reviews).filter(w=>S.reviews[w].d
  return `<button class="revcard" data-review="${cur}"><span class="revi">${ic("path")}</span><span><b>This week so far</b><small>${W.act} active days · ${W.tot} min. Tap to review now.</small></span></button>
  ${k.length?k.map(w=>{const R=S.reviews[w];return `<div class="lrow"><span><b>${rng7(w)}</b><small>${R.act} days · ${R.tot} min${R.focus&&PATHS[R.focus]?` · then focused on ${PATHS[R.focus].name}`:""}</small></span></div>`}).join(""):`<p class="sub">Past reviews appear here.</p>`}`}
 
+
+/* ================= focus mode ================= */
+let FM=null,FMT=null,WL=null;
+async function wakeOn(){try{if("wakeLock" in navigator){WL=await navigator.wakeLock.request("screen")}}catch(e){WL=null}}
+function wakeOff(){try{WL&&WL.release()}catch(e){}WL=null}
+document.addEventListener("visibilitychange",()=>{if(FM&&FM.running&&document.visibilityState==="visible")wakeOn()});
+function focusStart(id){const it=S.plan.items.find(x=>x.id===id);if(!it||it.done)return;const x=poolItem(it),P=PATHS[it.pid];closeLayer();stopTool();
+ const steps=x?x.g:[it.kind==="anchor"?"Do your routine session":"Do your task","Notice how it feels","Finish calmly"];
+ FM={id,total:Math.max(60,it.m*60),acc:0,t0:Date.now(),running:true,steps,ck:steps.map(()=>false),line:0,over:false};
+ const tool=x&&x.tool&&x.tool.type!=="timer"?toolView(it):"",C=2*Math.PI*92;
+ const host=document.createElement("div");host.id="fm";host.style.setProperty("--c",P.c);host.setAttribute("role","dialog");host.setAttribute("aria-label","Focus mode: "+it.t);
+ host.innerHTML=`<div class="fm-top"><button class="ex-b" data-fm="close" aria-label="Leave focus mode">×</button><span class="fm-k">${P.name} · with ${P.hero}</span><span class="fm-sp"></span></div>
+ <div class="fm-body"><div class="fm-ring"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="8"/><circle id="fmarc" cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 ${C.toFixed(1)}" transform="rotate(-90 100 100)"/></svg><span class="fm-face">${portrait(CHAR[it.pid])}</span></div>
+ <div class="fm-time" id="fmtime">${fmtT(FM.total*1000)}</div><div class="fm-sub" id="fmsub">remaining</div>
+ <h2 class="fm-t">${esc(it.t)}</h2><p class="fm-line" id="fmline">“${GUIDE_LINES[it.pid][0]}”</p>
+ <ol class="fm-steps" id="fmsteps">${steps.map((g,i)=>`<li><button data-fm="step|${i}"><span class="fck">${ic("check")}</span><span>${g}</span></button></li>`).join("")}</ol>${tool}</div>
+ <div class="fm-bar" id="fmbar"></div>`;
+ document.body.appendChild(host);document.documentElement.classList.add("exlock");paint();fmBar();fmPaint();wakeOn();clearInterval(FMT);FMT=setInterval(fmTick,250)}
+const fmLeft=()=>FM.total*1000-(FM.acc+(FM.running?Date.now()-FM.t0:0));
+function fmTick(){if(!FM)return;const left=fmLeft();if(left<=0&&!FM.over){FM.over=true;FM.acc=FM.total*1000;FM.running=false;beep(660,.3);setTimeout(()=>beep(880,.5),350);wakeOff();fmBar()}
+ const el=Math.floor((FM.acc+(FM.running?Date.now()-FM.t0:0))/45000)%5;if(el!==FM.line){FM.line=el;const it=S.plan.items.find(x=>x.id===FM.id),L=$("#fmline");if(it&&L){L.classList.remove("fade");void L.offsetWidth;L.classList.add("fade");L.textContent=`“${GUIDE_LINES[it.pid][el]}”`}}
+ fmPaint()}
+function fmPaint(){if(!FM)return;const left=Math.max(0,fmLeft()),f=1-left/(FM.total*1000),C=2*Math.PI*92,a=$("#fmarc"),t=$("#fmtime"),s2=$("#fmsub");if(a)a.setAttribute("stroke-dasharray",`${(f*C).toFixed(1)} ${C.toFixed(1)}`);if(t)t.textContent=FM.over?"Done":fmtT(left);if(s2)s2.textContent=FM.over?"Time’s up. Well practised.":FM.running?"remaining":"paused";
+ const st=$("#fmsteps");if(st){const cur=FM.ck.indexOf(false);[...st.children].forEach((li,i)=>{li.className=FM.ck[i]?"ok":i===cur?"cur":""})}}
+function fmBar(){const b=$("#fmbar");if(!b)return;b.innerHTML=FM.over?`<button class="cta alt" data-fm="more">+5 min</button><button class="cta fmdone" data-fm="done">Mark done</button>`
+ :`<button class="cta alt" data-fm="pause">${FM.running?"Pause":"Resume"}</button><button class="cta fmdone" data-fm="done">Finish</button>`}
+function fmClose(){clearInterval(FMT);FMT=null;stopTool();wakeOff();const h=$("#fm");if(h)h.remove();if(!$("#ex"))document.documentElement.classList.remove("exlock");FM=null}
+function fmCmd(v,ev){if(!FM)return;
+ if(v==="close"){fmClose();return}
+ if(v==="pause"){if(FM.running){FM.acc+=Date.now()-FM.t0;FM.running=false;wakeOff()}else{FM.t0=Date.now();FM.running=true;wakeOn()}fmBar();fmPaint();return}
+ if(v==="more"){FM.total=Math.round(FM.acc/1000)+300;FM.over=false;FM.t0=Date.now();FM.running=true;wakeOn();fmBar();fmPaint();return}
+ if(v==="done"){const id=FM.id;fmClose();complete(id,ev);return}
+ if(v.startsWith("step|")){const i=+v.split("|")[1];FM.ck[i]=!FM.ck[i];if(FM.ck[i])beep(1180,.05,.12);fmPaint()}}
+
 /* ================= starter pack ================= */
 const enLine=n=>EN[n]?`<p class="en">${EN[n]}</p>`:"";
 const wantIntros=()=>S.lore!=="well";
@@ -788,7 +822,8 @@ function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${
 function taskSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it)return;const P=PATHS[it.pid],x=poolItem(it);
  sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(it.t)}</h2>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
  ${x?guideView(it):`<p class="sub" style="margin-top:12px">${it.kind==="anchor"?"Part of your weekly routine.":"Your own task."}</p>`}
- <div class="row" style="margin-top:16px">${it.kind==="task"&&!it.done?`<button class="cta alt" data-swap="${it.id}">Swap</button>`:""}<button class="cta" data-done="${it.id}">${it.done?"Undo":"Mark done"}</button></div>`)}
+ ${it.done?"":`<button class="cta fmgo" style="width:100%;margin-top:16px" data-focus="${it.id}">${ic("sun")} Start focus mode · ${it.m} min</button>`}
+ <div class="row" style="margin-top:10px">${it.kind==="task"&&!it.done?`<button class="cta alt" data-swap="${it.id}">Swap</button>`:""}<button class="cta alt" data-done="${it.id}">${it.done?"Undo":"Mark done"}</button></div>`)}
 function checkSheet(){if(!CI)CI=JSON.parse(JSON.stringify(checkToday()));const chip=(g,v,l,on)=>`<button class="chip" data-ci="${g}:${v}" aria-pressed="${on}">${l}</button>`;
  sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Check-in</div><h2>How are you today?</h2><p class="sub">Your tasks adjust to fit.</p>
  <div class="cirow"><span>Energy</span><div class="cchips">${["low","ok","high"].map(v=>chip("energy",v,E_L[v],CI.energy===v)).join("")}</div></div>
@@ -964,13 +999,15 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
- if(d.view){exClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
+ if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
+ if(d.focus){focusStart(d.focus);return}
+ if(d.fm){fmCmd(d.fm,e);return}
  if(d.x){const v=d.x;if(!EX){exOpen(v==="open"?null:v);if(v==="open")setTimeout(()=>EX&&exOverview(),520)}else if(v!=="open")exSelect(v);return}
  if(d.ex){const v=d.ex;if(v==="close")exClose();else if(v==="in")exZoom(.75);else if(v==="out")exZoom(1.33);else if(v==="all")exOverview();else if(v.startsWith("go|"))exSelect(v.slice(3));else exNav(v);return}
  if(d.seg){const[k,v]=d.seg.split(":");S.seg=S.seg||{};S.seg[k]=v;render();window.scrollTo(0,0);return}

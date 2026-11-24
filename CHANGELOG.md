@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.0 · 24.11.2026
+- Focus mode: start any task full screen, with a countdown ring around your guide, steps to tick off, the task's tool, a new guide line every 45 seconds, pause and resume, the screen kept awake, a chime at the end, and +5 min or Mark done.
+
 ## 1.6.1 · 24.11.2026
 - Tree explorer: tapping near any star, bridge or portrait selects it, taps are more forgiving, and locked and in-progress skills show how much growth is left and a time estimate at your current pace.
 
