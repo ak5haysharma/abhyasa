@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.32.0 · 24.11.2026
+- Calmer home: Today is now just your progress, one row of small bubbles (only things due today or in progress: a daily question, check-in, weekly review, closing your day, a story trial or challenge you started, your vow) and your tasks. 'Who leads today' is gone from Today and the morning cards; lead mentors are picked quietly in the background. Story trials, 'Start here', Sankalpa and companion journeys live in Journey > Story, with a small dot on Journey when a trial is ready. New Calendar tab for the season, today's story, festival challenges and what's coming up.
+
 ## 1.31.0 · 24.11.2026
 - Reminders without a server: Settings > Add reminders to your calendar makes a calendar file with alerts for morning practice, closing your day, the weekly review, your routine and story trial days. Read aloud: a speaker button in every story player and a Listen button on story pages, using your phone's own voice (Indian English when available). Festival challenges: short challenges open around festivals (Navratri nine nights, Diwali week, Makar Sankranti, Maha Shivaratri, Holi, Ganesh Chaturthi, Guru Purnima, Kartik lamps) with a daily step on Today and a charm when you finish.
 
