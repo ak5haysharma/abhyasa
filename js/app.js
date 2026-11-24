@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.27.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.28.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -392,6 +392,43 @@ function portraitG(id){
  const O=`stroke="${K}" stroke-width="2.6" stroke-linejoin="round"`,O2=`stroke="${K}" stroke-width="2"`,eyes=y=>`<path d="M50 ${y} q3 2.5 6 0M64 ${y} q3 2.5 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/>`;
  // ===== wave-1 alternate mentors (v1.21) =====
  const body=(robe,trim)=>`<path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="${robe}" ${O}/>${trim||""}`,neck=c=>`<rect x="53" y="80" width="14" height="14" fill="${c}" ${O2}/>`,face=c=>`<circle cx="60" cy="62" r="24" fill="${c}" ${O}/>`,smile=`<path d="M55 72 q5 3 10 0" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/>`,crown=(c)=>`<path d="M40 44 L44 28 L52 36 L60 22 L68 36 L76 28 L80 44Z" fill="${c||"#d9a441"}" ${O}/><circle cx="60" cy="34" r="2.6" fill="#d0492e"/>`;
+ // ===== wave-2a mentors (v1.28) =====
+ const beard=c=>`<path d="M38 66 Q40 100 60 106 Q80 100 82 66 Q72 80 60 80 Q48 80 38 66Z" fill="${c}" ${O}/>`,jata=c=>`<path d="M36 56 C30 28 90 28 84 56 C78 44 42 44 36 56Z" fill="${c}" ${O}/><ellipse cx="60" cy="26" rx="13" ry="11" fill="${c}" ${O}/>`;
+ if(id==="sita")return `<path d="M30 72 C28 30 92 30 90 72 L96 116 L24 116Z" fill="${K}"/>${body("#e9b445",`<path d="M28 104 Q60 118 92 104" fill="none" stroke="#c0392b" stroke-width="5"/>`)}${neck("#b98257")}${face("#d39a6a")}<path d="M36 60 C36 38 84 38 84 60 C78 46 42 46 36 60Z" fill="${K}"/>
+  <path d="M48 40 L52 30 L60 36 L68 30 L72 40Z" fill="#d9a441" ${O2}/><circle cx="60" cy="53" r="2.6" fill="#d0492e"/>${eyes(62)}${smile}<circle cx="35" cy="72" r="3.5" fill="#d9a441" ${O2}/><circle cx="85" cy="72" r="3.5" fill="#d9a441" ${O2}/>
+  <path d="M102 118 q-2 -20 4 -34 M102 118 q-8 -16 -6 -30 M102 118 q6 -12 12 -22" fill="none" stroke="#4f8a3c" stroke-width="3" stroke-linecap="round"/><circle cx="36" cy="44" r="4" fill="#f3ead6" ${O2}/>`;
+ if(id==="markandeya")return `<g transform="translate(98 84)">${[0,1,2,3,4,5,6,7].map(i=>`<circle cx="${(10*Math.cos(i*.8)).toFixed(1)}" cy="${(14*Math.sin(i*.8)).toFixed(1)}" r="3" fill="#5a2f16" stroke="${K}" stroke-width="1"/>`).join("")}</g>
+  ${body("#e5762f",`<path d="M34 98 Q60 112 86 98" fill="none" stroke="#5a2f16" stroke-width="3" stroke-dasharray="1 5" stroke-linecap="round"/>`)}${neck("#a8714a")}${face("#c48459")}<path d="M38 52 C38 38 82 38 82 52 C76 44 44 44 38 52Z" fill="${K}"/><circle cx="60" cy="34" r="8" fill="${K}"/>
+  <path d="M48 50 h24M48 54 h24" stroke="#f3ead6" stroke-width="2"/><circle cx="60" cy="52" r="2" fill="#d0492e"/>${eyes(62)}${smile}`;
+ if(id==="buddha")return `<circle cx="60" cy="60" r="44" fill="#f2c94c" opacity=".35"/>
+  ${body("#d9772f",`<path d="M34 96 L84 124" stroke="#b85a1f" stroke-width="7"/>`)}${neck("#c89464")}<path d="M34 62 q-6 10 0 22 M86 62 q6 10 0 22" fill="none" stroke="${K}" stroke-width="3"/><circle cx="60" cy="62" r="24" fill="#e0ad7c" ${O}/>
+  <path d="M38 54 C38 30 82 30 82 54 C76 42 44 42 38 54Z" fill="#1d2a44" ${O2}/>${[44,52,60,68,76].map(x=>`<circle cx="${x}" cy="${44-Math.abs(x-60)/4}" r="3" fill="#1d2a44"/>`).join("")}<ellipse cx="60" cy="30" rx="8" ry="7" fill="#1d2a44" ${O2}/>
+  <circle cx="60" cy="52" r="1.8" fill="#d0492e"/><path d="M50 62 q3 -2 6 0M64 62 q3 -2 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/>${smile}`;
+ if(id==="radha")return `<path d="M30 72 C28 30 92 30 90 72 L96 116 L24 116Z" fill="${K}"/>${body("#c2185b",`<path d="M26 102 Q60 120 94 102" fill="none" stroke="#d9a441" stroke-width="4"/><path d="M20 96 Q40 80 60 92" fill="none" stroke="#f3a6c8" stroke-width="6"/>`)}${neck("#c7936a")}${face("#e0a97a")}
+  <path d="M36 60 C36 38 84 38 84 60 C78 46 42 46 36 60Z" fill="${K}"/><path d="M44 42 Q60 34 76 42" fill="none" stroke="#d9a441" stroke-width="2.5"/><circle cx="60" cy="40" r="3" fill="#d9a441" ${O2}/><circle cx="60" cy="53" r="2.4" fill="#d0492e"/>${eyes(62)}${smile}
+  ${[0,1,2,3,4].map(i=>`<circle cx="${30+i*2}" cy="${46+i*6}" r="3" fill="${i%2?"#f2c94c":"#e8892b"}" stroke="${K}" stroke-width=".8"/>`).join("")}<circle cx="36" cy="74" r="3.5" fill="#d9a441" ${O2}/><circle cx="84" cy="74" r="3.5" fill="#d9a441" ${O2}/>`;
+ if(id==="vishwamitra")return `<circle cx="96" cy="30" r="14" fill="#f2a43a" ${O2}/>${[0,1,2,3,4,5,6,7].map(i=>`<path d="M96 30 L${(96+22*Math.cos(i*.785)).toFixed(1)} ${(30+22*Math.sin(i*.785)).toFixed(1)}" stroke="#f2a43a" stroke-width="2.5"/>`).join("")}
+  ${body("#b8642a")}${neck("#a06a44")}${face("#b87a50")}${beard("#e9e4da")}${jata("#6b5a4a")}<path d="M46 48 h28M46 52 h28" stroke="#f3ead6" stroke-width="2"/><circle cx="60" cy="50" r="2" fill="#d0492e"/>
+  <path d="M50 60 q3 -2 6 0M64 60 q3 -2 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/><path d="M48 54 l8 -2M72 54 l-8 -2" stroke="${K}" stroke-width="2.2"/>`;
+ if(id==="karna")return `<circle cx="60" cy="58" r="46" fill="#f2c94c" opacity=".4"/><path d="M98 12 Q122 66 98 120" fill="none" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M98 12 Q122 66 98 120" fill="none" stroke="#8a5424" stroke-width="3" stroke-linecap="round"/><path d="M98 12 V120" stroke="#f3ead6" stroke-width="1.2"/>
+  ${body("#d9a441",`<path d="M30 100 Q60 90 90 100 M32 110 Q60 100 88 110" fill="none" stroke="#a8641e" stroke-width="2.5"/><circle cx="60" cy="104" r="6" fill="#d0492e" ${O2}/>`)}${neck("#c4864f")}
+  <path d="M34 62 C34 42 86 42 86 62 L86 76 C80 66 40 66 34 76Z" fill="${K}"/>${face("#d39a6a")}${crown()}${eyes(62)}${smile}<circle cx="36" cy="74" r="5" fill="#d9a441" ${O2}/><circle cx="84" cy="74" r="5" fill="#d9a441" ${O2}/>`;
+ if(id==="bharata")return `<g transform="translate(92 92) rotate(-10)"><path d="M-8 0 q0 -14 8 -16 q8 2 8 16 q0 10 -8 12 q-8 -2 -8 -12z" fill="#8a5424" ${O2}/><path d="M6 6 q0 -14 8 -16 q8 2 8 16 q0 10 -8 12 q-8 -2 -8 -12z" fill="#a06a3a" ${O2}/><circle cx="0" cy="-8" r="2" fill="#d9a441"/><circle cx="14" cy="-2" r="2" fill="#d9a441"/></g>
+  ${body("#9a7b4f",`<path d="M34 99 L86 124" stroke="#6b5a3a" stroke-width="5"/>`)}${neck("#4a7da0")}<path d="M33 60 C33 42 87 42 87 60 L87 76 C80 66 40 66 33 76Z" fill="${K}"/>${face("#5d8fb5")}${jata("#2a2a2a")}${eyes(62)}${smile}<path d="M60 47 v6" stroke="#d0492e" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(id==="nala")return `<g transform="translate(96 96)"><ellipse rx="16" ry="11" fill="#9aa0ad" ${O}/><path d="M-9 -2 h18 M-6 4 h12" stroke="${K}" stroke-width="1.6"/></g><path d="M80 112 q8 -4 16 0 q8 4 16 0" fill="none" stroke="#4f86a8" stroke-width="3"/>
+  ${body("#6b4a2b",`<path d="M38 98 Q60 108 82 98" fill="none" stroke="#d9a441" stroke-width="3"/>`)}<circle cx="33" cy="60" r="9" fill="#7a5233" ${O}/><circle cx="87" cy="60" r="9" fill="#7a5233" ${O}/><circle cx="60" cy="60" r="27" fill="#8a5c38" ${O}/>
+  <path d="M60 41 C44 41 38 55 42 68 C46 82 74 82 78 68 C82 55 76 41 60 41Z" fill="#e2b98c" ${O2}/><ellipse cx="60" cy="74" rx="13" ry="9.5" fill="#efcfa8" ${O2}/><path d="M54 77 q6 4 12 0" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/>${eyes(58)}<path d="M40 40 h40" stroke="#d0492e" stroke-width="4"/>`;
+ if(id==="vyasa")return `<g transform="translate(94 96) rotate(-12)"><rect x="-14" y="-6" width="28" height="7" rx="2" fill="#e9d7a6" ${O2}/><rect x="-14" y="1" width="28" height="7" rx="2" fill="#ddc690" ${O2}/><path d="M0 -10 v22" stroke="#d0492e" stroke-width="2.4"/></g>
+  ${body("#e9ddc6")}${neck("#5a4030")}${face("#6e4b33")}${beard("#bfb8ae")}${jata("#3a3028")}<path d="M46 48 h28M46 52 h28" stroke="#f3ead6" stroke-width="2"/>${eyes(60)}`;
+ if(id==="sudama")return `<g transform="translate(96 98)"><path d="M-12 -4 q12 -10 24 0 q2 12 -12 14 q-14 -2 -12 -14z" fill="#e9ddc6" ${O2}/><path d="M-4 -10 l4 -6 l4 6" fill="none" stroke="${K}" stroke-width="2"/>${[-5,0,5].map(x=>`<circle cx="${x}" cy="-3" r="1.6" fill="#f3ead6" stroke="${K}" stroke-width=".6"/>`).join("")}</g>
+  ${body("#f3ead6",`<path d="M34 99 L86 124" stroke="#c9bfa8" stroke-width="5"/>`)}${neck("#9a6c48")}<circle cx="60" cy="62" r="22" fill="#b07a50" ${O}/><path d="M58 40 q2 -10 6 -8" fill="none" stroke="${K}" stroke-width="3" stroke-linecap="round"/>
+  <path d="M48 50 h24" stroke="#f3ead6" stroke-width="2"/>${eyes(62)}${smile}`;
+ if(id==="tumburu")return `<path d="M100 120 L100 38" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M100 120 L100 38" stroke="#a86f35" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="110" r="13" fill="#a86f35" ${O}/><circle cx="100" cy="40" r="7" fill="#a86f35" ${O2}/><path d="M96 40 V108M104 40V108" stroke="#f3ead6" stroke-width="1"/>
+  ${body("#6c55b0",`<path d="M30 100 Q60 114 90 100" fill="none" stroke="#d9a441" stroke-width="4"/>`)}${neck("#c08a60")}<path d="M34 62 C34 42 86 42 86 62 L86 76 C80 66 40 66 34 76Z" fill="${K}"/>${face("#d39a6a")}${crown("#d9a441")}${eyes(62)}<path d="M54 71 q6 6 12 0" fill="#7a2a2a" stroke="${K}" stroke-width="1.6"/>
+  <path d="M18 34 q4 -6 8 0 v10 a3 3 0 1 1 -2 -3" fill="none" stroke="#6c55b0" stroke-width="2.4"/><path d="M28 18 v10 a3 3 0 1 1 -2 -3" fill="none" stroke="#6c55b0" stroke-width="2.4"/>`;
+ if(id==="vasishtha")return `${[[18,16],[30,10],[42,14],[50,24],[64,22],[76,14],[88,18]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i===3?3:2.4}" fill="#d9a441"/>`).join("")}<circle cx="54" cy="28" r="1.4" fill="#d9a441"/>
+  <g transform="translate(98 100)"><path d="M-9 -4 q9 18 18 0z" fill="#8a5424" ${O2}/><path d="M-3 -6 q3 -6 6 0" fill="none" stroke="${K}" stroke-width="2"/><path d="M8 -2 l7 -5" stroke="${K}" stroke-width="3" stroke-linecap="round"/></g>
+  ${body("#f3ead6",`<path d="M26 104 Q60 120 94 104" fill="none" stroke="#5a2f16" stroke-width="3" stroke-dasharray="1 5" stroke-linecap="round"/>`)}${neck("#a8714a")}${face("#c48459")}${beard("#f3ead6")}${jata("#e9e4da")}<path d="M46 48 h28M46 52 h28" stroke="#d9a441" stroke-width="2"/>${eyes(60)}`;
  if(id==="bhima")return `<path d="M100 122 L94 52" stroke="${K}" stroke-width="10" stroke-linecap="round"/><path d="M100 122 L94 52" stroke="#6b4423" stroke-width="5" stroke-linecap="round"/><circle cx="93" cy="40" r="17" fill="#9aa0ad" ${O}/><circle cx="93" cy="40" r="6" fill="#d9a441" ${O2}/>
   <path d="M6 124 Q14 90 60 88 Q106 90 114 124Z" fill="#8a3324" ${O}/><path d="M30 96 Q60 110 90 96" fill="none" stroke="#d9a441" stroke-width="5"/>${neck("#93603a")}
   <path d="M32 62 C32 40 88 40 88 62 L88 72 C82 60 38 60 32 72Z" fill="${K}"/>${face("#a8693f")}<path d="M38 46 H82 V40 H38Z" fill="#d9a441" ${O2}/>
@@ -801,6 +838,20 @@ const INKSYM={
  vishwakarma:{n:"Vajra",f:["M0 0a2 2 0 1 0 0.1 0"],s:["M0 -9v18","M-4 -7q4 -4 8 0M-4 7q4 4 8 0"]},
  valmiki:{n:"Stylus and leaf",f:["M-6 6q2 -8 10 -10q-2 8 -10 10z"],s:["M-8 8l14 -14"]},
  shabari:{n:"Berries",f:["M-3 3a3 3 0 1 0 0.1 0","M3 3a3 3 0 1 0 0.1 0"],s:["M-3 0q3 -6 0 -9M3 0q-1 -5 3 -8"]}};
+Object.assign(INKSYM,{
+ sita:{n:"Blade of grass",f:[],s:["M0 9q-1 -10 3 -18","M0 9q-4 -8 -7 -12","M0 9q4 -6 8 -9","M-8 9h16"]},
+ markandeya:{n:"Rudraksha",f:["M0 0a3 3 0 1 0 0.1 0"],s:["M-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0","M0 -7v-3M0 7v3"]},
+ buddha:{n:"Bodhi leaf",f:["M0 9q-9 -6 -7 -12q2 -5 7 -2q5 -3 7 2q2 6 -7 12z"],s:["M0 9v-12"]},
+ radha:{n:"Anklet bells",f:["M-6 4a2.2 2.2 0 1 0 0.1 0","M0 6a2.2 2.2 0 1 0 0.1 0","M6 4a2.2 2.2 0 1 0 0.1 0"],s:["M-9 0q9 6 18 0"]},
+ vishwamitra:{n:"Rising sun",f:["M-6 4a6 6 0 0 1 12 0z"],s:["M-9 6h18","M0 -6v-3M-6 -3l-2 -2M6 -3l2 -2"]},
+ karna:{n:"Sun earrings",f:["M-4 -2a4 4 0 1 0 8 0a4 4 0 1 0 -8 0","M0 4l-2 5h4z"],s:["M-8 -2h-2M8 -2h2M0 -8v-2"]},
+ bharata:{n:"Rama’s sandals",f:["M-6 -6q4 -3 4 6q0 6 -4 6q-3 -6 0 -12z","M6 -6q-4 -3 -4 6q0 6 4 6q3 -6 0 -12z"],s:[]},
+ nala:{n:"Floating stone",f:["M-6 -1a6 4 0 1 0 12 0a6 4 0 1 0 -12 0"],s:["M-9 6q3 -3 6 0q3 3 6 0q3 -3 6 0"]},
+ vyasa:{n:"Four Vedas",f:[],s:["M-7 -7h14","M-7 -2h14","M-7 3h14","M-7 8h14"]},
+ sudama:{n:"Handful of rice",f:["M-7 0q7 9 14 0z"],s:["M-3 -2v-1M0 -3v-1M3 -2v-1"]},
+ tumburu:{n:"Celestial notes",f:["M-5 5a2.5 2 0 1 0 0.1 0","M4 2a2.5 2 0 1 0 0.1 0"],s:["M-2.5 5v-12l9 -3v12"]},
+ vasishtha:{n:"Seven sages and Arundhati",f:["M-7 -4a1.4 1.4 0 1 0 0.1 0","M-3 -6a1.4 1.4 0 1 0 0.1 0","M1 -5a1.4 1.4 0 1 0 0.1 0","M4 -1a1.4 1.4 0 1 0 0.1 0","M8 0a1.4 1.4 0 1 0 0.1 0","M7 5a1.4 1.4 0 1 0 0.1 0","M3 5a1.4 1.4 0 1 0 0.1 0"],s:["M5 0a0.6 0.6 0 1 0 0.1 0"]}});
+
 // Body spots in order of earning: [x, y, rotation] relative to body width sh
 const INKSPOT=[sh=>[100+sh+9,108,10],sh=>[100-sh-9,108,-10],sh=>[100+sh+8,134,6],sh=>[100-sh-8,134,-6],sh=>[100,100,0],sh=>[100,77,0],sh=>[100+sh-7,92,0],sh=>[100-sh+7,92,0],sh=>[100,119,0],sh=>[100-sh-6,146,0],sh=>[100+sh+6,146,0],sh=>[100-sh/2+1,110,0],sh=>[100+sh/2-1,110,0],sh=>[91,214,0],sh=>[109,214,0],sh=>[100-sh-9,121,-8]];
 const INK="#24305e";

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.28.0 · 24.11.2026
+- 12 new mentors (wave 2a): Sita (Courage), Markandeya and Buddha (Meditation), Radha (Love), Vishwamitra (Focus), Karna (Gratitude), Bharata (Family), Nala (Making), Vyasa (Art), Sudama (Friendship), Tumburu (Music) and Vasishtha (Wisdom). Each has a portrait, intro, lines, 4 journey chapters, identity lines, a task style and a tattoo symbol. Every path now has at least 2 mentors to choose from; Meditation has 3. 35 mentors in total.
+
 ## 1.27.0 · 24.11.2026
 - Every path now gets a task every day. With more than 4 paths, today's mentors lead: they get the longer, deeper tasks and today's story, and every other path still gets one short task. Today's header shows one combined ring when you follow more than 5 paths.
 
