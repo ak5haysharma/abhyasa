@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.20.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.21.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -54,6 +54,8 @@ const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},g
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S),S);
+function applyMentors(){S.mentor=S.mentor||{};Object.keys(CHAR0).forEach(p=>{let g=S.mentor[p]||CHAR0[p];if(!PEOPLE[g])g=CHAR0[p];CHAR[p]=g;PATHS[p].hero=PEOPLE[g].n;PATHS[p].heroDev=PEOPLE[g].d;GUIDE_LINES[p]=MLINES[g]||GL0[p]})}
+applyMentors();
 try{injectCustom()}catch(e){}
 function migrate(o,raw){raw=raw||o;
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
@@ -267,7 +269,7 @@ function complete(id,ev){
  if(it.pid&&PATHS[it.pid])TANIM={pid:it.pid,f:todayFrac(it.pid)};it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
  S.log.push({id:it.id,d:td(),t:it.t,load:it.load||[],pid:it.pid||"bridge",m:it.m||0,own:!!it.own});S.log=S.log.filter(l=>diff(l.d,td())<=60);
  if(it.kind==="bridge"){const s=SYN.find(x=>x.id===it.sid);it.g=8;s.p.forEach(p=>grow(p,Math.round(8*mult(p))));popAt("+ growth","var(--gold)",ev)}
- else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
+ else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;S.awT=S.awT&&S.awT.d===td()?S.awT:{d:td(),p:[]};if(it.pid&&PATHS[it.pid]&&!S.awT.p.includes(it.pid)){S.awT.p.push(it.pid);const _p=it.pid;setTimeout(()=>toast(`Your inner ${PATHS[_p].hero} ${AWVERB[Math.min(5,S.prog[_p].m)]}`),1100)}grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
  if(TOOL&&TOOL.id===it.id)stopTool();if(OPEN===it.id)OPEN=null;
  const left=S.plan.items.filter(x=>(x.kind==="task"||x.kind==="anchor")&&!x.done).length;
  if(!left&&!S.plan.closed){S.plan.closed=true;setTimeout(()=>toast("Today’s practice is done. Rest well."),1000)}
@@ -326,7 +328,7 @@ function passTrial(pid,feel){
  const it=S.plan.items.find(x=>x.kind==="trial"&&x.pid===pid&&!x.done);if(it){it.done=true;it.k=k}
  closeLayer();
  beep(523,.15);setTimeout(()=>beep(659,.15),150);setTimeout(()=>beep(784,.35),300);
- pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
+ pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2><p class="aw-line">Your inner ${P.hero} is now <b>${AWAKE[Math.min(5,k+1)]}</b></p>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
  SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
  {const a2=stAvail();if(a2>=0&&SS().nt!==a2){SS().nt=a2;pushModal(`<div class="flame big" style="margin:0 auto">${DIYA}</div><div class="kick">A story trial awaits · Book ${a2+1}</div><h2>${STRIALS[a2].n}<span class="dev">${STRIALS[a2].d}</span></h2><p>${STRIALS[a2].theme} Pass it to become ${ARC_RANK[Math.min(6,a2+1)][0]}.</p><button class="cta" style="width:100%" data-st="open">See the trial</button>`)}}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
@@ -386,6 +388,43 @@ function pageScene(){if(!S.on)return BG_ORDER[((Q?Q.i:0)*3+1)%8];return S.view==
 /* ================= characters ================= */
 function portraitG(id){
  const O=`stroke="${K}" stroke-width="2.6" stroke-linejoin="round"`,O2=`stroke="${K}" stroke-width="2"`,eyes=y=>`<path d="M50 ${y} q3 2.5 6 0M64 ${y} q3 2.5 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/>`;
+ // ===== wave-1 alternate mentors (v1.21) =====
+ const body=(robe,trim)=>`<path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="${robe}" ${O}/>${trim||""}`,neck=c=>`<rect x="53" y="80" width="14" height="14" fill="${c}" ${O2}/>`,face=c=>`<circle cx="60" cy="62" r="24" fill="${c}" ${O}/>`,smile=`<path d="M55 72 q5 3 10 0" fill="none" stroke="${K}" stroke-width="1.8" stroke-linecap="round"/>`,crown=(c)=>`<path d="M40 44 L44 28 L52 36 L60 22 L68 36 L76 28 L80 44Z" fill="${c||"#d9a441"}" ${O}/><circle cx="60" cy="34" r="2.6" fill="#d0492e"/>`;
+ if(id==="bhima")return `<path d="M100 122 L94 52" stroke="${K}" stroke-width="10" stroke-linecap="round"/><path d="M100 122 L94 52" stroke="#6b4423" stroke-width="5" stroke-linecap="round"/><circle cx="93" cy="40" r="17" fill="#9aa0ad" ${O}/><circle cx="93" cy="40" r="6" fill="#d9a441" ${O2}/>
+  <path d="M6 124 Q14 90 60 88 Q106 90 114 124Z" fill="#8a3324" ${O}/><path d="M30 96 Q60 110 90 96" fill="none" stroke="#d9a441" stroke-width="5"/>${neck("#93603a")}
+  <path d="M32 62 C32 40 88 40 88 62 L88 72 C82 60 38 60 32 72Z" fill="${K}"/>${face("#a8693f")}<path d="M38 46 H82 V40 H38Z" fill="#d9a441" ${O2}/>
+  ${eyes(61)}<path d="M46 70 q14 -6 28 0 q-6 4 -14 2 q-8 2 -14 -2z" fill="${K}"/><path d="M60 47 v5" stroke="#d0492e" stroke-width="2.6" stroke-linecap="round"/>`;
+ if(id==="shiva")return `<path d="M22 70 q-10 -30 8 -40" fill="none" stroke="#4f8a5c" stroke-width="6" stroke-linecap="round"/>
+  ${body("#e9ddc6",`<path d="M26 104 Q60 120 94 104" fill="none" stroke="#5a2f16" stroke-width="3" stroke-dasharray="1 5" stroke-linecap="round"/><path d="M30 98 Q44 112 60 106 Q76 112 90 98" fill="none" stroke="#4f8a5c" stroke-width="6" stroke-linecap="round"/><circle cx="90" cy="98" r="5" fill="#4f8a5c" ${O2}/>`)}${neck("#5d86ad")}
+  <path d="M38 52 C30 18 90 18 82 52 C76 40 44 40 38 52Z" fill="#3a2a1e" ${O}/><ellipse cx="60" cy="20" rx="14" ry="12" fill="#3a2a1e" ${O}/><path d="M66 14 a8 8 0 1 0 6 12 a6 6 0 1 1 -6 -12z" fill="#f3ead6" ${O2}/>
+  ${face("#6f9fc8")}<path d="M48 50 h24" stroke="#f3ead6" stroke-width="2.2"/><path d="M48 54 h24" stroke="#f3ead6" stroke-width="2.2"/><ellipse cx="60" cy="45" rx="2" ry="3.4" fill="#d0492e"/>
+  <path d="M50 62 q3 -2 6 0M64 62 q3 -2 6 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/>${smile}`;
+ if(id==="ganesha")return `<path d="M98 116 L104 70" stroke="${K}" stroke-width="5" stroke-linecap="round"/><path d="M98 116 L104 70" stroke="#f3ead6" stroke-width="2" stroke-linecap="round"/>
+  ${body("#e5762f",`<path d="M34 100 Q60 114 86 100" fill="none" stroke="#d9a441" stroke-width="4"/>`)}
+  <path d="M30 50 C6 46 8 86 34 80 C40 70 40 58 30 50Z" fill="#e7a78c" ${O}/><path d="M90 50 C114 46 112 86 86 80 C80 70 80 58 90 50Z" fill="#e7a78c" ${O}/>
+  <circle cx="60" cy="60" r="25" fill="#f0b79c" ${O}/><path d="M60 66 C60 84 50 92 44 100 C40 106 46 110 50 104" fill="none" stroke="${K}" stroke-width="12" stroke-linecap="round"/><path d="M60 66 C60 84 50 92 44 100 C40 106 46 110 50 104" fill="none" stroke="#f0b79c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M68 74 l10 6" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M68 74 l10 6" stroke="#fbfaf5" stroke-width="3" stroke-linecap="round"/>
+  ${eyes(58)}${crown()}<path d="M60 44 v6" stroke="#d0492e" stroke-width="2.6" stroke-linecap="round"/>`;
+ if(id==="ekalavya")return `<path d="M98 12 Q118 66 98 120" fill="none" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M98 12 Q118 66 98 120" fill="none" stroke="#8a5424" stroke-width="3" stroke-linecap="round"/><path d="M98 12 V120" stroke="#f3ead6" stroke-width="1.2"/>
+  ${body("#6b7b3a",`<path d="M30 100 L50 124 M90 100 L70 124" stroke="#a8641e" stroke-width="3"/>`)}${neck("#7a4a2c")}
+  <path d="M34 64 C30 38 90 38 86 64 L88 80 C80 66 40 66 32 80Z" fill="${K}"/>${face("#8a5a3a")}<path d="M36 48 H84" stroke="#d0492e" stroke-width="4"/>
+  <path d="M78 46 Q90 24 86 8 Q80 26 74 44Z" fill="#f3ead6" ${O2}/><path d="M78 44 Q86 26 84 12" stroke="${K}" stroke-width="1"/>
+  ${eyes(62)}${smile}`;
+ if(id==="lakshmana")return `<path d="M96 12 Q124 66 96 120" fill="none" stroke="${K}" stroke-width="8" stroke-linecap="round"/><path d="M96 12 Q124 66 96 120" fill="none" stroke="#d9a441" stroke-width="3.5" stroke-linecap="round"/><path d="M96 12 V120" stroke="#f3ead6" stroke-width="1.4"/>
+  <g transform="rotate(-20 24 70)"><rect x="16" y="40" width="16" height="56" rx="3" fill="#8a5a2b" ${O}/><path d="M20 40 l-2 -14M24 40 v-15M28 40 l2 -14" stroke="${K}" stroke-width="2"/></g>
+  ${body("#2f7d6d",`<path d="M86 99 L34 124" stroke="#d9a441" stroke-width="6"/>`)}${neck("#b3784a")}
+  <path d="M33 60 C33 42 87 42 87 60 L87 76 C80 66 40 66 33 76Z" fill="${K}"/>${face("#d39a6a")}${crown()}${eyes(62)}${smile}<path d="M60 47 v6" stroke="#d0492e" stroke-width="2.4" stroke-linecap="round"/>`;
+ if(id==="parvati")return `<path d="M30 72 C28 30 92 30 90 72 L96 116 L24 116Z" fill="${K}"/>${body("#3f8a5c",`<path d="M28 104 Q60 118 92 104" fill="none" stroke="#d9a441" stroke-width="4"/>`)}
+  ${neck("#b07a52")}${face("#c98a5e")}<path d="M36 60 C36 38 84 38 84 60 C78 46 42 46 36 60Z" fill="${K}"/><path d="M48 40 L52 30 L60 36 L68 30 L72 40Z" fill="#d9a441" ${O2}/>
+  <circle cx="60" cy="53" r="2.6" fill="#d0492e"/>${eyes(62)}${smile}<circle cx="35" cy="72" r="3.5" fill="#d9a441" ${O2}/><circle cx="85" cy="72" r="3.5" fill="#d9a441" ${O2}/>
+  <g transform="translate(100 98)"><path d="M0 0 q-8 -6 -5 -16 q5 5 5 16z M0 0 q8 -6 5 -16 q-5 5 -5 16z M0 0 q-2 -12 0 -20 q2 8 0 20z" fill="#ec7f90" ${O2}/></g>`;
+ if(id==="kubera")return `<g transform="translate(96 96)"><path d="M-14 -6 q14 -10 28 0 l-2 22 h-24z" fill="#d9a441" ${O}/><path d="M-10 -6 q10 -14 20 0" fill="none" stroke="${K}" stroke-width="2"/><circle cx="-4" cy="-12" r="3.5" fill="#4f86a8" ${O2}/><circle cx="5" cy="-13" r="3.5" fill="#d0492e" ${O2}/></g>
+  <path d="M8 124 Q12 86 60 86 Q108 86 112 124Z" fill="#e9b445" ${O}/><ellipse cx="60" cy="118" rx="26" ry="14" fill="#f2c94c" ${O2}/>${neck("#b97a50")}
+  <circle cx="60" cy="62" r="26" fill="#c48459" ${O}/>${crown()}${eyes(62)}<path d="M50 72 q10 7 20 0" fill="none" stroke="${K}" stroke-width="2" stroke-linecap="round"/><circle cx="44" cy="70" r="3" fill="#e7a78c" opacity=".7"/><circle cx="76" cy="70" r="3" fill="#e7a78c" opacity=".7"/>`;
+ if(id==="abhimanyu")return `<g transform="translate(96 92)"><circle r="20" fill="none" stroke="${K}" stroke-width="7"/><circle r="20" fill="none" stroke="#8a5424" stroke-width="3.5"/>${[0,45,90,135].map(a=>`<path d="M0 -20 V20" transform="rotate(${a})" stroke="#8a5424" stroke-width="2.6"/>`).join("")}<circle r="4" fill="#d9a441" ${O2}/></g>
+  ${body("#b0182f",`<path d="M30 100 Q60 114 90 100" fill="none" stroke="#d9a441" stroke-width="4"/>`)}${neck("#a06a44")}
+  <path d="M34 62 C34 42 86 42 86 62 L86 76 C80 66 40 66 34 76Z" fill="${K}"/>${face("#b87a50")}
+  <path d="M38 50 C38 26 82 26 82 50 Z" fill="#9aa0ad" ${O}/><path d="M60 26 V14" stroke="#d0492e" stroke-width="4" stroke-linecap="round"/>${eyes(62)}${smile}`;
  if(id==="hanuman")return `<path d="M101 118 L97 64" stroke="${K}" stroke-width="8" stroke-linecap="round"/><path d="M101 118 L97 64" stroke="#8a5424" stroke-width="3.5" stroke-linecap="round"/><circle cx="96" cy="52" r="13" fill="#d9a441" ${O}/><circle cx="96" cy="52" r="4.5" fill="#d0492e" ${O2}/>
  <path d="M14 124 Q20 94 60 92 Q100 94 106 124Z" fill="#e5762f" ${O}/><path d="M38 97 Q60 109 82 97" fill="none" stroke="#d9a441" stroke-width="4"/>
  <circle cx="33" cy="60" r="9" fill="#c9652c" ${O}/><circle cx="87" cy="60" r="9" fill="#c9652c" ${O}/>
@@ -472,6 +511,9 @@ function portraitG(id){
 }
 const portrait=id=>`<svg viewBox="0 0 120 120" aria-hidden="true">${portraitG(id)}</svg>`;
 const medal=(pid,cls)=>`<span class="medal ${cls||""}" style="--c:${PATHS[pid].c}">${portrait(CHAR[pid])}</span>`;
+const medalA=(pid,cls)=>medal(pid,(cls||"")+" aw"+Math.min(5,S.prog[pid].m));
+const medalG=(g,cls)=>`<span class="medal ${cls||""}" style="--c:${PATHS[PEOPLE[g].pid].c}">${portrait(g)}</span>`;
+const awLine=pid=>`Your inner ${PATHS[pid].hero} · ${AWAKE[Math.min(5,S.prog[pid].m)]}`;
 
 /* ================= story films ================= */
 const A2='fill="none" stroke="var(--art)" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
@@ -856,7 +898,7 @@ function dayPickSheet(keep){const c=sel();DP=keep&&DP?DP:todayPs().slice();
  <div class="dpl">${c.map(p=>{const on=DP.includes(p),w=pickWhy(p),d=sinceP(p);return `<button class="dpi${on?" on":""}" data-dp="${p}" aria-pressed="${on}" style="--c:${PATHS[p].c}">${medal(p,"sm")}<span><b>${PATHS[p].hero}</b><small>${PATHS[p].name} · ${d>=99?"not practised yet":d===0?"practised today":d===1?"practised yesterday":`${d} days ago`}</small>${w.length?`<em>${w.join(" · ")}</em>`:""}</span><i>${on?"✓":""}</i></button>`}).join("")}</div>
  <button class="cta" style="width:100%;margin-top:12px" data-dp-ok="1" ${DP.length?"":"disabled"}>Walk with ${DP.length} mentor${DP.length===1?"":"s"} today</button>
  <button class="linkbtn" data-dp-auto="1">Let Abhyasa choose</button>`)}
-function mentorRow(){if(sel().length<=DAYMAX)return "";const p=todayPs();return `<button class="mrow" data-daypick="1"><span class="mrow-m">${p.map(x=>medal(x,"xs")).join("")}</span><span><small>Today’s mentors · ${p.length} of ${sel().length}</small><b>${p.map(x=>PATHS[x].hero).join(", ")}</b></span><em>Change</em></button>`}
+function mentorRow(){if(sel().length<=DAYMAX)return "";const p=todayPs();return `<button class="mrow" data-daypick="1"><span class="mrow-m">${p.map(x=>medalA(x,"xs")).join("")}</span><span><small>Today’s mentors · ${p.length} of ${sel().length}</small><b>${p.map(x=>PATHS[x].hero).join(", ")}</b></span><em>Change</em></button>`}
 function recordHist(){const P=S.plan;if(!P||!P.d||P.d===td()||S.hist[P.d])return;const h={};P.items.forEach(x=>{if(x.kind!=="task"&&x.kind!=="anchor")return;const a=h[x.pid]=h[x.pid]||[0,0];a[0]++;if(x.done)a[1]++});S.hist[P.d]=h;const k=Object.keys(S.hist).sort();while(k.length>60)delete S.hist[k.shift()]}
 function rate(pid,days){let s=0,d=0;Object.keys(S.hist).forEach(k=>{const h=S.hist[k][pid];if(h&&diff(k,td())<=days){s+=h[0];d+=h[1]}});return{s,d,r:s?d/s:0}}
 function nudges(){const out=[],act=sel();
@@ -1238,11 +1280,17 @@ function todayView(){
 function dayMinsBy(d){const by={};S.log.filter(l=>l.d===d&&l.pid!=="bridge").forEach(l=>{by[l.pid]=(by[l.pid]||0)+logMin(l)});return by}
 function pathCard(pid){const P=PATHS[pid],pr=S.prog[pid],max=pr.m>=5,need=NEED[Math.min(pr.m,4)],f=max?1:Math.min(1,pr.xp/need),full=!max&&pr.xp>=need,C=2*Math.PI*26;
  const days=Array.from({length:7},(_,i)=>addD(td(),i-6)),vals=days.map(d=>dayMinsBy(d)[pid]||0),mx=Math.max(20,...vals),wk=vals.reduce((a,b)=>a+b,0);
- return `<button class="pc2${full?" full":""}" data-pdetail="${pid}" style="--c:${P.c}"><span class="lvr"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--surface2)" stroke-width="5"/><circle cx="32" cy="32" r="26" fill="none" stroke="${full?"var(--gold)":P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(f*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg>${medal(pid,"sm")}${pid===focusPid()?`<span class="wfb">★</span>`:""}</span>
- <span class="pcm"><b>${P.name}</b><small>${RANKS[Math.min(pr.m,5)][0]} · skill ${Math.min(pr.m+1,5)} of 5</small><em>${max?"Mastered":full?"Trial ready":`${Math.min(pr.xp,need)}/${need} to ${P.skills[pr.m].n}`}</em></span>
+ return `<button class="pc2${full?" full":""}" data-pdetail="${pid}" style="--c:${P.c}"><span class="lvr"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--surface2)" stroke-width="5"/><circle cx="32" cy="32" r="26" fill="none" stroke="${full?"var(--gold)":P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(f*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg>${medalA(pid,"sm")}${pid===focusPid()?`<span class="wfb">★</span>`:""}</span>
+ <span class="pcm"><b>${P.name}</b><small>${awLine(pid)}</small><em>${max?"Mastered":full?"Trial ready":`${Math.min(pr.xp,need)}/${need} to ${P.skills[pr.m].n}`}</em></span>
  <span class="spark" aria-label="${wk} minutes in the last 7 days">${vals.map(v=>`<i style="height:${Math.max(3,v/mx*34)}px;opacity:${v?1:.25}"></i>`).join("")}<small>${wk} min · 7d</small></span></button>`}
+function mCard(pid,g,on,attr){const I=MINFO[g]||["","",""],G=GUIDE_INTRO[g]||{};return `<button class="mcard${on?" on":""}" ${attr} aria-pressed="${on}" style="--c:${PATHS[pid].c}">${medalG(g,"md")}<span><b>${PEOPLE[g].n}<span class="dev">${PEOPLE[g].d}</span></b><em>${I[0]}</em><small>${I[1]}</small><small class="best">Best if ${I[2]}.</small></span><i>${on?"✓":""}</i></button>`}
+function mentorSheet(pid){const P=PATHS[pid],cur=CHAR[pid];
+ sheet(P.c,`<div class="kick" style="color:${P.c}">${P.name}</div><h2>Who will awaken in you?</h2><p class="sub">Each mentor brings a different style to your tasks and advice. Your progress stays with the path.</p>
+ <div class="mlist">${MENTORS[pid].map(g=>mCard(pid,g,g===cur,`data-msel="${pid}:${g}"`)+`<p class="mmom">${(GUIDE_INTRO[g]||{}).moment||""}</p>`).join("")}</div>`)}
 function pathDetail(pid){const P=PATHS[pid],g=CHAR[pid],pp=PEOPLE[g],pr=S.prog[pid],full=pr.m<5&&pr.xp>=NEED[pr.m];
- sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medal(pid,"lg")}<div><div class="kick">${REALMS.find(r=>r.id===P.realm).n} · with ${pp.n}</div><h2>${P.name}</h2><small class="mute">${RANKS[Math.min(pr.m,5)][0]} · ${EN[RANKS[Math.min(pr.m,5)][0]]}</small></div></div>
+ sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medalA(pid,"lg")}<div><div class="kick">${REALMS.find(r=>r.id===P.realm).n} · with ${pp.n}</div><h2>${P.name}</h2><small class="mute">${awLine(pid)}</small></div></div>
+ <div class="awbar">${AWAKE.map((a,k)=>`<i class="${k<=Math.min(5,pr.m)?"on":""}" title="${a}"></i>`).join("")}</div>
+ <div class="box mbox"><small>Your inner mentor</small><b>${pp.n}</b> · ${MINFO[g]?MINFO[g][0]:""}${MENTORS[pid]?`<button class="mini" data-mentor="${pid}">Change</button>`:""}</div>
  ${pr.m<5?`<div class="track" style="--c:${full?"var(--gold)":P.c};margin:14px 0 4px"><i style="width:${Math.min(100,pr.xp/NEED[pr.m]*100)}%"></i></div><p class="sub">${full?`Trial ready: ${trialText(pid)}`:`${Math.min(pr.xp,NEED[pr.m])} of ${NEED[pr.m]} growth to ${P.skills[pr.m].n}`}</p>`:""}
  ${full?`<button class="cta" style="width:100%;margin-bottom:12px" data-trial="${pid}">I passed the trial</button>`:""}
  <div class="skills">${P.skills.map((sk,k)=>{const on=has(pid,k);return `<button class="skill${on?"":" off"}" style="--c:${P.c}" data-skill="${pid}:${k}"><span class="ic">${on?sk.d.slice(0,1):k+1}</span><div><b>${sk.n}<span class="dev">${sk.d}</span></b><small class="enm">${EN[sk.n]||""}</small><small>${on?PERK[sk.perk](P.name):k===pr.m?"Next":"Locked"}</small></div></button>`}).join("")}</div>
@@ -1287,7 +1335,7 @@ function heroView(){const sg=segOf("hero","hero");let body="";
 /* ================= questionnaire ================= */
 let Q=null;
 const KIT_FOR={gym:"gym",climb:"wall",swim:"pool"};
-function newQ(){return{i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
+function newQ(){return{mentor:Object.assign({},S.mentor||{}),i:S.paths.length?1:0,name:S.name||"",paths:[...S.paths],level:Object.fromEntries(S.paths.map(p=>[p,Math.min(3,S.prog[p].m)])),tags:JSON.parse(JSON.stringify(S.tags||{})),kit:[...(S.kit||[])],anchors:JSON.parse(JSON.stringify(S.anchors||{})),time:S.time||30,goal:S.goal||7,lore:S.lore||""}}
 function qSteps(){const st=["welcome","name","paths","lore"];ORDER.filter(p=>Q.paths.includes(p)).forEach(p=>st.push("p:"+p));if(Q.paths.includes("body")||Q.paths.includes("flex"))st.push("kit");st.push("routine","time","goal","reveal");return st}
 function quiz(){
  if(!Q)Q=newQ();
@@ -1300,7 +1348,8 @@ function quiz(){
  else if(step.startsWith("p:")){const pid=step.slice(2),P=PATHS[pid],lv=Q.level[pid],tg=Q.tags[pid]||[],ok=lv!==undefined;
   body=`<div class="sub" style="color:${P.c};font-weight:600;margin:0 0 4px">${P.name}</div><h1>${P.q}</h1><p class="lead">Be honest. Your tasks start here, not where you wish you were.</p>
   <div class="steps">${P.levels.map((l,k)=>`<button class="lvl" style="--c:${P.c}" data-qlvl="${pid}:${k}" aria-pressed="${lv===k}"><span class="bars">${[0,1,2,3].map(b=>`<i class="${b<=k?"on":""}" style="height:${6+b*4.5}px"></i>`).join("")}</span>${l}</button>`).join("")}</div>
-  <div class="qlabel">Focus on (pick any)</div><div class="chips" style="--c:${P.c}">${P.tags.map(([k,l])=>`<button class="chip" data-qtag="${pid}:${k}" aria-pressed="${tg.includes(k)}">${l}</button>`).join("")}</div>`;
+  <div class="qlabel">Focus on (pick any)</div><div class="chips" style="--c:${P.c}">${P.tags.map(([k,l])=>`<button class="chip" data-qtag="${pid}:${k}" aria-pressed="${tg.includes(k)}">${l}</button>`).join("")}</div>
+  ${MENTORS[pid]?`<div class="qlabel">Who will awaken in you?</div><div class="mlist">${MENTORS[pid].map(g=>mCard(pid,g,(Q.mentor[pid]||CHAR0[pid])===g,`data-qmentor="${pid}:${g}"`)).join("")}</div>`:`<div class="qlabel">Your inner mentor</div><div class="mlist">${mCard(pid,CHAR0[pid],true,"disabled")}</div>`}`;
   foot=`<button class="cta" data-q="next" ${ok?"":"disabled"}>${ok?"Continue":"Pick where you are"}</button>`}
  else if(step==="kit"){body=`<h1>What can you use?</h1><p class="lead">Tasks only suggest what you can really do. Bodyweight tasks need nothing.</p><div class="cchips">${KIT.map(([k,l])=>`<button class="chip" data-qkit="${k}" aria-pressed="${Q.kit.includes(k)}">${l}</button>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
  else if(step==="routine"){const acts=ACTS.filter(a=>Q.paths.includes(a.pid));body=`<h1>What do you already do each week?</h1><p class="lead">Tap the days. These count as tasks, and new tasks are planned around them.</p><div class="rtable">${acts.map(a=>`<div class="rrow"><div class="rname"><span class="dot" style="--c:${PATHS[a.pid].c}"></span>${a.n}<small>about ${a.m} min</small></div><div class="rdays">${[1,2,3,4,5,6,0].map(d=>`<button class="day" data-qday="${a.id}:${d}" aria-pressed="${(Q.anchors[a.id]||[]).includes(d)}" aria-label="${a.n} on ${DAYS[d]}">${DAYS[d].slice(0,2)}</button>`).join("")}</div></div>`).join("")}</div>`;foot=`<button class="cta" data-q="next">Continue</button>`}
@@ -1318,7 +1367,7 @@ function quiz(){
 }
 function finishQuiz(){
  const redo=S.paths.length>0;
- S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
+ S.name=Q.name.trim().slice(0,30);S.paths=ORDER.filter(p=>Q.paths.includes(p));S.mentor=Object.assign({},S.mentor||{},Q.mentor||{});applyMentors();S.tags=Q.tags;S.time=Q.time;S.kit=Q.kit;S.anchors=Q.anchors;S.goal=Q.goal||7;S.lore=Q.lore||"some";const before=[...S.intro];
  S.paths.forEach(p=>{const k=Q.level[p]||0;if(S.prog[p].m<k)S.prog[p]={m:k,xp:0}});
  S.syn=S.syn.filter(id=>SYN.find(s=>s.id===id).p.every(p=>S.paths.includes(p)));
  SYN.forEach(s=>{if(!S.syn.includes(s.id)&&s.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=s.req))S.syn.push(s.id)});
@@ -1397,7 +1446,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1405,6 +1454,9 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.mentor){mentorSheet(d.mentor);return}
+ if(d.msel){const[p,g]=d.msel.split(":");if(CHAR[p]===g){closeLayer();return}S.mentor=S.mentor||{};S.mentor[p]=g;applyMentors();save();closeLayer();render();toast(`Your inner ${PEOPLE[g].n} begins to stir`);if(!S.intro.includes(g))setTimeout(()=>playIntro([p]),400);return}
+ if(d.qmentor){const[p,g]=d.qmentor.split(":");Q.mentor[p]=g;quiz();return}
  if(d.daypick){closeLayer();dayPickSheet();return}
  if(d.dp){const v=d.dp;DP=DP.includes(v)?DP.filter(x=>x!==v):DP.length<DAYMAX?[...DP,v]:(toast(`Pick up to ${DAYMAX}. Untick one first.`),DP);const y=$(".sheet").scrollTop;dayPickSheet(true);$(".sheet").scrollTop=y;return}
  if(d.dpOk){S.dayPick={d:td(),p:DP.slice()};DP=null;closeLayer();replan("Today’s plan follows your mentors");return}
@@ -1513,7 +1565,7 @@ document.addEventListener("click",e=>{
  if(d.qgoal){Q.goal=+d.qgoal;quiz();return}
  if(d.story){const sc=$(".scrim");if(sc)sc.remove();playStory(d.story);return}
  if(d.guideNext){GI++;GANIM=true;render();return}
- if(d.person){const c=PEOPLE[d.person],P=PATHS[c.pid],I=GUIDE_INTRO[d.person];sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medal(c.pid,"lg")}<div><div class="kick">${P.name} guide</div><h2>${c.n}<span class="dev">${c.d}</span></h2></div></div><p class="story">${c.bio}</p><div class="box"><small>Says today</small>“${GUIDE_LINES[c.pid][doyNow()%5]}”</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-intro="${c.pid}">Watch intro</button></div>`);return}
+ if(d.person){const c=PEOPLE[d.person],P=PATHS[c.pid],I=GUIDE_INTRO[d.person];sheet(P.c,`<div style="display:flex;gap:14px;align-items:center">${medalG(d.person,"lg")}<div><div class="kick">${P.name} guide</div><h2>${c.n}<span class="dev">${c.d}</span></h2></div></div><p class="story">${c.bio}</p><div class="box"><small>Says today</small>“${GUIDE_LINES[c.pid][doyNow()%5]}”</div><div class="row"><button class="cta alt" data-close="1">Close</button><button class="cta" data-intro="${c.pid}">Watch intro</button></div>`);return}
  if(d.talk){const ps=sel();if(!ps.length)return;const pid=ps[Math.floor(Math.random()*ps.length)],L=GUIDE_LINES[pid];TALK=[PATHS[pid].hero,L[Math.floor(Math.random()*L.length)]];render();clearTimeout(window._tk);window._tk=setTimeout(()=>{TALK=null;if(S.view==="hero")render()},4500);return}
  if(d.trial){trialSheet(d.trial,true);return}
  if(d.trialInfo){trialSheet(d.trialInfo,false);return}

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.21.0 · 24.11.2026
+- Choose your inner mentor: 8 new mentors (Bhima, Shiva, Lakshmana, Parvati, Ganesha, Ekalavya, Kubera, Abhimanyu) with portraits, intros, lines and 4 journey chapters each. Pick them during setup or change any time from a path's page; progress stays with the path. Awakening: each path's mentor goes Asleep, Stirring, Awake, Rising, Radiant, One with you. Portraits fill with colour as you grow, the first task of each path each day says your inner mentor stirs, and skill unlocks show the new stage.
+
 ## 1.20.0 · 24.11.2026
 - Path circle: follow up to 8 paths. Each day you walk with up to 4 mentors: Abhyasa picks them (week focus, Sankalpa, story trial, trials ready and paths you have not practised for a while come first), or tap Change on Today or in the morning cards to choose yourself. Today's plan and rings follow today's mentors; the others rest and keep their progress.
 
