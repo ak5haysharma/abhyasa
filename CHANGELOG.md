@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.15.0 · 24.11.2026
+- Your epic: choose an epic (Ramayana first; Mahabharata, Devi Mahatmya and Nachiketa coming), set your destination and your obstacle. 7 books open as you pass trials, each with a short scene and a new title (new title Vira). Your obstacle has 10 heads; one falls every 2 trials. Banner on Today, full view on tap, title on Hero.
+
 ## 1.14.0 · 24.11.2026
 - Every guide now has 8 journey chapters (48 new). Festivals added through November 2028. New Calendar setting in Hero → More: Indian festivals and ritus, plain seasons (Southern Hemisphere aware), or no calendar.
 

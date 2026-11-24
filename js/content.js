@@ -1172,3 +1172,46 @@ const SEASONS=[
  {from:"06-01",n:"Summer",d:"",m:"summer",s:"Long light and warm evenings. Train early, rest in the heat, and get outside."},
  {from:"09-01",n:"Autumn",d:"",m:"autumn",s:"The year turns inward. A good season to study and settle into routines."},
  {from:"12-01",n:"Winter",d:"",m:"winter",s:"Short days and cold mornings. Keep your practice small and steady, and keep warm company."}];
+
+/* ================= epics: the big arc (v1.15) ================= */
+// One engine, 7 universal stages. Each epic tells them its own way. "G" in a scene = the user's companion guide.
+const ARC_GATE=[0,1,3,6,10,15,20];            // trials needed to open each book
+const ARC_RANK=[["Bālak","बालक"],["Shishya","शिष्य"],["Sādhaka","साधक"],["Yodha","योद्धा"],["Vīra","वीर"],["Āchārya","आचार्य"],["Purushottam","पुरुषोत्तम"]];
+EN["Vīra"]="Hero, the brave one";
+const DESTS=[["fit","Strong and fit",["body","flex"]],["calm","Calm and clear",["calm"]],["skilled","Skilled at a craft",["music","making","focus"]],["close","Close to my people",["bonds","friend"]],["love","A loving partner",["love"]],["free","Free with money",["money"]],["wise","Always learning",["learn","wisdom"]],["brave","Brave",["courage"]],["creative","Creative",["art","music"]],["content","Grateful and content",["gratitude"]]];
+const FOES=[["phone","Phone and scrolling","scrolling"],["later","Putting things off","putting off"],["doubt","Fear and self-doubt","self-doubt"],["anger","Anger","anger"],["lazy","Low energy","low energy"],["overthink","Overthinking","overthinking"],["junk","Junk food and late nights","late nights"],["quit","Starting and stopping","giving up"]];
+const EPICS={
+ ramayana:{n:"Ramayana",d:"रामायण",about:"Duty, discipline and keeping your word.",best:["body","bonds","focus","calm","courage"],foe:"Ravana",heads:10,
+  stages:[
+   {n:"Beginnings",sa:"Bāla",d:"बाल",ask:"Show up. Pass your first trial.",scenes:[
+    {bg:"city",who:["rama"],cap:"In Ayodhya, a young prince learns from his teachers: archery, duty, and how to listen."},
+    {bg:"glow",who:["G"],cap:"This is where you begin too. Your paths are chosen, and {G} walks with you."},
+    {bg:"glow",who:["rama","G"],cap:"Book 1 asks one thing: show up. Pass your first trial and you leave home."}]},
+   {n:"Leaving home",sa:"Ayodhyā",d:"अयोध्या",ask:"Keep your word to yourself, even when no one checks.",scenes:[
+    {bg:"city",who:["rama"],cap:"Rama gives up a crown to keep his father’s word, and walks out of the city."},
+    {bg:"forest",who:["G"],cap:"You passed your first trial. Like Rama, you have stepped out of your comfort."},
+    {bg:"forest",who:["rama","G"],cap:"Book 2 asks: keep your word to yourself, even when no one checks."}]},
+   {n:"The forest",sa:"Araṇya",d:"अरण्य",ask:"Keep going on the dull days.",scenes:[
+    {bg:"forest",who:["rama"],cap:"Fourteen years in the forest. Simple food, long days, danger behind the trees."},
+    {bg:"forest",who:["G"],cap:"This is the hard middle. The excitement fades and only practice is left."},
+    {bg:"stars",who:["rama","G"],cap:"Book 3 asks: keep going on the dull days. That is where most people stop."}]},
+   {n:"Allies",sa:"Kishkindhā",d:"किष्किन्धा",ask:"Let your paths and your people help each other.",scenes:[
+    {bg:"hills",who:["rama","hanuman"],cap:"Alone, Rama cannot find Sita. In Kishkindha he finds friends: Sugriva, and Hanuman."},
+    {bg:"hills",who:["G"],cap:"Your paths are starting to help each other. Strength feeds focus. Calm feeds everything."},
+    {bg:"glow",who:["rama","G"],cap:"Book 4 asks: stop doing it all alone. Lean on your skills and your people."}]},
+   {n:"The leap",sa:"Sundara",d:"सुन्दर",ask:"Pick one challenge that scares you a little, and do it.",scenes:[
+    {bg:"sea",who:["hanuman"],cap:"Hanuman stands at the edge of the ocean. Jambavan reminds him of the strength he forgot."},
+    {bg:"glow",who:["G"],cap:"You have more in you than you think. You are a Vīra now: one who dares."},
+    {bg:"sea",who:["hanuman","G"],cap:"Book 5 asks: pick one challenge that scares you a little, and leap."}]},
+   {n:"The battle",sa:"Yuddha",d:"युद्ध",ask:"Do not slip at the end. The last heads fight hardest.",scenes:[
+    {bg:"bridge",who:["rama"],cap:"The bridge is built. Rama’s army crosses the sea to Lanka."},
+    {bg:"city",who:["G"],cap:"Your {FOE} has lost most of its heads. Now it fights hardest."},
+    {bg:"glow",who:["rama","G"],cap:"Book 6 asks: do not slip at the end. Every trial cuts another head."}]},
+   {n:"The return",sa:"Uttara",d:"उत्तर",ask:"Keep the lamp lit, and help someone else begin.",scenes:[
+    {bg:"lamps",who:["rama"],cap:"Ravana falls. Rama comes home to Ayodhya, and the city lights every lamp."},
+    {bg:"lamps",who:["G"],cap:"You have come home to your Ayodhya: {DEST}."},
+    {bg:"glow",who:["rama","G"],cap:"This book has no end. Keep the lamp lit, and help someone else begin."}]}]},
+ mahabharata:{n:"Mahabharata",d:"महाभारत",about:"Family, hard choices and focus.",best:["bonds","focus","wisdom","love"],foe:"The Kauravas",soon:true},
+ devi:{n:"Devi Mahatmya",d:"देवी माहात्म्य",about:"Courage and breaking old patterns.",best:["courage","body","calm"],foe:"Mahishasura",soon:true},
+ katha:{n:"Nachiketa’s quest",d:"कठ",about:"Calm, meaning and learning.",best:["calm","learn","wisdom","gratitude"],foe:"Yama’s temptations",soon:true}
+};

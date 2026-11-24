@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.14.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.15.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,7 +50,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -327,7 +327,7 @@ function passTrial(pid,feel){
  beep(523,.15);setTimeout(()=>beep(659,.15),150);setTimeout(()=>beep(784,.35),300);
  pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
  SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
- const after=stage();if(after>S.seen){S.seen=after;pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div><h2>${RANKS[after][0]}<span class="dev">${RANKS[after][1]}</span></h2>${enLine(RANKS[after][0])}<p>You started as a simple seeker. Look how far you have come.</p>`)}
+ const after=stage();if(after>S.seen){S.seen=after;pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div>${S.epic?`<h2>A new look</h2><p>Your paths are deeper, and your hero shows it.</p>`:`<h2>${RANKS[after][0]}<span class="dev">${RANKS[after][1]}</span></h2>${enLine(RANKS[after][0])}<p>You started as a simple seeker. Look how far you have come.</p>`}`)}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
  save();render();
 }
@@ -566,6 +566,51 @@ function openDeck(){
  cards.push({html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><p class="gq">“${L[dayNum(t)%L.length]}”</p><small class="mute">${PATHS[pid].hero} walks with you today</small></div>`,cap:""});
  openPlayer({label:"Your morning",title:"Your morning",sub:new Date().toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."),cast:[pid],cards,auto:false,deck:true});
 }
+
+/* ================= epics: the big arc (v1.15) ================= */
+let EP=null,EPCHK=false;
+const allTrials=()=>ORDER.reduce((a,k)=>a+(S.prog[k]?S.prog[k].m:0),0);
+const arcT=()=>S.epic?Math.max(0,allTrials()-(S.epic.base||0)):0;
+const arcStage=()=>{const t=arcT();let i=0;ARC_GATE.forEach((g,k)=>{if(t>=g)i=k});return i};
+const headsCut=()=>S.epic?Math.min(EPICS[S.epic.id].heads||10,Math.floor(arcT()/2)):0;
+const foeName=()=>{const f=FOES.find(x=>x[0]===S.epic.foe);return `${EPICS[S.epic.id].foe} of ${f?f[2]:"old habits"}`};
+const destText=()=>{const d=(S.epic.dest||[]).map(k=>(DESTS.find(x=>x[0]===k)||[0,""])[1]).filter(Boolean);return d.length?d.join(" · "):"the person you set out to be"};
+const bestEpic=()=>{const p=sel();let b="ramayana",bs=-1;Object.entries(EPICS).forEach(([k,E])=>{const sc=E.best.filter(x=>p.includes(x)).length;if(sc>bs){bs=sc;b=k}});return b};
+function headsSvg(big){const n=10,cut=headsCut(),w=big?220:150,h=big?34:22,r=big?8:5.2;let g="";
+ for(let i=0;i<n;i++){const x=r+2+i*((w-2*r-4)/(n-1)),y=h/2+(Math.abs(i-4.5)/4.5)*(big?6:4)-(big?2:1),dead=i<cut;
+  g+=dead?`<g opacity=".35"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="none" stroke="var(--mute)" stroke-width="1.5"/><path d="M${(x-r).toFixed(1)} ${(y+r).toFixed(1)}L${(x+r).toFixed(1)} ${(y-r).toFixed(1)}" stroke="var(--mute)" stroke-width="1.5"/></g>`
+  :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="#b5442c" stroke="${K}" stroke-width="1.5"/><path d="M${(x-r*.6).toFixed(1)} ${(y-r*.7).toFixed(1)}l${(r*.3).toFixed(1)} -${(r*.7).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} -${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.7).toFixed(1)}z" fill="#d9a441" stroke="${K}" stroke-width="1"/>`}
+ return `<svg class="heads" viewBox="0 -6 ${w} ${h+6}" width="${w}" height="${h+6}" aria-label="${n-cut} of ${n} heads left">${g}</svg>`}
+function epicBanner(){
+ if(!S.epic)return `<button class="epicb start" data-epic-setup="1"><small>New · Your epic</small><b>Begin your story</b><em>7 books, one destination, one obstacle to defeat. Your daily tasks move it forward.</em></button>`;
+ const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],t=arcT(),nx=ARC_GATE[i+1],pct=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100),need=i>=6?0:nx-t;
+ return `<button class="epicb" data-epic="1"><small>${E.n} · Book ${i+1} of 7</small><b>${st.n}<span class="dev">${st.d}</span></b><span class="eb-bar"><i style="width:${pct}%"></i></span><span class="eb-row"><em>${i>=6?"You have come home":`${need} more trial${need===1?"":"s"} to Book ${i+2}`}</em>${headsSvg()}</span></button>`}
+function epicSheet(){const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],cut=headsCut(),t=arcT();
+ sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">${E.n} · ${E.d}</div><h2>Book ${i+1}: ${st.n}<span class="dev">${st.sa}</span></h2><p class="sub">${st.ask}</p>
+ <div class="foe">${headsSvg(true)}<div><b>${foeName()}</b><small>${10-cut?`${10-cut} of 10 heads left. One falls every 2 trials.`:"Defeated."}</small></div></div>
+ <div class="box"><small>Your Ayodhya: where this journey ends</small>${CAP(destText())}</div>
+ <div class="box"><small>Your title</small>${ARC_RANK[i][0]} <span class="dev">${ARC_RANK[i][1]}</span> · ${EN[ARC_RANK[i][0]]}</div>
+ <ol class="books">${E.stages.map((b,k)=>{const open=k<=i;return `<li class="${k<i?"done":k===i?"now":""}"><span class="bn">${k<i?"✓":k+1}</span><span class="bt"><b>${b.n}</b><small>${b.sa} · ${k<i?"Done":k===i?"You are here":`Opens at ${ARC_GATE[k]} trials (${Math.max(0,ARC_GATE[k]-t)} to go)`}</small></span>${open?`<button class="mini" data-ep="play:${k}">Watch</button>`:""}</li>`}).join("")}</ol>
+ <button class="cta alt" style="width:100%" data-epic-setup="edit">Change destination or obstacle</button>`)}
+function epicSetup(){const E=EP.id&&EPICS[EP.id],bst=bestEpic();let h="";
+ if(EP.step===0)h=`<div class="kick" style="color:var(--gold)">Step 1 of 3</div><h2>Choose your epic</h2><p class="sub">Each epic tells the same 7 books of growth in its own way. You can start another one later.</p>
+  <div class="epics">${Object.entries(EPICS).map(([k,X])=>`<button class="epc${X.soon?" soon":""}" ${X.soon?"disabled":`data-ep="id:${k}"`}><b>${X.n}<span class="dev">${X.d}</span></b><small>${X.about}</small><em>${X.soon?"Coming soon":k===bst?"Fits your paths":"Ready"}</em></button>`).join("")}</div>`;
+ if(EP.step===1)h=`<div class="kick" style="color:var(--gold)">Step 2 of 3 · ${E.n}</div><h2>Who do you want to become?</h2><p class="sub">This is your Ayodhya: the home you walk back to at the end. Pick up to 3.</p>
+  <div class="cchips">${DESTS.map(([k,l])=>`<button class="chip" data-ep="dest:${k}" aria-pressed="${EP.dest.includes(k)}">${l}</button>`).join("")}</div>
+  <button class="cta" style="width:100%;margin-top:16px" data-ep="next" ${EP.dest.length?"":"disabled"}>Next</button>`;
+ if(EP.step===2)h=`<div class="kick" style="color:var(--gold)">Step 3 of 3 · ${E.n}</div><h2>What stands in your way?</h2><p class="sub">This becomes your ${E.foe}. It has 10 heads, and every 2 trials you pass cuts one off.</p>
+  <div class="cchips">${FOES.map(([k,l])=>`<button class="chip" data-ep="foe:${k}" aria-pressed="${EP.foe===k}">${l}</button>`).join("")}</div>
+  <button class="cta" style="width:100%;margin-top:16px" data-ep="begin" ${EP.foe?"":"disabled"}>${EP.edit?"Save":"Begin Book 1"}</button>`;
+ sheet("var(--gold)",h)}
+function playStage(i,after){const E=EPICS[S.epic.id],st=E.stages[i],pid=companionPid()||sel()[0],g=CHAR[pid];
+ const sub=x=>x.replace("{G}",PEOPLE[g].n).replace("{FOE}",foeName()).replace("{DEST}",destText());
+ const cards=st.scenes.map((sc,k)=>{const w=sc.who.map(x=>x==="G"?g:x).filter((x,j,a)=>a.indexOf(x)===j);return {kick:k?"":`Book ${i+1} · ${st.n}`,svg:sceneInner({bg:sc.bg,chars:w.length>1?two(w[0],w[1]):one(w[0],k?"float":"rise")}),cap:sub(sc.cap)}});
+ cards.push({kick:"Your title",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${ARC_RANK[i][0]} <span class="dev">${ARC_RANK[i][1]}</span></b><p>${EN[ARC_RANK[i][0]]}. ${i<6?`Book ${i+2} opens after ${ARC_GATE[i+1]} trials.`:"Your epic is complete. The daily path goes on."}</p>${headsSvg(true)}</div>`,cap:i<6?`${10-headsCut()} heads of ${foeName()} remain.`:""});
+ openPlayer({label:`Book ${i+1}`,title:E.n,sub:`Book ${i+1} of 7 · ${st.n}`,cast:[pid],cards,auto:false,after})}
+function epicCheck(){if(!S.epic||EPCHK)return;EPCHK=true;setTimeout(()=>{EPCHK=false;if(!S.on||!S.epic||$(".scrim")||queue.length)return;
+ const i=arcStage(),c=headsCut();
+ if(i>(S.epic.seen??-1)){S.epic.seen=i;S.epic.cut=c;save();playStage(i);return}
+ if(c>(S.epic.cut||0)){S.epic.cut=c;save();toast(c>=10?`${foeName()} is defeated`:`A head of ${EPICS[S.epic.id].foe} falls. ${10-c} left.`)}},700)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -787,6 +832,7 @@ function render(){
  if(lastView!==v){lastView=v;app.classList.remove("enter");void app.offsetWidth;app.classList.add("enter")}
  save();
  if(S.deck!==td()&&!$(".scrim")&&!queue.length)setTimeout(()=>{if(S.on&&S.deck!==td()&&!$(".scrim"))openDeck()},300);
+ else if(v==="today")epicCheck();
 }
 function header(title,sub){return `<header class="bar"><div class="wrap"><div class="hgreet">${sub?`<small>${sub}</small>`:""}<b>${title||"Abhyasa"}</b></div><button class="spill" data-streak="1" aria-label="${S.streak} day streak. Open streak details">${DIYA}${S.streak}</button></div></header>`}
 function tabs(){return `<nav class="tabs" aria-label="Main"><div class="wrap">${[["today","Today","sun"],["journey","Journey","path"],["hero","Hero","hero"]].map(([k,l,i])=>`<button data-view="${k}" ${S.view===k?'aria-current="page"':""}>${ic(i)}<span>${l}</span></button>`).join("")}</div></nav>`}
@@ -969,7 +1015,7 @@ function todayView(){
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
  const eve=S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
- ${activityRings()}${stripCards()}
+ ${epicBanner()}${activityRings()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
  <div class="tlist">${items.map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
@@ -1008,8 +1054,9 @@ function heatmap(){const t=td(),start=addD(monOf(t),-28),cells=[];for(let i=0;i<
  return `<div class="cardx"><div class="cx-h"><b>Last 5 weeks</b><small>${act} active days</small></div><div class="hm-l">${["M","T","W","T","F","S","S"].map(x=>`<small>${x}</small>`).join("")}</div><div class="hm">${cells.join("")}</div><div class="hm-k"><small>Less</small><i class="h0"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><small>More</small></div></div>`}
 function heroView(){const sg=segOf("hero","hero");let body="";
  const st=stage(),n=sel().length,need=(st+1)*n-msTotal(),pct=st>=5?100:Math.round((msTotal()-st*n)/n*100);
- if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-talk="1" aria-label="Tap your hero">${TALK?`<span class="bubble"><small>${TALK[0]} says</small>${TALK[1]}</span>`:""}${avatar(st)}</button><div class="rank">${RANKS[st][0]}<span class="dev">${RANKS[st][1]}</span><small class="rankEn">${EN[RANKS[st][0]]}</small></div>
-  <div class="track"><i style="width:${pct}%"></i></div><small>${st>=5?"The highest rank":`${need} more trial${need===1?"":"s"} to ${RANKS[st+1][0]}`}</small></div>
+ if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-talk="1" aria-label="Tap your hero">${TALK?`<span class="bubble"><small>${TALK[0]} says</small>${TALK[1]}</span>`:""}${avatar(st)}</button>${S.epic?(()=>{const i=arcStage(),t=arcT(),nx=ARC_GATE[i+1],nd=i>=6?0:nx-t,pc=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100);return `<div class="rank">${ARC_RANK[i][0]}<span class="dev">${ARC_RANK[i][1]}</span><small class="rankEn">${EN[ARC_RANK[i][0]]} · Book ${i+1} of the ${EPICS[S.epic.id].n}</small></div>
+  <div class="track"><i style="width:${pc}%"></i></div><small>${i>=6?"The highest title":`${nd} more trial${nd===1?"":"s"} to ${ARC_RANK[i+1][0]}`}</small>`})():`<div class="rank">${RANKS[st][0]}<span class="dev">${RANKS[st][1]}</span><small class="rankEn">${EN[RANKS[st][0]]}</small></div>
+  <div class="track"><i style="width:${pct}%"></i></div><small>${st>=5?"The highest rank":`${need} more trial${need===1?"":"s"} to ${RANKS[st+1][0]}`}</small>`}</div>
   <div class="stat3" style="margin-top:12px"><button class="stat" data-streak="1"><b>${S.streak}</b><small>Day streak</small></button><div class="stat"><b>${S.goal}</b><small>Streak goal</small></div><div class="stat"><b>${S.best}</b><small>Best streak</small></div></div>
   <div class="cardx" style="margin-top:12px"><div class="cx-h"><b>Balance</b><small>Strongest path per realm</small></div>${realmWheel()}</div>`;
  if(sg==="stats"){const closed=Object.values(S.days).filter(x=>x.mood).length;body=`${weekChart()}${heatmap()}<div class="stat3"><div class="stat"><b>${S.total}</b><small>Total growth</small></div><div class="stat"><b>${msTotal()}</b><small>Trials passed</small></div><div class="stat"><b>${closed}</b><small>Days closed</small></div></div>
@@ -1135,7 +1182,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1143,6 +1190,18 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.epicSetup){EP=d.epicSetup==="edit"&&S.epic?{step:1,id:S.epic.id,dest:[...S.epic.dest],foe:S.epic.foe,edit:true}:{step:0,id:"",dest:[],foe:"",edit:false};epicSetup();return}
+ if(d.epic){epicSheet();return}
+ if(d.ep){const[a,v]=d.ep.split(":");
+  if(a==="play"){closeLayer();playStage(+v);return}
+  if(!EP)return;
+  if(a==="id"){EP.id=v;EP.step=1;if(!EP.dest.length)EP.dest=DESTS.filter(x=>x[2].some(p=>sel().includes(p))).map(x=>x[0]).slice(0,3)}
+  if(a==="dest"){EP.dest=EP.dest.includes(v)?EP.dest.filter(x=>x!==v):EP.dest.length<3?[...EP.dest,v]:EP.dest;if(!EP.dest.includes(v)&&EP.dest.length>=3)toast("Pick up to 3")}
+  if(a==="next")EP.step=2;
+  if(a==="foe")EP.foe=v;
+  if(a==="begin"){if(EP.edit){S.epic.dest=EP.dest;S.epic.foe=EP.foe;EP=null;save();closeLayer();render();toast("Your epic is updated");return}
+   S.epic={id:EP.id,start:td(),base:0,dest:EP.dest,foe:EP.foe,seen:0,cut:0};EP=null;const i=arcStage();S.epic.seen=i;S.epic.cut=headsCut();save();closeLayer();render();playStage(i);return}
+  epicSetup();return}
  if(d.fbk){const tx=$("#fbtext");if(tx)FB.t=tx.value;FB.k=d.fbk;feedbackSheet();return}
  if(d.fbsend){fbSend(d.fbsend);return}
  if(d.cer){cerCmd(d.cer);return}
