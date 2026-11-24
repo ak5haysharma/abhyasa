@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.18.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.19.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -50,16 +50,17 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},hall:[],rk:0,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",cal:"indian",epic:null,gear:{},hall:[],rk:0,story:{done:[],cur:null,refl:{},nt:-1},storyInit:1,intro:[],tips:[],learned:[],trialLog:[],lastBackup:"",shown:{},reviews:{},wfocus:{w:"",pid:""},seg:{},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
+if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S),S);
 try{injectCustom()}catch(e){}
-function migrate(o){
+function migrate(o,raw){raw=raw||o;
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.shown=o.shown||{};o.learned=o.learned||[];o.trialLog=o.trialLog||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.cal=o.cal||"indian";if(o.epic&&!o.epic.goal)o.epic=null;if(!o.rkInit){o.rkInit=1;const t=ORDER.reduce((a,k)=>a+(o.prog[k]?o.prog[k].m:0),0);let r=0;ARC_GATE.forEach((g,k)=>{if(t>=g)r=k});o.rk=r}o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.shown=o.shown||{};o.learned=o.learned||[];o.trialLog=o.trialLog||[];o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.cal=o.cal||"indian";if(o.epic&&!o.epic.goal)o.epic=null;if(!raw.storyInit){o.storyInit=1;const t=ORDER.reduce((a,k)=>a+(o.prog[k]?o.prog[k].m:0),0);let r=0;ARC_GATE.forEach((g,k)=>{if(t>=g)r=k});o.story={done:Array.from({length:r},(_,k)=>k),cur:null,refl:{},nt:-1,grand:r}}
+ if(!o.rkInit){o.rkInit=1;const t=ORDER.reduce((a,k)=>a+(o.prog[k]?o.prog[k].m:0),0);let r=0;ARC_GATE.forEach((g,k)=>{if(t>=g)r=k});o.rk=r}o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -327,7 +328,7 @@ function passTrial(pid,feel){
  beep(523,.15);setTimeout(()=>beep(659,.15),150);setTimeout(()=>beep(784,.35),300);
  pushModal(`<div class="unlock">${unlockArt(pid,sk)}</div><div class="kick">${P.name} · Skill unlocked</div><h2>${sk.n}<span class="dev">${sk.d}</span></h2>${enLine(sk.n)}<p>${sk.s}</p>${feel?`<p class="cer-r">“${FEEL_REPLY[feel]}” <small>${P.hero}</small></p>`:""}<div class="box" style="text-align:left"><small>Effect</small>${PERK[sk.perk](P.name)}${sk.item?`<small style="margin-top:6px">Gift</small>${sk.itemName||sk.n} joins your hero`:""}</div>`);
  SYN.forEach(s=>{if(S.syn.includes(s.id)||!s.p.every(p=>S.paths.includes(p)))return;if(s.p.every(p=>S.prog[p].m>=s.req)){S.syn.push(s.id);pushModal(`<div class="evo" style="gap:0">${s.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p>${s.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${s.id}">Watch their story</button>`)}});
- const R=lifeRank();if(R>(S.rk??0)){S.rk=R;S.seen=stage();const after=stage();pushModal(`<div class="evo">${avatar(before)}${avatar(after)}</div><div class="kick">Your hero grows</div><h2>${ARC_RANK[R][0]}<span class="dev">${ARC_RANK[R][1]}</span></h2>${enLine(ARC_RANK[R][0])}<p>${R<6?`${ARC_GATE[R+1]-allTrials()} more trial${ARC_GATE[R+1]-allTrials()===1?"":"s"} to ${ARC_RANK[R+1][0]}.`:"The highest title. Keep the lamp lit."}</p>`)}
+ {const a2=stAvail();if(a2>=0&&SS().nt!==a2){SS().nt=a2;pushModal(`<div class="flame big" style="margin:0 auto">${DIYA}</div><div class="kick">A story trial awaits · Book ${a2+1}</div><h2>${STRIALS[a2].n}<span class="dev">${STRIALS[a2].d}</span></h2><p>${STRIALS[a2].theme} Pass it to become ${ARC_RANK[Math.min(6,a2+1)][0]}.</p><button class="cta" style="width:100%" data-st="open">See the trial</button>`)}}
  S.plan.items=buildPlan(S.plan.items.filter(x=>x.done||x.kind==="trial"));
  save();render();
 }
@@ -570,7 +571,7 @@ function openDeck(){
 /* ================= epics v2 (v1.17): a time-boxed campaign for one concrete goal ================= */
 let EP=null,EPCHK=false;
 const allTrials=()=>ORDER.reduce((a,k)=>a+(S.prog[k]?S.prog[k].m:0),0);
-const lifeRank=()=>{const t=allTrials();let i=0;ARC_GATE.forEach((g,k)=>{if(t>=g)i=k});return i};
+const lifeRank=()=>Math.min(gateRank(),stDone());
 const LOOK=[0,1,2,3,4,4,5];
 const roundTo=(v,s)=>Math.round(v/s)*s,fmtN=v=>(+v.toFixed(2)).toString();
 const msOf=(base,tgt,st)=>Array.from({length:7},(_,k)=>k===6?tgt:Math.max(base+st,roundTo(base+(tgt-base)*(k+1)/7,st)));
@@ -602,40 +603,38 @@ function headsSvg(big){const n=10,cut=headsCut(),w=big?220:150,h=big?34:22,r=big
   :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="#b5442c" stroke="${K}" stroke-width="1.5"/><path d="M${(x-r*.6).toFixed(1)} ${(y-r*.7).toFixed(1)}l${(r*.3).toFixed(1)} -${(r*.7).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} -${(r*.4).toFixed(1)} l${(r*.3).toFixed(1)} ${(r*.7).toFixed(1)}z" fill="#d9a441" stroke="${K}" stroke-width="1"/>`}
  return `<svg class="heads" viewBox="0 -6 ${w} ${h+6}" width="${w}" height="${h+6}" aria-label="${n-cut} of ${n} heads left">${g}</svg>`}
 function goalCard(s,i){const G=TPL(s),n=G.n[s.size],E=EPICS[bestEpicFor(s.pid)];
- return `<button class="gcard" data-ep="pick:${i}" style="--c:${PATHS[s.pid].c}"><small>${s.why}</small><b>${G.t.replace("{n}",fmtN(n))}</b><span>${s.combo?comboOf(s.combo).p.map(p=>medal(p,"xs")).join(""):medal(s.pid,"xs")}${s.combo?comboOf(s.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[s.pid].name} · ${GSIZE[s.size]} · ${G.w[s.size]} weeks · ${E.n}</span><em>${s.note}</em></button>`}
+ return `<button class="gcard" data-ep="pick:${i}" style="--c:${PATHS[s.pid].c}"><small>${s.why}</small><b>${G.t.replace("{n}",fmtN(n))}</b><span>${s.combo?comboOf(s.combo).p.map(p=>medal(p,"xs")).join(""):medal(s.pid,"xs")}${s.combo?comboOf(s.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[s.pid].name} · ${GSIZE[s.size]} · ${G.w[s.size]} weeks</span><em>${s.note}</em></button>`}
 function epicBody(){
  if(!S.epic){const sg=goalSuggest();EP=EP&&EP.list?EP:{list:sg};EP.list=sg;
-  return `<div class="ep-why"><h3>Have a goal? Turn it into an epic.</h3><p>Abhyasa is about your daily practice. An epic is <b>optional</b>: one clear goal with a deadline, told as a story in 7 books. Each milestone you reach opens the next book.</p></div>
+  return `<div class="ep-why sk"><h3>Sankalpa <span class="dev">सङ्कल्प</span></h3><p>A <b>Sankalpa</b> is a vow: one clear goal with a deadline. It is optional. Your daily tasks help, and the goal is split into 7 milestones.</p></div>
   <div class="block"><h2>Suggested for you</h2><p class="sub">Based on your paths, your level and the last 14 days.</p>${sg.map(goalCard).join("")}
-  <button class="cta alt" style="width:100%;margin-top:4px" data-ep="own">Pick my own goal</button></div>${(S.hall||[]).length?`<div class="block"><h2>Hall of epics</h2>${hallView()}</div>`:""}`}
- const E=EPICS[S.epic.id],i=arcStage(),st=E.stages[i],g=S.epic.goal,G=TPL(g),dl=daysLeft(),cur=S.epic.cur,pc=Math.min(100,Math.round((cur-g.base)/Math.max(1e-9,g.n-g.base)*100));
- if(epicDone())return `<div class="ep-why"><h3>Goal reached 🎉</h3><p>${CAP(destText())}. You completed the ${E.n}.</p><button class="cta" style="width:100%" data-ep="play:6">Watch Book 7 again</button><button class="cta alt" style="width:100%;margin-top:8px" data-ep="finish">Add to your Hall and start a new epic</button></div>`;
+  <button class="cta alt" style="width:100%;margin-top:4px" data-ep="own">Pick my own goal</button></div>${(S.hall||[]).length?`<div class="block"><h2>Past vows</h2>${hallView()}</div>`:""}`}
+ const i=arcStage(),g=S.epic.goal,G=TPL(g),dl=daysLeft(),cur=S.epic.cur,pc=Math.min(100,Math.round((cur-g.base)/Math.max(1e-9,g.n-g.base)*100));
+ if(epicDone())return `<div class="ep-why"><h3>Vow kept 🎉</h3><p>${CAP(destText())}.</p><button class="cta" style="width:100%" data-ep="finish">Add to past vows and take a new one</button></div>`;
  const miss=dl<0?`<div class="ep-miss"><b>The deadline has passed</b><p>No shame in that. Most goals take longer than planned. What would you like to do?</p><button class="cta" style="width:100%" data-ep="miss">Decide what’s next</button></div>`:"";
- return `${miss}<p class="ep-note">An optional story for one goal. Your daily tasks help, and logging progress opens the next book.</p>
- <div class="ep-goal" style="--c:${PATHS[g.pid].c}"><small>${E.n} · Book ${i+1} of 7 · ${st.n}</small><b>${CAP(destText())}</b>
+ return `${miss}<div class="ep-goal" style="--c:${PATHS[g.pid].c}"><small>Sankalpa · milestone ${i} of 7</small><b>${CAP(destText())}</b>
   <span class="eb-bar"><i style="width:${pc}%"></i></span><span class="eb-row"><em>${fmtN(cur)} of ${fmtN(g.n)} ${G.u}</em><em>${dl>0?`${dl} days left`:dl===0?"Deadline today":`${-dl} days past the deadline`}</em></span>
   <button class="cta" style="width:100%;margin-top:10px" data-ep="log">Update progress</button></div>
  <div class="foe">${headsSvg(true)}<div><b>${foeName()}</b><small>${10-headsCut()} of 10 heads left. A head falls at each milestone, and each week you beat your obstacles.</small></div></div>
- <ol class="books">${E.stages.map((b,k)=>{const v=k?S.epic.ms[k-1]:g.base;return `<li class="${k<i?"done":k===i?"now":""}"><span class="bn">${k<i?"✓":k+1}</span><span class="bt"><b>${b.n}</b><small>${k===0?"Start":`At ${fmtN(v)} ${G.u}`} · ${k<i?"Done":k===i?"You are here":"Locked"}</small></span>${k<=i?`<button class="mini" data-ep="play:${k}">Watch</button>`:""}</li>`}).join("")}
-  <li class="${epicDone()?"done":""}"><span class="bn">★</span><span class="bt"><b>Goal</b><small>${fmtN(g.n)} ${G.u} by ${S.epic.end.split("-").reverse().join(".")}</small></span></li></ol>
- <button class="linkbtn" data-ep="close">End this epic</button>`}
+ <ol class="books">${S.epic.ms.map((v,k)=>`<li class="${cur>=v?"done":k===i?"now":""}"><span class="bn">${cur>=v?"✓":k+1}</span><span class="bt"><b>${k===6?"Goal":`Milestone ${k+1}`}</b><small>${fmtN(v)} ${G.u}${k===6?` by ${S.epic.end.split("-").reverse().join(".")}`:""}</small></span></li>`).join("")}</ol>
+ <button class="linkbtn" data-ep="close">End this vow</button>`}
 function toHall(won,why){S.hall=S.hall||[];S.hall.push({id:S.epic.id,pid:S.epic.goal.pid,combo:S.epic.goal.combo||"",goal:goalText(S.epic.goal),cur:S.epic.cur,u:TPL(S.epic.goal).u,start:S.epic.start,end:td(),won:!!won,why:why||[]});S.epic=null;EP=null;save()}
 function missSheet(){EP=EP&&EP.miss?EP:{miss:true,why:[]};const ext=S.epic.ext;
- sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">${EPICS[S.epic.id].n} · Deadline passed</div><h2>${CAP(destText())}</h2><p class="sub">You reached ${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${TPL(S.epic.goal).u}. That still counts. What got in the way?</p>
+ sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">Sankalpa · Deadline passed</div><h2>${CAP(destText())}</h2><p class="sub">You reached ${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${TPL(S.epic.goal).u}. That still counts. What got in the way?</p>
  <div class="cchips">${MISSWHY.map(([k,l])=>`<button class="chip" data-ep="why:${k}" aria-pressed="${EP.why.includes(k)}">${l}</button>`).join("")}</div>
  ${ext?"":`<div class="qlabel">Keep going</div><div class="row"><button class="cta alt" data-ep="ext:2">Extend 2 weeks</button><button class="cta alt" data-ep="ext:4">Extend 4 weeks</button></div>`}
  <div class="qlabel">Or</div><button class="cta" style="width:100%" data-ep="missclose">Close it and keep the lessons</button>
  <p class="sub" style="margin-top:10px">Your rank, gear and trials stay either way.${ext?" You have already extended this epic once.":""}</p>`)}
-function hallView(){const H=(S.hall||[]).slice().reverse();if(!H.length)return `<p class="sub">Finished and closed epics appear here.</p>`;
- return `<div class="hall">${H.map(h=>`<div class="hall-i${h.won?" won":""}" style="--c:${PATHS[h.pid]?PATHS[h.pid].c:"var(--gold)"}"><span class="hall-m">${h.won?"★":"◐"}</span><span><b>${esc(h.goal)}</b><small>${EPICS[h.id]?EPICS[h.id].n:""} · ${h.start.split("-").reverse().join(".")} – ${h.end.split("-").reverse().join(".")}</small><em>${h.won?"Goal reached":`Reached ${fmtN(h.cur||0)} ${h.u||""}${h.why&&h.why.length?" · "+h.why.map(k=>(MISSWHY.find(x=>x[0]===k)||[0,""])[1].toLowerCase()).join(", "):""}`}</em></span></div>`).join("")}</div>`}
+function hallView(){const H=(S.hall||[]).slice().reverse();if(!H.length)return `<p class="sub">Kept and closed vows appear here.</p>`;
+ return `<div class="hall">${H.map(h=>`<div class="hall-i${h.won?" won":""}" style="--c:${PATHS[h.pid]?PATHS[h.pid].c:"var(--gold)"}"><span class="hall-m">${h.won?"★":"◐"}</span><span><b>${esc(h.goal)}</b><small>Sankalpa · ${h.start.split("-").reverse().join(".")} – ${h.end.split("-").reverse().join(".")}</small><em>${h.won?"Goal reached":`Reached ${fmtN(h.cur||0)} ${h.u||""}${h.why&&h.why.length?" · "+h.why.map(k=>(MISSWHY.find(x=>x[0]===k)||[0,""])[1].toLowerCase()).join(", "):""}`}</em></span></div>`).join("")}</div>`}
 function goalSheet(){const g=EP.g,G=TPL(g);
- sheet(PATHS[g.pid].c,`<div class="kick" style="color:${PATHS[g.pid].c}">${g.combo?comboOf(g.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[g.pid].name} · ${EPICS[bestEpicFor(g.pid)].n}</div><h2>${G.t.replace("{n}",fmtN(g.n))}</h2>
+ sheet(PATHS[g.pid].c,`<div class="kick" style="color:${PATHS[g.pid].c}">${g.combo?comboOf(g.combo).p.map(p=>PATHS[p].name).join(" + "):PATHS[g.pid].name} · Sankalpa</div><h2>${G.t.replace("{n}",fmtN(g.n))}</h2>
  <div class="qlabel">Goal</div><div class="stepr"><button class="mini" data-ep="n:-">−</button><b>${fmtN(g.n)} ${G.u}</b><button class="mini" data-ep="n:+">+</button></div>
  <div class="qlabel">Where you are now</div><div class="stepr"><button class="mini" data-ep="b:-">−</button><b>${fmtN(g.base)} ${G.u}</b><button class="mini" data-ep="b:+">+</button></div>
  <div class="qlabel">Deadline</div><div class="cchips">${[4,8,12].map(w=>`<button class="chip" data-ep="w:${w}" aria-pressed="${g.w===w}">${w} weeks</button>`).join("")}</div>
  <div class="qlabel">What stands in your way? Up to 3</div><div class="cchips">${FOES.map(([k,l])=>`<button class="chip" data-ep="foe:${k}" aria-pressed="${g.foes.includes(k)}">${l}</button>`).join("")}</div>
- <p class="sub" style="margin-top:12px">Your goal is split into 7 milestones, one per book. Your obstacles become ${EPICS[bestEpicFor(g.pid)].foe}, with 10 heads.</p>
- <button class="cta" style="width:100%" data-ep="begin" ${g.n>g.base?"":"disabled"}>Begin the ${EPICS[bestEpicFor(g.pid)].n}</button>`)}
+ <p class="sub" style="margin-top:12px">Your goal is split into 7 milestones. Your obstacles become a 10-headed Ravana: a head falls at each milestone and each good week.</p>
+ <button class="cta" style="width:100%" data-ep="begin" ${g.n>g.base?"":"disabled"}>Take this vow</button>`)}
 function ownSheet(){const ps=sel(),cbs=SYN.filter(x=>ECOMBO[x.id]&&x.p.every(p=>ps.includes(p)));
  const row=(p,ti)=>{const G=EGOALS[p][ti],z=sizeFor(p);return `<button class="gcard" data-ep="ownp:${p}:${ti}" style="--c:${PATHS[p].c}"><b>${G.t.replace("{n}",fmtN(G.n[z]))}</b><span>${medal(p,"xs")}${PATHS[p].name} · ${GSIZE[z]}</span></button>`};
  sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Pick my own goal</div><h2>Choose a goal</h2><p class="sub">Sizes fit your level. You can change the number on the next screen.</p>
@@ -655,13 +654,81 @@ function playStage(i,after){const E=EPICS[S.epic.id],st=E.stages[i],pid=S.epic.g
  cards.push({kick:"Your goal",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${CAP(destText())}</b><p>${i<6?`Next milestone: ${fmtN(nx)} ${G.u}. That opens Book ${i+2}.`:`Last step: ${fmtN(S.epic.goal.n)} ${G.u}.`}</p>${headsSvg(true)}</div>`,cap:`${10-headsCut()} heads of ${foeName()} remain. ${daysLeft()} days left.`});
  openPlayer({label:`Book ${i+1}`,title:E.n,sub:`Book ${i+1} of 7 · ${st.n}`,cast:[pid],cards,auto:false,after})}
 function playWin(){const E=EPICS[S.epic.id],g=S.epic.goal,c=CHAR[g.pid];
- openPlayer({label:"Goal reached",title:E.n,sub:"Goal reached",cast:[g.pid],auto:false,cards:[
-  {kick:"Goal reached",svg:sceneInner({bg:"lamps",chars:two("rama",c)}),cap:`${CAP(destText())}. Ravana falls, and Ayodhya lights every lamp for you.`},
-  {kick:"",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${E.n} complete</b><p>${(S.hall||[]).some(h=>h.won)?"":"You earned the <b>Ayodhya diya</b>, a companion for your hero. "}Your rank, gear and trials stay with you. When you are ready, pick your next goal.</p></div>`,cap:""}]})}
+ openPlayer({label:"Vow kept",title:"Sankalpa",sub:"Goal reached",cast:[g.pid],auto:false,cards:[
+  {kick:"Goal reached",svg:sceneInner({bg:"lamps",chars:two("rama",c)}),cap:`${CAP(destText())}. Your vow is kept, and Ravana falls.`},
+  {kick:"",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>Vow kept</b><p>${(S.hall||[]).some(h=>h.won)?"":"You earned the <b>Ayodhya diya</b>, a companion for your hero. "}Your rank, gear and trials stay with you. When you are ready, pick your next goal.</p></div>`,cap:""}]})}
 function epicCheck(){if(!S.epic||EPCHK)return;EPCHK=true;setTimeout(()=>{EPCHK=false;if(!S.on||!S.epic||$(".scrim")||queue.length)return;
  if(epicDone()&&!S.epic.won){S.epic.won=td();save();playWin();render();return}
- const i=arcStage();if(i>(S.epic.seen??-1)){S.epic.seen=i;save();playStage(i);return}
+ const i=arcStage();if(i>(S.epic.seen??-1)){S.epic.seen=i;save();if(i)toast(`Milestone ${i} of 7 reached. A head of Ravana falls`)}
  if(daysLeft()<0&&!epicDone()&&!S.epic.missAsk){S.epic.missAsk=td();save();EP=null;missSheet()}},700)}
+/* ================= story trials (v1.19): the Ramayana is your rank ================= */
+let TR=null;
+const SS=()=>{S.story=S.story||{done:[],cur:null,refl:{},nt:-1};return S.story};
+const gateRank=()=>{const t=allTrials();let i=0;ARC_GATE.forEach((g,k)=>{if(t>=g)i=k});return i};
+const stDone=()=>{const d=SS().done;let k=0;while(d.includes(k))k++;return k};
+const stGate=i=>i<6?ARC_GATE[i+1]:FINALE_GATE;
+const stAvail=()=>{const i=stDone();return i<7&&!SS().cur&&allTrials()>=stGate(i)?i:-1};
+const stOpts=i=>{const T=STRIALS[i];if(T.fixed==="foes")return FOES.map(([k,l])=>[k,`Free of: ${l.toLowerCase()}`,""]);if(T.fixed)return T.fixed.map(([k,l])=>[k,l,""]);return sel().map(p=>[p,PH[p][T.ph],p])};
+const stLabel=(i,k)=>{const o=stOpts(i).find(x=>x[0]===k);return o?o[1]:(PH[k]?PH[k][STRIALS[i].ph]:k)};
+const stProg=()=>{const c=SS().cur;if(!c)return 0;return c.ticks.length};
+const stNeed=i=>STRIALS[i].kind==="once"?1:STRIALS[i].days;
+const stReady=()=>{const c=SS().cur;return c&&stProg()>=stNeed(c.i)};
+const stToday=()=>{const c=SS().cur;return c&&c.ticks.includes(td())};
+function stCheck(){const c=SS().cur;if(!c||!c.strict||STRIALS[c.i].kind!=="daily"||stReady())return;
+ for(let d=c.start;d<td();d=addD(d,1))if(!c.ticks.includes(d)){c.start=td();c.ticks=[];save();setTimeout(()=>toast("A day was missed. Strict mode: your trial starts again today"),600);return}}
+function playBook(i,after){const st=EPICS.ramayana.stages[i],pid=companionPid()||sel()[0],g=CHAR[pid];
+ const cards=st.scenes.map((sc,k)=>{const w=sc.who.map(x=>x==="G"?g:x).filter((x,j,a)=>a.indexOf(x)===j);return {kick:k?"":`Book ${i+1} · ${st.n}`,svg:sceneInner({bg:sc.bg,chars:w.length>1?two(w[0],w[1]):one(w[0],k?"float":"rise")}),cap:sc.cap.replace("{G}",PEOPLE[g].n)}});
+ cards.push({kick:"Your title",html:`<div class="dk-charm"><div class="flame big" style="margin:0 auto">${DIYA}</div><b>${ARC_RANK[i][0]} <span class="dev">${ARC_RANK[i][1]}</span></b><p>${EN[ARC_RANK[i][0]]}.</p></div>`,cap:i<7&&STRIALS[i]?`Next story trial: ${STRIALS[i].n}. It opens after ${stGate(i)} path trials.`:""});
+ openPlayer({label:`Book ${i+1}`,title:"Ramayana",sub:`Book ${i+1} of 7 · ${st.n}`,cast:[pid],cards,auto:false,after})}
+function playTrialStory(i){const T=STRIALS[i],pid=companionPid()||sel()[0],g=CHAR[pid];
+ openPlayer({label:T.n,title:T.n,sub:`Story trial · Book ${i+1}`,cast:[pid],auto:false,cards:T.story.map((sc,k)=>{const w=sc.who.map(x=>x==="G"?g:x).filter((x,j,a)=>a.indexOf(x)===j);return {kick:k?"":"Story trial",svg:sceneInner({bg:sc.bg,chars:w.length>1?two(w[0],w[1]):one(w[0],k?"float":"rise")}),cap:sc.cap}})})}
+function dots(n,f){return `<div class="stdots">${Array.from({length:n},(_,k)=>`<i class="${k<f?"on":""}"></i>`).join("")}</div>`}
+function stSheet(){const c=SS().cur,i=c?c.i:stAvail();if(i<0)return;const T=STRIALS[i],next=ARC_RANK[Math.min(6,i+1)];
+ let h=`<div class="kick" style="color:var(--gold)">Story trial · Book ${i+1} of 7</div><h2>${T.n}<span class="dev">${T.d}</span></h2><p class="sub">${T.theme}</p>
+ <button class="cta alt" style="width:100%" data-st="story">Watch the story</button>`;
+ if(!c){TR=TR&&TR.i===i?TR:{i,opts:[],strict:false};
+  h+=`<div class="box"><small>${PATHS[sel()[0]]?PATHS[sel()[0]].hero:"Your guide"}’s advice</small><ul class="tips">${T.tips.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+  <div class="qlabel">Choose how you will do it</div><p class="sub" style="margin-top:-4px">Pick 1. Pick 2 to earn a bonus gift: ${STGIFT[i]}.</p>
+  <div class="cchips">${stOpts(i).map(([k,l,p])=>`<button class="chip stopt" data-st="opt:${k}" aria-pressed="${TR.opts.includes(k)}">${p?medal(p,"xs"):""}${l}</button>`).join("")}</div>
+  ${T.kind==="daily"?`<div class="qlabel">Mode</div><div class="cchips"><button class="chip" data-st="strict:0" aria-pressed="${!TR.strict}">Gentle: missed days are fine</button><button class="chip" data-st="strict:1" aria-pressed="${TR.strict}">Strict: a missed day restarts it</button></div>`:""}
+  <button class="cta" style="width:100%;margin-top:14px" data-st="begin" ${TR.opts.length?"":"disabled"}>Begin the trial</button>
+  <p class="sub" style="text-align:center;margin-top:8px">Pass it to become ${next[0]}.</p>`}
+ else if(stReady()){TR=TR&&TR.refl?TR:{refl:true,hard:"",lessons:[],note:""};
+  h+=`<div class="box"><small>Trial complete</small>${dots(stNeed(i),stProg())}You did it. Before you claim your title, look back for a moment.</div>
+  <div class="qlabel">How hard was it?</div><div class="cchips">${HARD.map(([k,l])=>`<button class="chip" data-st="hard:${k}" aria-pressed="${TR.hard===k}">${l}</button>`).join("")}</div>
+  <div class="qlabel">What did you learn?</div><div class="cchips">${LESSON.map(([k,l])=>`<button class="chip" data-st="les:${k}" aria-pressed="${TR.lessons.includes(k)}">${l}</button>`).join("")}</div>
+  <div class="qlabel">One line for later (optional)</div><input id="stnote" class="name" style="font-size:16px" maxlength="120" placeholder="What will you remember?" value="${esc(TR.note)}">
+  <button class="cta" style="width:100%;margin-top:14px" data-st="complete">Complete the trial</button>`}
+ else{const k=T.kind,n=stNeed(i),f=stProg(),done=stToday();
+  h+=`<div class="box"><small>Your way</small>${c.opts.map(o=>stLabel(i,o)).join(" + ")}${c.opts.length>1?` <span class="mute">· bonus gift</span>`:""}</div>
+  ${k==="once"?"":`${dots(n,f)}<p class="sub" style="text-align:center">${f} of ${n} ${k==="count"?"done":"days"}${c.strict?" · strict":""}</p>`}
+  ${k==="daily"?(done?`<div class="box" style="text-align:center"><b>Done for today ✓</b><br><span class="mute">Come back tomorrow.</span></div>`:`<button class="cta" style="width:100%" data-st="tick">I kept it today</button>`):`<button class="cta" style="width:100%" data-st="tick">${k==="count"?"I did one":"I did it"}</button>`}
+  ${TR&&TR.help?`<div class="box"><small>On a hard day</small>${T.smaller}</div>`:`<button class="linkbtn" data-st="help">Struggling today?</button>`}
+  <div class="box"><small>Advice</small><ul class="tips">${T.tips.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+  <div class="row"><button class="cta alt" data-st="share">Tell someone</button><button class="cta alt" data-st="quit">Stop this trial</button></div>`}
+ const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--gold)",h);if(TR&&TR.keep&&$(".sheet")){$(".sheet").scrollTop=y;TR.keep=false}}
+function stStepRow(){const c=SS().cur;if(!c||stReady())return "";const T=STRIALS[c.i],done=T.kind==="daily"?stToday():false;
+ return `<button class="ststep${done?" done":""}" data-st="open"><span class="sti">${done?"✓":DIYA}</span><span><small>Story trial · ${T.n}${T.kind==="daily"?` · day ${Math.min(stNeed(c.i),stProg()+(done?0:1))} of ${stNeed(c.i)}`:""}</small><b>${c.opts.map(o=>stLabel(c.i,o)).join(" + ")}</b></span></button>`}
+function stCard(){const i=stDone(),c=SS().cur,a=stAvail();
+ if(c){const T=STRIALS[c.i];return `<button class="stcard on" data-st="open"><small>Story trial in progress · Book ${c.i+1}</small><b>${T.n}</b>${T.kind==="once"?"":dots(stNeed(c.i),stProg())}<em>${stReady()?"Complete. Tap to claim your title":T.theme}</em></button>`}
+ if(a>=0){const T=STRIALS[a];return `<button class="stcard ready" data-st="open"><small>Your story trial is ready · Book ${a+1}</small><b>${T.n}</b><em>${T.theme} Pass it to become ${ARC_RANK[Math.min(6,a+1)][0]}.</em></button>`}
+ if(i>=7)return `<div class="stcard"><small>Ramayana complete</small><b>All 7 story trials passed</b><em>Season 2, the Mahabharata, is coming. Your daily path goes on.</em></div>`;
+ const need=stGate(i)-allTrials();return `<div class="stcard lock"><small>Next story trial · Book ${i+1}</small><b>${STRIALS[i].n}</b><em>Opens after ${need} more path trial${need===1?"":"s"}. Path trials come when a path’s meter is full.</em></div>`}
+function storyBody(){const R=lifeRank(),E=EPICS.ramayana,st=E.stages[R];
+ return `<p class="ep-note">Your growth, told as the Ramayana. Path trials open story trials. Pass a story trial to reach the next book and title.</p>
+ <div class="ep-goal"><small>Ramayana · Book ${R+1} of 7</small><b>${st.n}<span class="dev">${st.sa}</span></b><span class="eb-row"><em>Your title: ${ARC_RANK[R][0]} · ${EN[ARC_RANK[R][0]]}</em></span></div>
+ ${stCard()}
+ <ol class="books">${E.stages.map((b,k)=>`<li class="${k<R?"done":k===R?"now":""}"><span class="bn">${k<R?"✓":k+1}</span><span class="bt"><b>${b.n}</b><small>${ARC_RANK[k][0]} · ${k<R?"Done":k===R?"You are here":`Story trial: ${STRIALS[k-1].n}`}</small></span>${k<=R?`<button class="mini" data-st="book:${k}">Watch</button>`:""}</li>`).join("")}</ol>
+ <div class="block"><h2>Sankalpa</h2>${epicBody()}</div>`}
+function stComplete(){const c=SS().cur,i=c.i,note=($("#stnote")||{}).value||"";const st=SS();
+ st.refl[i]={hard:TR.hard,lessons:TR.lessons,note:note.trim().slice(0,120),opts:c.opts,d:td()};st.done.push(i);st.cur=null;TR=null;
+ const bonus=c.opts.length>1;if(bonus&&!S.charms.some(x=>x.n===STGIFT[i]))S.charms.push({n:STGIFT[i],g:STGUIDE[i],d:td()});
+ S.rk=lifeRank();S.seen=stage();save();closeLayer();render();
+ if(i<6)playBook(i+1,()=>{if(bonus)toast(`Bonus gift: ${STGIFT[i]}. Find it in Collection`)});
+ else pushModal(`<div class="flame big" style="margin:0 auto">${DIYA}</div><div class="kick">Ramayana complete</div><h2>All 7 story trials passed</h2><p>You walked the whole Ramayana. Season 2, the Mahabharata, is coming. Your daily path goes on.</p>`)}
+function stShare(){const c=SS().cur,T=STRIALS[c.i],txt=`I’m taking a challenge: ${T.theme} My way: ${c.opts.map(o=>stLabel(c.i,o)).join(" + ")}. Ask me how it’s going!`;
+ if(navigator.share){navigator.share({text:txt}).catch(()=>{});return}
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast("Copied. Paste it in a message")).catch(()=>toast(txt));else toast(txt)}
 function calSheet(k){const f=k?FEST[k]:todayCal(),r=ritu(k||td());
  sheet("var(--gold)",`<div class="kick">${k?`${k.slice(8)}.${k.slice(5,7)} · ${inDays(k)}`:(f.fest?"Today in the Indian calendar":"A story for today")}</div><h2>${f.n}${f.d?`<span class="dev">${f.d}</span>`:""}</h2><p class="story">${f.s}</p><div class="box"><small>Try ${k?"that day":"today"}</small>${f.t}</div>${f.src?`<p class="sub">${f.src}</p>`:""}${f.approx?`<p class="sub">Date approximate. Check a panchang before planning.</p>`:""}${r?`<p class="sub">${rituL(r)}</p>`:""}<button class="cta" style="width:100%" data-close="1">Close</button>`)}
 function burst(ev,c){if(!ev||!ev.clientX||matchMedia("(prefers-reduced-motion: reduce)").matches)return;for(let i=0;i<10;i++){const e=document.createElement("i");e.className="petal";const a=i/10*Math.PI*2+Math.random()*.4,d=30+Math.random()*24;e.style.cssText=`left:${ev.clientX}px;top:${ev.clientY}px;--c:${c};--x:${(Math.cos(a)*d).toFixed(1)}px;--y:${(Math.sin(a)*d).toFixed(1)}px`;document.body.appendChild(e);setTimeout(()=>e.remove(),800)}}
@@ -952,7 +1019,7 @@ function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${
 let lastView="",GI=0,GANIM=false,TALK=null;
 function render(){
  if(!S.on){quiz();return}
- dayTick();ensurePlan();
+ dayTick();stCheck();ensurePlan();
  SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","hero"].includes(S.view))S.view="today";
  const v=S.view,app=$("#app");
@@ -1123,8 +1190,9 @@ function stripCards(){const t=td(),out=[],c=checkToday(),cal=todayCal(),qt=QUOTE
  if(S.lore!=="well"&&learnLeft()){const nx=LEARN.find(x=>!S.learned.includes(x.id));out.splice(Math.min(out.length,1),0,card("gold",'data-learn="1"',`<span class="sci gold">${ic("learn")}</span>`,"New to these stories?","Start here",`Next: ${nx.t}`))}
  out.push(card("",'data-today-cal="1"',`<span class="sci gold">${ic("calm")}</span>`,cal.fest?"Today’s festival":"Story for today",cal.n,cal.t));
  if(c.d===t)out.push(card("",'data-checkin="1"',`<span class="sci">${ic("sun")}</span>`,"Check-in",`${E_L[c.energy]} energy`,`${c.sore.length?"Sore "+c.sore.map(k=>SORE_L[k]).join(", "):"No soreness"} · tap to change`));
- if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Your epic · Book ${i+1} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
- else out.push(card("gold",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Your epic","Have a goal? Make it an epic","3 goals suggested for you"));
+ {const a=stAvail(),c=SS().cur;if(c&&stReady())out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,"Story trial complete","Claim your title",STRIALS[c.i].n));else if(a>=0)out.unshift(card("gold",'data-st="open"',`<span class="sci gold">${DIYA}</span>`,`Story trial ready · Book ${a+1}`,STRIALS[a].n,`Pass it to become ${ARC_RANK[Math.min(6,a+1)][0]}`))}
+ if(S.epic){const E=EPICS[S.epic.id],i=arcStage(),G=TPL(S.epic.goal);out.push(card("gold",'data-epic="1"',`<span class="sci gold">${ic("path")}</span>`,`Sankalpa · milestone ${i} of 7`,CAP(destText()),`${fmtN(S.epic.cur)} of ${fmtN(S.epic.goal.n)} ${G.u} · ${Math.max(0,daysLeft())} days left`))}
+ else out.push(card("",'data-epic-setup="1"',`<span class="sci gold">${ic("path")}</span>`,"Optional · Sankalpa","Have a goal? Take a vow","3 goals suggested for you"));
  out.push(`<div class="sc2 quote2"><span><small>Thought for today</small><b>“${qt[0]}”</b><em>${qt[1]}</em></span></div>`);
  return `<div class="strip" role="list">${out.join("")}</div>`}
 function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${it.id}" aria-label="${it.done?"Undo":"Mark done"}: ${esc(it.t)}">${ic("check")}</button>`;
@@ -1150,7 +1218,7 @@ function todayView(){
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
  ${activityRings()}${stripCards()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
- <div class="tlist">${items.map(taskRow).join("")}</div>
+ ${stStepRow()}<div class="tlist">${items.map(taskRow).join("")}</div>
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div></div>`}
 
 /* ================= layout v2: Journey ================= */
@@ -1170,13 +1238,13 @@ function focusManage(){sheet("var(--ink)",`<div class="kick" style="color:var(--
  ${REALMS.map(R=>`<div class="realm"><div class="rh"><b>${R.n}</b><span class="dev">${R.d}</span><small>${R.s} · ${R.about}</small></div><div class="rpaths">${ORDER.filter(p=>PATHS[p].realm===R.id).map(p=>{const on=S.paths.includes(p),pr=S.prog[p];return `<button class="rpath${on?" on":""}" data-pathsheet="${p}" style="--c:${PATHS[p].c}">${medal(p,"xs")}<span><b>${PATHS[p].name}</b><small>${on?"Active":pr.m||pr.xp?`Paused · ${pr.m}/5`:"Not started"}</small></span></button>`}).join("")}${SOON.filter(x=>x[2]===R.id).map(([n,h])=>`<div class="rpath soonp"><span class="medal xs" style="--c:var(--faint)"></span><span><b>${n}</b><small>Soon · ${h}</small></span></div>`).join("")}</div></div>`).join("")}`)}
 function journeyView(){const sg=segOf("journey","paths");let body="";
  if(sg==="paths")body=`${nudges().map(nudgeCard).join("")}<div class="pclist">${sel().map(pathCard).join("")}</div><button class="cta alt" style="width:100%;margin-top:12px" data-focus-manage="1">Manage focus · ${sel().length} of ${MAXP}</button>`;
- if(sg==="epic")body=epicBody();
+ if(sg==="epic")body=storyBody();
  if(sg==="tree")body=`${treeSvg()}<div class="block"><h2>Bridges and stories</h2><p class="sub">When two paths both pass 2 trials, their guides’ story unlocks.</p>${storiesList()}</div>`;
  if(sg==="cal"){const t=td(),r=ritu(t),cal=todayCal(),up=upcoming(4);body=`${r?`<div class="season"><span class="chip2">Season</span><h3>${r.d?`${r.n} ritu<span class="dev">${r.d}</span>`:r.n}</h3><p>${r.s}</p></div>`:""}
  <button class="calcard" data-today-cal="1"><small class="mute" style="font-size:12px;font-weight:600">${cal.fest?"Today in the Indian calendar":"A story for today"}</small><b>${cal.n}</b><span>Try today: ${cal.t}</span></button>
  ${up.length?`<div class="block"><h2>Coming up</h2><div class="upl">${up.map(k=>`<button class="upi" data-fest="${k}"><span class="ud"><b>${+k.slice(8)}</b><small>${MONS[+k.slice(5,7)-1]}</small></span><span><b>${FEST[k].n}</b><small>${inDays(k)}${FEST[k].approx?" · date approximate":""}</small></span></button>`).join("")}</div></div>`:""}
  <div class="block"><h2>Yatra log</h2><p class="sub">Each closed day sends your companion one step further</p>${sel().map(pid=>{const g=CHAR[pid],n=CHAPTERS[g].length,k=S.chap[g]||0,got=S.chapters.filter(c=>c.g===g);return `<div class="ylog" style="--c:${PATHS[pid].c}">${medal(pid,"sm")}<div><b>${PEOPLE[g].n}</b><small>${k>=n?`All ${n} chapters done.`:`Next: ${CHAPTERS[g][k%n].dest} · ${Math.min(k,n)} of ${n}`}</small><div class="ychips">${CHAPTERS[g].map((c,i)=>{const h=got.some(x=>x.ch===i);return `<button class="ych${h?" on":""}" ${h?`data-chap="${g}:${i}"`:"disabled"} aria-label="Chapter ${i+1}: ${c.dest}">${i+1}</button>`}).join("")}</div></div></div>`}).join("")}</div>`}
- return header("Journey")+tipCard()+`<div class="wrap">${seg("journey",[["paths","Paths"],["tree","Tree"],["epic","Epic"],["cal","Calendar"]])}<div class="segbody">${body}</div></div>`}
+ return header("Journey")+tipCard()+`<div class="wrap">${seg("journey",[["paths","Paths"],["tree","Tree"],["epic","Story"],["cal","Calendar"]])}<div class="segbody">${body}</div></div>`}
 
 /* ================= layout v2: Hero ================= */
 function weekChart(){const days=Array.from({length:7},(_,i)=>addD(td(),i-6)),ps=sel(),data=days.map(dayMinsBy),tots=data.map(o=>Object.values(o).reduce((a,b)=>a+b,0)),mx=Math.max(30,...tots),H=120,L=["Su","Mo","Tu","We","Th","Fr","Sa"];
@@ -1188,15 +1256,15 @@ function heatmap(){const t=td(),start=addD(monOf(t),-28),cells=[];for(let i=0;i<
  return `<div class="cardx"><div class="cx-h"><b>Last 5 weeks</b><small>${act} active days</small></div><div class="hm-l">${["M","T","W","T","F","S","S"].map(x=>`<small>${x}</small>`).join("")}</div><div class="hm">${cells.join("")}</div><div class="hm-k"><small>Less</small><i class="h0"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><small>More</small></div></div>`}
 function heroView(){const sg=segOf("hero","hero");let body="";
  const st=stage(),n=sel().length,need=(st+1)*n-msTotal(),pct=st>=5?100:Math.round((msTotal()-st*n)/n*100);
- if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-herosheet="1" aria-label="Open your hero and gear">${avatar(st)}<span class="avtap">Tap to see your gear</span></button>${(()=>{const i=lifeRank(),t=allTrials(),nx=ARC_GATE[i+1],nd=i>=6?0:nx-t,pc=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100);return `<div class="rank">${ARC_RANK[i][0]}<span class="dev">${ARC_RANK[i][1]}</span><small class="rankEn">${EN[ARC_RANK[i][0]]} · ${t} trial${t===1?"":"s"} passed</small></div>
-  <div class="track"><i style="width:${pc}%"></i></div><small>${i>=6?"The highest title":`${nd} more trial${nd===1?"":"s"} to ${ARC_RANK[i+1][0]}`}</small>`})()}</div>
+ if(sg==="hero")body=`<div class="stage"><button class="avbtn" data-herosheet="1" aria-label="Open your hero and gear">${avatar(st)}<span class="avtap">Tap to see your gear</span></button>${(()=>{const i=lifeRank(),t=allTrials(),nx=ARC_GATE[i+1],nd=i>=6?0:nx-t,pc=i>=6?100:Math.round((t-ARC_GATE[i])/(nx-ARC_GATE[i])*100);const sa=stAvail(),sc=SS().cur;return `<div class="rank">${ARC_RANK[i][0]}<span class="dev">${ARC_RANK[i][1]}</span><small class="rankEn">${EN[ARC_RANK[i][0]]} · Book ${i+1} of the Ramayana</small></div>
+  <div class="track"><i style="width:${sc||sa>=0?100:Math.max(0,Math.min(100,pc))}%"></i></div><small>${i>=6?"The highest title":sc?`Story trial in progress: ${STRIALS[sc.i].n}`:sa>=0?`Your story trial is ready: ${STRIALS[sa].n}`:`${Math.max(0,nd)} more path trial${nd===1?"":"s"} to open the next story trial`}</small>`})()}</div>
   <div class="stat3" style="margin-top:12px"><button class="stat" data-streak="1"><b>${S.streak}</b><small>Day streak</small></button><div class="stat"><b>${S.goal}</b><small>Streak goal</small></div><div class="stat"><b>${S.best}</b><small>Best streak</small></div></div>
   <div class="cardx" style="margin-top:12px"><div class="cx-h"><b>Balance</b><small>Strongest path per realm</small></div>${realmWheel()}</div>`;
  if(sg==="stats"){const closed=Object.values(S.days).filter(x=>x.mood).length;body=`${weekChart()}${heatmap()}<div class="stat3"><div class="stat"><b>${S.total}</b><small>Total growth</small></div><div class="stat"><b>${msTotal()}</b><small>Trials passed</small></div><div class="stat"><b>${closed}</b><small>Days closed</small></div></div>
   <div class="block"><h2>Weekly reviews</h2>${reviewHistory()}</div><div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>`}
  if(sg==="coll"){const items=[];sel().forEach(pid=>PATHS[pid].skills.forEach((s2,k)=>{if(s2.item)items.push({pid,s2,k})}));const total=sel().reduce((a,p)=>a+CHAPTERS[CHAR[p]].length,0);
   body=`<div class="block" style="margin-top:4px"><h2>Your guides</h2><div class="guides" style="margin-top:10px">${sel().map(pid=>{const c=CHAR[pid];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${PEOPLE[c].n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
-  <div class="block"><h2>Hall of epics</h2>${hallView()}</div>
+  <div class="block"><h2>Past vows</h2>${hallView()}</div>
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
  if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><button class="revcard" data-feedback="1"><span class="revi">${ic("love")}</span><span><b>Send feedback</b><small>Ideas, bugs or stories. It helps shape Abhyasa.</small></span></button><div class="block"><h2>Calendar</h2><p class="sub">What shows on your Calendar tab and morning cards. The story for each day stays in every option.</p><div class="cchips">${[["indian","Indian festivals and ritus"],["seasons","Spring, summer, autumn, winter"],["none","No calendar"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div><div class="block"><h2>App</h2>${appCard()}${S.lastBackup?`<p class="sub">Last backup: ${S.lastBackup.split("-").reverse().join(".")}</p>`:""}</div>
@@ -1316,7 +1384,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1324,12 +1392,26 @@ document.addEventListener("click",e=>{
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
  if(d.feedback){feedbackSheet();return}
+ if(d.st){const[a,v]=d.st.split(":");
+  if(a==="open"){closeLayer();TR=null;stSheet();return}
+  if(a==="book"){playBook(+v);return}
+  if(a==="story"){const c=SS().cur;playTrialStory(c?c.i:stAvail());return}
+  if(a==="opt"){TR.opts=TR.opts.includes(v)?TR.opts.filter(x=>x!==v):TR.opts.length<2?[...TR.opts,v]:(toast("Pick up to 2"),TR.opts);TR.keep=true;stSheet();return}
+  if(a==="strict"){TR.strict=v==="1";TR.keep=true;stSheet();return}
+  if(a==="begin"){const i=stAvail();if(i<0||!TR.opts.length)return;SS().cur={i,opts:TR.opts,start:td(),ticks:[],strict:TR.strict};TR=null;save();render();stSheet();toast(STRIALS[i].kind==="daily"?"Trial begun. Today’s step is on your Today page":"Trial begun");return}
+  if(a==="tick"){const c=SS().cur;if(!c)return;const T=STRIALS[c.i];if(T.kind==="daily"){if(!c.ticks.includes(td()))c.ticks.push(td())}else c.ticks.push(td());save();render();TR=null;stSheet();if(stReady())toast("Trial complete! Claim your title");return}
+  if(a==="help"){TR=TR||{};TR.help=true;TR.keep=true;stSheet();return}
+  if(a==="share"){stShare();return}
+  if(a==="quit"){if(!TR||TR.confirm!=="quit"){TR={confirm:"quit"};sheet("var(--ink)",`<h2>Stop this trial?</h2><p class="sub">Nothing is lost. You can start it again any time, and choose a different way.</p><div class="row"><button class="cta alt" data-close="1">Keep going</button><button class="cta" data-st="quit">Stop it</button></div>`);return}SS().cur=null;TR=null;save();closeLayer();render();toast("Trial stopped. Start again whenever you are ready");return}
+  if(a==="hard"){TR.note=($("#stnote")||{}).value||"";TR.hard=v;TR.keep=true;stSheet();return}
+  if(a==="les"){TR.note=($("#stnote")||{}).value||"";TR.lessons=TR.lessons.includes(v)?TR.lessons.filter(x=>x!==v):[...TR.lessons,v];TR.keep=true;stSheet();return}
+  if(a==="complete"){stComplete();return}
+  return}
  if(d.herosheet){heroSheet();return}
  if(d.gear!==undefined){const[k,v]=d.gear.split(":");S.gear=S.gear||{};S.gear[k]=v;save();render();heroSheet(true);return}
  if(d.epicSetup){closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();window.scrollTo(0,0);return}
  if(d.epic){closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();window.scrollTo(0,0);return}
  if(d.ep){const[a,v]=d.ep.split(":");
-  if(a==="play"){playStage(+v);return}
   if(a==="pick"){const x=goalSuggest()[+v];if(x)startGoal(x);return}
   if(a==="own"){ownSheet();return}
   if(a==="ownp"){const ti=+d.ep.split(":")[2]||0;startGoal({pid:v,ti,size:sizeFor(v)});return}
@@ -1337,19 +1419,19 @@ document.addEventListener("click",e=>{
   if(a==="log"){EP={v:S.epic.cur};logSheet();return}
   if(a==="v"){const st=TPL(S.epic.goal).st;EP.v=Math.max(0,+(EP.v+(v==="+"?st:-st)).toFixed(2));logSheet();return}
   if(a==="save"){const was=arcStage();S.epic.cur=EP.v;EP=null;save();closeLayer();render();const now=arcStage();toast(epicDone()?"Goal reached!":now>was?`Milestone reached. Book ${now+1} opens`:"Progress saved");return}
-  if(a==="finish"){if(!S.epic)return;toHall(true);closeLayer();render();toast("Added to your Hall of epics");return}
+  if(a==="finish"){if(!S.epic)return;toHall(true);closeLayer();render();toast("Added to your past vows");return}
   if(a==="miss"){EP=null;missSheet();return}
   if(a==="why"){EP.why=EP.why.includes(v)?EP.why.filter(x=>x!==v):[...EP.why,v];missSheet();return}
   if(a==="ext"){S.epic.end=addD(td(),+v*7);S.epic.ext=true;S.epic.missAsk="";EP=null;save();closeLayer();render();toast(`Deadline moved to ${S.epic.end.split("-").reverse().join(".")}`);return}
-  if(a==="missclose"){const w=EP&&EP.why||[];toHall(false,w);closeLayer();render();toast("Epic closed. The lessons stay with you");return}
-  if(a==="close"){if(!S.epic)return;if(!EP||EP.confirm!=="close"){EP={confirm:"close"};sheet("var(--ink)",`<h2>End this epic?</h2><p class="sub">Your rank, gear and trials stay. Only this goal and its books close.</p><div class="row"><button class="cta alt" data-close="1">Keep going</button><button class="cta" data-ep="close">End it</button></div>`);return}
-   toHall(!!S.epic.won||epicDone());closeLayer();render();toast("Epic closed. Pick a new goal any time");return}
+  if(a==="missclose"){const w=EP&&EP.why||[];toHall(false,w);closeLayer();render();toast("Vow closed. The lessons stay with you");return}
+  if(a==="close"){if(!S.epic)return;if(!EP||EP.confirm!=="close"){EP={confirm:"close"};sheet("var(--ink)",`<h2>End this vow?</h2><p class="sub">Your rank, gear and trials stay. Only this goal closes.</p><div class="row"><button class="cta alt" data-close="1">Keep going</button><button class="cta" data-ep="close">End it</button></div>`);return}
+   toHall(!!S.epic.won||epicDone());closeLayer();render();toast("Vow closed. Take a new one any time");return}
   if(!EP||!EP.g)return;const g=EP.g,G=TPL(g);
   if(a==="n")g.n=Math.max(G.st,+(g.n+(v==="+"?G.st:-G.st)).toFixed(2));
   if(a==="b")g.base=Math.max(0,Math.min(g.n-G.st,+(g.base+(v==="+"?G.st:-G.st)).toFixed(2)));
   if(a==="w")g.w=+v;
   if(a==="foe")g.foes=g.foes.includes(v)?g.foes.filter(x=>x!==v):g.foes.length<3?[...g.foes,v]:(toast("Pick up to 3"),g.foes);
-  if(a==="begin"){const id=bestEpicFor(g.pid);S.epicN=(S.epicN||0)+1;S.epic={id,goal:{pid:g.pid,ti:g.ti,combo:g.combo,size:g.size,n:g.n,base:g.base},foes:g.foes,start:td(),end:addD(td(),g.w*7),ms:msOf(g.base,g.n,G.st),cur:g.base,seen:0};EP=null;save();closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();playStage(0);return}
+  if(a==="begin"){const id=bestEpicFor(g.pid);S.epicN=(S.epicN||0)+1;S.epic={id,goal:{pid:g.pid,ti:g.ti,combo:g.combo,size:g.size,n:g.n,base:g.base},foes:g.foes,start:td(),end:addD(td(),g.w*7),ms:msOf(g.base,g.n,G.st),cur:g.base,seen:0};EP=null;save();closeLayer();S.view="journey";S.seg=S.seg||{};S.seg.journey="epic";render();toast("Your vow is taken. Log progress any time");return}
   const sh=$(".sheet"),y=sh?sh.scrollTop:0;goalSheet();if($(".sheet"))$(".sheet").scrollTop=y;return}
  if(d.fbk){const tx=$("#fbtext");if(tx)FB.t=tx.value;FB.k=d.fbk;feedbackSheet();return}
  if(d.fbsend){fbSend(d.fbsend);return}
@@ -1424,7 +1506,7 @@ document.addEventListener("click",e=>{
  if(d.act==="install"){if(DPROMPT){DPROMPT.prompt();DPROMPT.userChoice.finally(()=>{DPROMPT=null;render()})}return}
  if(d.act==="export"){exportData();return}
  if(d.act==="import"){const f=$("#importf");if(f){f.value="";f.click()}return}
- if(d.act==="import-ok"){if(PENDING){stopTool();S=migrate(Object.assign(fresh(),PENDING.state));PENDING=null;save();closeLayer();render();toast("Backup restored")}return}
+ if(d.act==="import-ok"){if(PENDING){stopTool();S=migrate(Object.assign(fresh(),PENDING.state),PENDING.state);PENDING=null;save();closeLayer();render();toast("Backup restored")}return}
  if(d.act==="redo"){stopTool();S.on=false;Q=null;quiz();window.scrollTo(0,0);return}
  if(d.act==="routine"){stopTool();S.on=false;Q=newQ();Q.i=qSteps().indexOf(Q.paths.includes("body")||Q.paths.includes("flex")?"kit":"routine");quiz();window.scrollTo(0,0);return}
  if(d.act==="reset"){if(!resetArm){resetArm=1;t.textContent="Tap again to erase everything";setTimeout(()=>{resetArm=0;if(t.isConnected)t.textContent="Reset everything"},3000);return}stopTool();S=fresh();Q=null;save();render();return}

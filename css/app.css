@@ -812,3 +812,25 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .hall-i.won .hall-m{background:var(--gold);color:var(--bg)}
 .hall-i b{display:block;font-size:14.5px}.hall-i small,.hall-i em{display:block;font-size:12.5px;color:var(--mute);font-style:normal}
 .morep{margin-top:12px}.morep summary{cursor:pointer;font-weight:600;color:var(--mute);padding:8px 0}
+
+/* ===== story trials (v1.19) ===== */
+.ststep{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--gold-bg);border:1.5px solid var(--gold);border-radius:16px;padding:10px 12px;margin:10px 0 4px;color:var(--ink)}
+.ststep .sti{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1.5px solid var(--gold);color:var(--gold);font-weight:700}
+.ststep .sti svg{width:22px;height:22px}
+.ststep small{display:block;font-size:12px;font-weight:600;color:var(--gold)}
+.ststep b{display:block;font-size:15px;line-height:1.35}
+.ststep.done{background:var(--surface);border-color:var(--line)}.ststep.done b{color:var(--mute)}
+.stcard{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:14px;margin:0 0 10px;color:var(--ink)}
+.stcard small{display:block;font-size:12px;font-weight:700;color:var(--gold)}
+.stcard b{display:block;font-family:var(--f-head);font-size:19px;margin:3px 0 6px}
+.stcard em{display:block;font-style:normal;font-size:13.5px;color:var(--mute);line-height:1.45}
+.stcard.ready{border-color:var(--gold);background:var(--gold-bg)}
+.stcard.on{border-color:var(--gold)}
+.stcard.lock b{color:var(--mute)}
+.stdots{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.stdots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--gold);display:block}
+.stdots i.on{background:var(--gold)}
+.tips{margin:4px 0 0;padding-left:18px;line-height:1.55;font-size:14px}
+.chip.stopt{display:inline-flex;align-items:center;gap:6px;text-align:left}
+.ep-why.sk h3 .dev{color:var(--mute);font-size:16px;font-weight:400;margin-left:6px}
+.ep-goal b .dev{color:var(--mute);font-size:15px;font-weight:400;margin-left:8px}

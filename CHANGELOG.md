@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.19.0 · 24.11.2026
+- Story trials: your rank is now the Ramayana. Path trials open a story trial for each book (Vishwamitra's lessons, Rama's vow, the forest years, allies, Hanuman's leap, facing Ravana, the return). Pick 1 way from your own paths (2 for a bonus gift), gentle or strict mode, day dots, today's step on the Today page, a smaller step for hard days, tips, share with someone, and a short reflection to claim your new title and next book scene. Your current title is kept. Goals with deadlines are now Sankalpa (vows), shown under the story in Journey > Story.
+
 ## 1.18.0 · 24.11.2026
 - Epics complete: 3 goal templates per path (45) plus 10 two-path combo goals tied to bridges; suggestions now include a combo card and rotate templates. Weekly review asks if you beat your obstacles; a yes cuts a head. Missed deadline: reflect on what got in the way, extend once by 2 or 4 weeks, or close and keep the lessons. Goal reached: finale scene, Hall of epics (Epic tab and Collection), and the Ayodhya diya companion gift for your first win. Daily plan gives the goal's path(s) about 30% more time.
 

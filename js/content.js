@@ -1274,3 +1274,57 @@ const ECOMBO={
  yama:{t:"Have {n} deep conversations with your partner",u:"conversations",st:1,n:[4,8,16]}};
 Object.values(ECOMBO).forEach(x=>x.w=[4,8,12]);
 const MISSWHY=[["big","The goal was too big"],["busy","Life got busy"],["sick","I was ill or tired"],["interest","I lost interest"],["foes","My obstacles won"],["plan","I had no clear plan"]];
+
+/* ================= story trials (v1.19): one per Ramayana book, built from your paths ================= */
+// Per-path phrases used to build trial options
+const PH={
+ body:{learn:"Learn one new exercise and try it",daily:"Move for 20 minutes",ally:"Train or walk with someone",leap:"Do your longest or hardest workout yet",teach:"Teach someone an exercise you know well"},
+ flex:{learn:"Learn one new stretch or pose",daily:"Do a 10-minute yoga flow",ally:"Stretch or do yoga with someone",leap:"Hold a pose longer than ever before",teach:"Teach someone a short stretching routine"},
+ bonds:{learn:"Learn one new thing about a family member",daily:"Call or message one family member",ally:"Help a family member with a chore",leap:"Have a conversation you have put off",teach:"Teach a younger family member something"},
+ love:{learn:"Learn one thing your partner loves",daily:"Do one thoughtful thing for your partner",ally:"Plan something together",leap:"Say something honest you have held back",teach:"Share with your partner what you are learning"},
+ learn:{learn:"Learn one new idea and write it down",daily:"Study for 20 minutes",ally:"Study with someone or explain an idea",leap:"Take a test or quiz on what you know",teach:"Explain something you learned to someone"},
+ focus:{learn:"Try one new focus method",daily:"Do one 25-minute focus block, phone away",ally:"Do a focus session with a friend",leap:"Do a 2-hour deep work block",teach:"Show someone how you plan your day"},
+ music:{learn:"Learn one new chord, scale or phrase",daily:"Play for 10 minutes",ally:"Play or sing with someone",leap:"Play a song for someone, live",teach:"Teach someone a simple song or rhythm"},
+ calm:{learn:"Learn one new breathing method",daily:"Sit for 10 minutes each morning",ally:"Meditate with someone",leap:"Do a 30-minute sit",teach:"Guide someone through 3 minutes of breathing"},
+ friend:{learn:"Learn something new about a friend",daily:"Reach out to one friend",ally:"Do something fun with a friend",leap:"Reconnect with someone you lost touch with",teach:"Share a skill with a friend"},
+ money:{learn:"Learn one money idea and note it",daily:"Write down every expense",ally:"Talk about money goals with someone",leap:"Make a 3-month budget and stick to week one",teach:"Show someone how you track spending"},
+ courage:{learn:"Learn about one person who inspires your courage",daily:"Do one small thing that scares you",ally:"Stand up for someone",leap:"Do the thing you fear most this month",teach:"Encourage someone to try something brave"},
+ wisdom:{learn:"Read one passage from a wise text",daily:"Journal for 5 minutes",ally:"Have a deep conversation with someone",leap:"Spend a full day with no news or social media",teach:"Share one idea that changed you"},
+ making:{learn:"Learn one new tool or technique",daily:"Make or fix something for 20 minutes",ally:"Build or fix something for someone",leap:"Finish a project you started long ago",teach:"Show someone how to make or fix something"},
+ art:{learn:"Learn one new technique",daily:"Create something for 15 minutes",ally:"Make something with or for someone",leap:"Share your work publicly",teach:"Teach someone a simple creative exercise"},
+ gratitude:{learn:"Learn the story behind something you use daily",daily:"Write 3 things you are grateful for",ally:"Thank someone in person",leap:"Write a long thank-you letter to someone",teach:"Start a gratitude habit with someone"}};
+const STRIALS=[
+ {n:"Vishwamitra’s lessons",d:"विश्वामित्र",kind:"daily",days:3,ph:"learn",theme:"Learn one new thing every day for 3 days.",
+  story:[{bg:"forest",who:["rama"],cap:"The sage Vishwamitra takes young Rama into the forest and teaches him something new every day."},{bg:"glow",who:["G"],cap:"A student’s first test is simple: stay curious, every day."}],
+  tips:["Pick something you can learn in 10 minutes.","Write one line about it each evening.","Curiosity grows when you feed it daily."],smaller:"Learn just one fact today, even a tiny one."},
+ {n:"Rama’s vow",d:"वचन",kind:"daily",days:7,ph:"daily",theme:"Keep one promise to yourself for 7 days.",
+  story:[{bg:"city",who:["rama"],cap:"Rama keeps his father’s promise, though it costs him a kingdom."},{bg:"glow",who:["G"],cap:"A promise to yourself is still a promise. Make one small enough to keep on your worst day."}],
+  tips:["Make the promise small enough to keep on your worst day.","Same time every day, linked to something you already do.","Write the promise down where you will see it."],smaller:"Do just 2 minutes of it today. The promise counts."},
+ {n:"The forest years",d:"वनवास",kind:"daily",days:5,fixed:[["sugar","No added sugar"],["shop","No shopping beyond essentials"],["scroll","No social media scrolling"],["late","No screens after 21:00"]],theme:"Live simply for 5 days. Give up one comfort.",
+  story:[{bg:"forest",who:["rama"],cap:"Rama, Sita and Lakshmana live in the forest on roots and fruit, far from palace comforts."},{bg:"forest",who:["G"],cap:"Giving up one comfort shows you how much you really need."}],
+  tips:["Remove the temptation from your home or phone first.","Plan what you will do instead when the urge comes.","Notice how you feel on day 3. It gets easier after."],smaller:"If you slip, stop there and start fresh. Keep the day."},
+ {n:"Allies in Kishkindha",d:"किष्किन्धा",kind:"count",days:3,ph:"ally",theme:"Do 3 things with or for other people.",
+  story:[{bg:"hills",who:["rama","hanuman"],cap:"Rama cannot find Sita alone. In Kishkindha he finds friends: Sugriva and Hanuman."},{bg:"glow",who:["G"],cap:"Growth is faster with others. Reach out three times."}],
+  tips:["Ask someone this week. Most people say yes.","Doing something for someone counts as much as with them.","Mix your paths: a walk, a song, a shared meal."],smaller:"Send one message inviting someone. That counts as a start."},
+ {n:"Hanuman’s leap",d:"लङ्घन",kind:"once",days:1,ph:"leap",theme:"Do one challenge that scares you a little, within 7 days.",
+  story:[{bg:"sea",who:["hanuman"],cap:"At the edge of the ocean, Hanuman doubts himself. Jambavan reminds him of his strength."},{bg:"glow",who:["hanuman","G"],cap:"He leaps. You have more in you than you think."}],
+  tips:["Pick the date now and tell someone.","Prepare the day before, so the day itself is just doing.","Fear before is normal. It is part of the leap."],smaller:"Do the first step of it today: book it, ask, or practise once."},
+ {n:"Facing Ravana",d:"युद्ध",kind:"daily",days:7,fixed:"foes",theme:"Spend 7 days free of the habit that holds you back most.",
+  story:[{bg:"bridge",who:["rama"],cap:"The bridge is built. Rama crosses to Lanka to face Ravana at last."},{bg:"glow",who:["G"],cap:"Your Ravana is the habit that holds you back most. Face it for seven days."}],
+  tips:["Name the trigger: when, where and why it starts.","Have a replacement ready for that moment.","One day at a time. Only today counts."],smaller:"If it wins once today, it does not win the day. Stop and start again."},
+ {n:"The return",d:"उत्तर",kind:"once",days:1,ph:"teach",theme:"Teach someone what you have learned, within 14 days.",
+  story:[{bg:"lamps",who:["rama"],cap:"Rama comes home to Ayodhya, and the city lights every lamp."},{bg:"glow",who:["G"],cap:"The last trial of a hero is to pass it on. Teach someone what you have learned."}],
+  tips:["Pick the one thing that helped you most.","Keep it short: 15 minutes is enough.","Ask them to try it once while you watch."],smaller:"Write down what you would teach. Then pick a person."}];
+const STGIFT=["Vishwamitra’s darbha","Rama’s sandals","Panchavati flower","Sugriva’s pledge","Sita’s chudamani","Setu stone","Ayodhya lamp"];
+const STGUIDE=["rama","rama","rama","hanuman","hanuman","rama","rama"];
+const HARD=[["easy","Easy"],["right","Just right"],["hard","Hard"]];
+const LESSON=[["small","Small steps work"],["promise","I can keep promises"],["others","I need others"],["brave","I am braver than I thought"],["less","I need less than I thought"],["again","I want to do this again"]];
+const FINALE_GATE=25;
+// Ramayana book scenes now describe your rank journey
+(()=>{const S_=EPICS.ramayana.stages;
+ S_[0].scenes[2].cap="Book 1 asks one thing: show up. Pass your first path trial and your first story trial opens.";
+ S_[1].scenes[1].cap="You passed your first story trial. Like Rama, you have stepped out of your comfort.";
+ S_[5].scenes[1].cap="Your Ravana is waiting: the habit that holds you back most.";
+ S_[5].scenes[2].cap="Book 6 asks: face it, one day at a time.";
+ S_[6].scenes[1].cap="You have come home a different person.";
+ S_[6].scenes[2].cap="One last trial: pass on what you have learned. Then the Mahabharata opens.";})();
