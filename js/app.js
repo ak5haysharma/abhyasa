@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.6.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.6.1";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -675,7 +675,7 @@ function treeSvg(){TPOS={};
   g+=`<path d="${line(pts)}" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="${line(pts)}" fill="none" stroke="${c}" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round"/>`;
   const part=pts.slice(0,un+1+(pr.m<5&&pr.xp>0?0:0));
   if(un>0){g+=`<path d="${line(part)}" fill="none" stroke="${c}" stroke-width="7" opacity=".45" stroke-linecap="round" stroke-linejoin="round" filter="url(#tglow2)"/><path d="${line(part)}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path class="flow" d="${line(part)}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 14" stroke-linecap="round" opacity=".85"/>`}
-  for(let j=0;j<5;j++){const[x,y]=pos(p,j),sk=P.skills[j],X=f1(x),Y=f1(y);TPOS[`skill|${p}|${j}`]=[x,y];let nd=`<g class="tn pop" style="animation-delay:${(.15+j*.09+pi*.06).toFixed(2)}s" data-x="skill|${p}|${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${sk.n}${j<pr.m?", earned":j===pr.m?", next":", locked"}"><circle cx="${X}" cy="${Y}" r="17" fill="transparent"/>`;
+  for(let j=0;j<5;j++){const[x,y]=pos(p,j),sk=P.skills[j],X=f1(x),Y=f1(y);TPOS[`skill|${p}|${j}`]=[x,y];let nd=`<g class="tn pop" style="animation-delay:${(.15+j*.09+pi*.06).toFixed(2)}s" data-x="skill|${p}|${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${sk.n}${j<pr.m?", earned":j===pr.m?", next":", locked"}"><circle cx="${X}" cy="${Y}" r="19" fill="transparent"/>`;
    if(j<pr.m)nd+=`<circle cx="${X}" cy="${Y}" r="15" fill="${c}" opacity=".5" filter="url(#tglow2)"/><circle cx="${X}" cy="${Y}" r="12" fill="${c}" stroke="#fff" stroke-width="1.6"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="#10142c">${sk.d.slice(0,1)}</text>`;
    else if(j===pr.m){const fr=Math.min(1,pr.xp/NEED[j]),Cc=2*Math.PI*14;nd+=`<circle class="pulse" cx="${X}" cy="${Y}" r="13" fill="none" stroke="${c}" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="14" fill="#141a3a" stroke="#ffffff30" stroke-width="3"/><circle cx="${X}" cy="${Y}" r="14" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${f1(fr*Cc)} ${f1(Cc)}" transform="rotate(-90 ${X} ${Y})" filter="url(#tglow)"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="${c}">${sk.d.slice(0,1)}</text>`}
    else nd+=`<circle cx="${X}" cy="${Y}" r="6.5" fill="#141a3a" stroke="${c}" stroke-opacity=".45" stroke-width="1.6"/>`;
@@ -710,11 +710,15 @@ function exOverview(){const a=exAspect(),w=Math.max(440,460/a);exTo(VB0.x+VB0.w/
 function exZoom(f,cx,cy){const v=EX.vb,nw=Math.max(120,Math.min(900,v.w*f));cx=cx??v.x+v.w/2;cy=cy??v.y+v.h/2;const nh=nw*exAspect(),kx=(cx-v.x)/v.w,ky=(cy-v.y)/v.h;cancelAnimationFrame(EX.anim);EX.vb={x:cx-kx*nw,y:cy-ky*nh,w:nw,h:nh};exApply()}
 function exSelect(key,first){if(!EX)return;const pos=TPOS[key];if(!pos)return;EX.sel=key;const r=$("#exsel");r.setAttribute("transform",`translate(${pos[0].toFixed(1)} ${pos[1].toFixed(1)})`);r.setAttribute("opacity","1");
  const zoomW=key==="center"?300:key.startsWith("path")?260:230;if(first)exTo(...pos,VB0.w,true);exTo(pos[0],pos[1],zoomW);exPanel(key)}
+function paceOf(pid){let m=0;S.log.forEach(l=>{if(l.pid===pid&&diff(l.d,td())<14&&diff(l.d,td())>=0)m+=logMin(l)});return m/14*mult(pid)}
+function etaText(pid,k){const pr=S.prog[pid];if(k<pr.m)return"";let rem=Math.max(0,NEED[pr.m]-pr.xp);for(let i=pr.m+1;i<=k;i++)rem+=NEED[i];const pace=paceOf(pid);
+ if(!rem)return"Your trial is ready now.";const d=pace>0?Math.ceil(rem/pace):0;
+ return `${rem} more growth${k>pr.m?` and ${k-pr.m+1} trials`:" to the trial"}. ${d?`About ${d<14?d+" days":Math.round(d/7)+" weeks"} at your pace over the last two weeks.`:"Practise this path to see an estimate."}`}
 function exPanel(key){const el=$("#expanel");if(!el)return;if(!key){el.innerHTML=`<div class="exp-h"><b>Your constellation</b></div><p class="exp-s">Tap any star to explore it. Drag to move, pinch or use + and − to zoom.</p><div class="exp-legend"><span><i class="lk"></i>Earned</span><span><i class="nx"></i>Next</span><span><i class="lc"></i>Locked</span><span><i class="br"></i>Bridge</span></div>`;return}
  const [type,a,b]=key.split("|"),L=sel();
  if(type==="skill"){const pid=a,k=+b,P=PATHS[pid],sk=P.skills[k],pr=S.prog[pid],c=TREEC[pid],on=has(pid,k),nx=k===pr.m,full=nx&&pr.xp>=NEED[k];
   const state=on?`<span class="exst on" style="--c:${c}">Earned</span>`:nx?`<span class="exst nx" style="--c:${c}">${full?"Trial ready":"In progress"}</span>`:`<span class="exst">Locked</span>`;
-  const prog=nx?`<div class="exbar" style="--c:${c}"><i style="width:${Math.min(100,pr.xp/NEED[k]*100)}%"></i></div><p class="exp-m">${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth</p>`:"";
+  const eta=on?"":etaText(pid,k),prog=nx?`<div class="exbar" style="--c:${c}"><i style="width:${Math.min(100,pr.xp/NEED[k]*100)}%"></i></div><p class="exp-m">${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth · ${eta}</p>`:eta?`<p class="exp-m">${eta}</p>`:"";
   el.innerHTML=`<div class="exp-k" style="color:${c}">${P.name} · skill ${k+1} of 5 · with ${P.hero}</div><div class="exp-h"><b>${sk.n}</b><span class="dev">${sk.d}</span>${state}</div>${EN[sk.n]?`<p class="exp-en">${EN[sk.n]}</p>`:""}
   <p class="exp-s">${sk.s}</p>${prog}
   <div class="exgrid"><div><small>Effect</small>${PERK[sk.perk](P.name)}</div><div><small>${on?"Trial passed":"Trial"}</small>${trialFor(pid,k)}</div>${sk.item?`<div><small>Gift</small>${sk.itemName||sk.n}</div>`:""}${!on&&!nx?`<div><small>Unlocks after</small>${P.skills[k-1].n}</div>`:""}</div>
@@ -740,7 +744,10 @@ function exBind(){const st=$("#ex .ex-stage"),svg=$("#exsvg");
   if(EX.ptr.size===1){const[,,sc]=toSvg(0,0),dx=e.clientX-prev[0],dy=e.clientY-prev[1];EX.moved+=Math.abs(dx)+Math.abs(dy);EX.vb.x-=dx*sc;EX.vb.y-=dy*sc;exApply()}
   else if(EX.ptr.size===2){const[a,b]=[...EX.ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(EX.pd){const[mx,my]=toSvg((a[0]+b[0])/2,(a[1]+b[1])/2);exZoom(EX.pd/d,mx,my)}EX.pd=d;EX.moved+=10}});
  const up=e=>{EX&&EX.ptr.delete(e.pointerId);if(EX&&EX.ptr.size<2)EX.pd=null};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);
- st.addEventListener("click",e=>{if(EX.moved>8){e.stopPropagation();e.preventDefault()}},true);
+ st.addEventListener("click",e=>{if(EX.moved>18){e.stopPropagation();e.preventDefault();return}
+  if(e.target.closest("[data-x]"))return;const[sx,sy,sc]=toSvg(e.clientX,e.clientY);let best=null,bd=Infinity;
+  Object.entries(TPOS).forEach(([k,q])=>{const d=Math.hypot(q[0]-sx,q[1]-sy);if(d<bd){bd=d;best=k}});
+  if(best&&bd/sc<=34){e.stopPropagation();exSelect(best)}},true);
  st.addEventListener("wheel",e=>{e.preventDefault();const[mx,my]=toSvg(e.clientX,e.clientY);exZoom(e.deltaY>0?1.12:.89,mx,my)},{passive:false});
  document.addEventListener("keydown",exKeys)}
 function exKeys(e){if(!EX){document.removeEventListener("keydown",exKeys);return}if(e.key==="Escape")exClose();if(e.key==="ArrowLeft")exNav("prev");if(e.key==="ArrowRight")exNav("next");if(e.key==="Tab"&&e.shiftKey===false&&e.target===document.body){e.preventDefault();exNav("branch")}}

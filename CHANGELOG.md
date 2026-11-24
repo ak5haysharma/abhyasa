@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.6.1 · 24.11.2026
+- Tree explorer: tapping near any star, bridge or portrait selects it, taps are more forgiving, and locked and in-progress skills show how much growth is left and a time estimate at your current pace.
+
 ## 1.6.0 · 24.11.2026
 - Explore the skill tree like a game: full-screen, drag to pan, pinch or +/- to zoom, tap any star and the camera glides to it, with a detail panel for each skill, bridge, guide and your rank. Arrows walk along a branch; Next branch jumps across.
 
