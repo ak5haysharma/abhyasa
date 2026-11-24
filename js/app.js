@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.1.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.1.1";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -725,6 +725,11 @@ if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){
  let reloading=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloading)return;reloading=true;location.reload()});
 }
 document.addEventListener("change",e=>{if(e.target.id==="importf"&&e.target.files[0])importFile(e.target.files[0])});
+
+/* ================= lock zoom (iOS ignores user-scalable=no in Safari) ================= */
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();if(n-lastTouchEnd<300&&!e.target.closest("input,textarea"))e.preventDefault();lastTouchEnd=n},{passive:false});
 
 /* ================= events ================= */
 let resetArm=0;

@@ -2,6 +2,12 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
+/* App-like behaviour: no zooming, no sideways drift, no text-size jumps on rotate */
+html,body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
+html{touch-action:pan-x pan-y}
+body,button,a,input,label{touch-action:manipulation}
+button{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input,textarea,select{font-size:16px}
 img{max-width:100%}
 [hidden]{display:none!important}
 /* Layout: one calm daily screen. Quiet header, faint line-art scene behind the greeting, growth meters, then today's tasks. Hero and tree open as sub-pages. */

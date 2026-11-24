@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1 · 24.11.2026
+- Locked the app to the screen: no pinch or double-tap zoom, no sideways scrolling.
+
 ## 1.1.0 · 23.11.2026
 - Five realms and 8 paths: added Flexibility and breath (Patanjali), Partner and love (Savitri), Learning (Saraswati), Career focus (Arjuna) and Meditation (Dhruva). Choose up to 5 focus paths, add or pause paths any time, readiness suggestions, realm balance wheel.
 
