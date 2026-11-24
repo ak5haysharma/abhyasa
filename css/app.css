@@ -498,3 +498,25 @@ nav.tabs button[aria-current="page"] svg{transform:translateY(-1px)}
 .gl{padding:8px 0;border-top:1px solid var(--line)}
 .gl b{display:block;font-weight:600;font-size:14px}
 .gl span{font-size:14px;color:var(--mute)}
+
+.revcard{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--gold);border-radius:16px;padding:12px 14px;margin-bottom:14px}
+.revcard .revi{width:38px;height:38px;flex:none;border-radius:50%;background:var(--gold-bg);color:var(--gold);display:grid;place-items:center}
+.revcard .revi svg{width:20px;height:20px}
+.revcard b{display:block;font-weight:600}
+.revcard small{display:block;font-size:13px;color:var(--mute)}
+.rv-big{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;margin:6px 0}
+.rv-big b{display:block;font-family:var(--f-head);font-size:44px;line-height:1.05}
+.rv-big small{color:var(--mute);font-size:13px}
+.rvbars{display:grid;gap:12px;margin:10px 0}
+.rvb{display:grid;grid-template-columns:96px 1fr 56px;gap:10px;align-items:center;font-size:14px}
+.rvb span{font-weight:600}
+.rvb i{height:10px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.rvb i b{display:block;height:100%;background:var(--c);border-radius:999px;min-width:2px}
+.rvb em{font-style:normal;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.worthl{display:grid;gap:8px}
+.worth{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);border-radius:12px;padding:10px 12px}
+.worth b{display:block;font-weight:500}
+.worth small{display:block;font-size:12px;color:var(--mute)}
+.wbtn{display:flex;gap:6px;flex:none}
+.wbtn .mini[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.wfb{position:absolute;right:-2px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-size:12px;display:grid;place-items:center;line-height:1}

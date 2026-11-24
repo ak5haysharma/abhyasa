@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.3.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.4.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -32,7 +32,7 @@ const HE=g=>PEOPLE[g].pr==="she"?"she":"he",HIM=g=>PEOPLE[g].pr==="she"?"her":"h
 
 /* ================= state ================= */
 const KEY="abhyasa.v3",$=s=>document.querySelector(s);
-const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
+const fresh=()=>({v:SCHEMA,on:false,name:"",paths:[],tags:{},kit:[],anchors:{},goal:7,days:{},journey:null,chap:{},chapters:[],charms:[],deck:"",closed:"",tick:"",check:{d:"",energy:"ok",sore:[],where:"normal"},log:[],time:30,prog:Object.fromEntries(ORDER.map(p=>[p,{m:0,xp:0}])),hist:{},dismiss:{},learn:{},lore:"",intro:[],tips:[],reviews:{},wfocus:{w:"",pid:""},custom:{},dayCtx:{d:""},plan:{d:"",items:[],swaps:0,closed:false},view:"today",streak:0,best:0,last:"",shieldUsed:{w:"",n:0},seen:0,total:0,syn:[]});
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.prog)S=fresh();else S=migrate(Object.assign(fresh(),S));
@@ -41,7 +41,7 @@ function migrate(o){
  // Add one step per schema change, e.g. if(o.v<2){ ...convert...; o.v=2 }
  if((o.v||1)<2){ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});o.hist=o.hist||{};o.dismiss=o.dismiss||{};if(o.paths.length>5)o.paths=o.paths.slice(0,5)}
  ORDER.forEach(p=>{if(!o.prog[p])o.prog[p]={m:0,xp:0}});
- o.learn=o.learn||{};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
+ o.learn=o.learn||{};o.reviews=o.reviews||{};o.wfocus=o.wfocus||{w:"",pid:""};o.intro=o.intro||[];o.tips=o.tips||[];o.lore=o.lore||"";o.custom=o.custom||{};o.dayCtx=o.dayCtx||{d:""};
  o.v=SCHEMA;return o;
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -148,11 +148,11 @@ function buildPlan(keep){
  const ps=sel(),C=ctx(),items=keep.slice();
  anchorsToday(C.c).forEach(a=>{if(items.some(x=>x.kind==="anchor"&&x.aid===a.id))return;const sr=C.c.sore.filter(k=>a.load.some(l=>SORE[k].includes(l)));
   items.push({id:uid(),kind:"anchor",aid:a.id,pid:a.pid,t:a.n,m:a.m,load:a.load,done:false,why:sr.length?`Your ${SORE_L[sr[0]]} is sore: go light, or skip it today`:""})});
- const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),share=Math.max(0,S.time-used)/ps.length;
+ const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),rem=Math.max(0,S.time-used),wf=focusPid(),wsum=ps.reduce((a,p)=>a+(p===wf?1.6:1),0);
  ps.forEach(pid=>{
   const pr=S.prog[pid];
   if(pr.m<5&&pr.xp>=NEED[pr.m]&&!items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done))items.push({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});
-  const hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),cap=hasA?Math.min(15,share):share,maxN=hasA?1:2;
+  const hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*(pid===wf?1.6:1)/wsum,cap=hasA?Math.min(15,share):share,maxN=hasA?1:2;
   const list=ranked(pid,C,td()+pid+S.time+items.length+JSON.stringify(C.c),items.map(x=>x.t));
   let left=cap,n=items.filter(x=>x.kind==="task"&&x.pid===pid).length;
   for(const o of list){if(n>=maxN)break;if(o.x.m<=left+3){items.push(mkT(pid,o));left-=o.x.m;n++}}
@@ -240,7 +240,7 @@ function complete(id,ev){
  const it=S.plan.items.find(x=>x.id===id);if(!it||it.kind==="trial")return;
  if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);if(it.kind==="task"&&S.learn[it.t]){const L=S.learn[it.t];L.dn=Math.max(0,L.dn-1);L.dw[new Date().getDay()]=Math.max(0,L.dw[new Date().getDay()]-1)}save();render();return}
  it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
- S.log.push({id:it.id,d:td(),t:it.t,load:it.load||[],pid:it.pid||"bridge"});S.log=S.log.filter(l=>diff(l.d,td())<=30);
+ S.log.push({id:it.id,d:td(),t:it.t,load:it.load||[],pid:it.pid||"bridge",m:it.m||0,own:!!it.own});S.log=S.log.filter(l=>diff(l.d,td())<=60);
  if(it.kind==="bridge"){const s=SYN.find(x=>x.id===it.sid);it.g=8;s.p.forEach(p=>grow(p,Math.round(8*mult(p))));popAt("+ growth","var(--gold)",ev)}
  else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
  if(TOOL&&TOOL.id===it.id)stopTool();if(OPEN===it.id)OPEN=null;
@@ -550,6 +550,46 @@ function learnedView(){const E=Object.entries(S.learn),fav=E.filter(([,l])=>l.sh
  ${own.length?`<div class="ptitle">Your own tasks</div>${own.map(([p,c],i)=>row(c.t,`${PATHS[p].name} · ${c.m} min`,`<button class="mini" data-uncustom="${p}:${(S.custom[p]||[]).indexOf(c)}">Remove</button>`)).join("")}`:""}
  ${nev.length?`<div class="ptitle">Never suggested</div>${nev.map(([t])=>row(t,"You chose “Not for me”",`<button class="mini" data-unnever="${esc(t)}">Bring back</button>`)).join("")}`:""}`}
 
+
+/* ================= weekly review ================= */
+const monOf=d=>addD(d,-((new Date(d+"T12:00:00").getDay()+6)%7));
+function focusPid(){const f=S.wfocus;return f&&f.w===monOf(td())&&S.paths.includes(f.pid)?f.pid:""}
+const logMin=l=>{if(l.m)return l.m;const P=PATHS[l.pid];const x=P&&P.pool.find(y=>y.t===l.t);if(x)return x.m;const a=ACTS.find(y=>y.n===l.t);return a?a.m:10};
+function weekStats(mon){const days=Array.from({length:7},(_,i)=>addD(mon,i)),by={},per=days.map(()=>0),own=[];let tot=0;
+ S.log.filter(l=>days.includes(l.d)&&l.pid!=="bridge").forEach(l=>{const m=logMin(l);by[l.pid]=(by[l.pid]||0)+m;per[days.indexOf(l.d)]+=m;tot+=m;if(l.own&&!own.some(o=>o.t===l.t))own.push({t:l.t,pid:l.pid})});
+ const act=days.filter(d=>S.days[d]&&S.days[d].a).length,best=per.indexOf(Math.max(...per));
+ return{mon,days,by,per,tot,act,best:per[best]?best:-1,own,moods:days.map(d=>S.days[d]&&S.days[d].mood)}}
+function reviewWeek(){const t=td(),dow=new Date(t+"T12:00:00").getDay(),thisMon=monOf(t),lastMon=addD(thisMon,-7);
+ if(dow===0)return S.reviews[thisMon]&&S.reviews[thisMon].done?"":thisMon;
+ if((dow===1||dow===2)&&!(S.reviews[lastMon]&&S.reviews[lastMon].done)&&S.log.some(l=>l.d>=lastMon&&l.d<thisMon))return lastMon;return""}
+const rng7=mon=>`${mon.slice(8)}.${mon.slice(5,7)} – ${addD(mon,6).slice(8)}.${addD(mon,6).slice(5,7)}`;
+function reviewCard(){const w=reviewWeek();if(!w)return"";const W=weekStats(w);
+ return `<button class="revcard" data-review="${w}"><span class="revi">${ic("path")}</span><span><b>Your week in review</b><small>${rng7(w)} · ${W.act} active days · ${W.tot} min. Two minutes, five cards.</small></span></button>`}
+function guideComment(W){const n=W.act;return n>=5?"Five days or more. This is what steady practice looks like.":n>=3?"A steady week. Next week, try adding one more day.":n>=1?"Some weeks are harder. Showing up at all keeps the lamp lit.":"A quiet week. Start small tomorrow: one task is enough."}
+let RV=null;
+function playReview(mon){const W=weekStats(mon),ps=sel(),top=Object.keys(W.by).sort((a,b)=>W.by[b]-W.by[a])[0]||ps[0]||companionPid(td()),L=["Mo","Tu","We","Th","Fr","Sa","Su"],nextMon=addD(mon,7)>td()?addD(mon,7):monOf(td());
+ const prev=weekStats(addD(mon,-7));RV={mon,worth:Object.assign({},(S.reviews[mon]||{}).worth||{}),focus:(S.wfocus.w===nextMon&&S.wfocus.pid)||top,nextMon};
+ const max=Math.max(1,...ps.map(p=>W.by[p]||0));
+ const moods=`<div class="week">${W.days.map((d,i)=>{const m=W.moods[i],a=S.days[d]&&S.days[d].a;return `<span class="wd${a?" done":d>td()?" future":" miss"}"><i>${m?`<span class="mdot m-${m}" style="width:18px;height:18px"></span>`:a?DIYA:""}</i><small>${L[i]}</small></span>`}).join("")}</div>`;
+ const diffTxt=prev.tot?(W.tot>=prev.tot?`${W.tot-prev.tot} min more than the week before.`:`${prev.tot-W.tot} min less than the week before.`):"Your first full week.";
+ const cards=[
+  {kick:`Week of ${rng7(mon)}`,html:`<div class="rv-big"><div><b>${W.act}</b><small>of 7 days active</small></div><div><b>${W.tot}</b><small>minutes of practice</small></div></div>${moods}<p class="sub" style="text-align:center">Dots show how each day felt when you closed it.</p>`,cap:diffTxt},
+  {kick:"Where your time went",html:`<div class="rvbars">${ps.map(p=>{const v=W.by[p]||0;return `<div class="rvb" style="--c:${PATHS[p].c}"><span>${PATHS[p].name}</span><i><b style="width:${v/max*100}%"></b></i><em>${v} min</em></div>`}).join("")}</div>`,cap:ps.filter(p=>!W.by[p]).length?`Nothing on ${ps.filter(p=>!W.by[p]).map(p=>PATHS[p].name).join(" and ")} this week.`:"Every path got some time this week."},
+  {kick:"Best day and a word from your guide",html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(top,"lg")}</div><p class="gq">“${guideComment(W)}”</p><small class="mute">${PATHS[top].hero}</small></div>`,cap:W.best>=0?`Your best day was <b>${DAYS[new Date(W.days[W.best]+"T12:00:00").getDay()]}</b>, with ${W.per[W.best]} min.`:"No practice logged yet this week."}];
+ if(W.own.length)cards.push({kick:"Your own tasks",html:`<p class="sub">Was each one worth your time? “No” means Abhyasa won’t suggest it again.</p><div class="worthl">${W.own.map((o,i)=>`<div class="worth"><span><b>${esc(o.t)}</b><small>${PATHS[o.pid]?PATHS[o.pid].name:""}</small></span><span class="wbtn"><button class="mini" data-worth="${i}:1" aria-pressed="${RV.worth[o.t]===1}">Yes</button><button class="mini" data-worth="${i}:0" aria-pressed="${RV.worth[o.t]===0}">No</button></span></div>`).join("")}</div>`,cap:""});
+ cards.push({kick:"Next week’s focus",html:`<p class="sub">Pick one path to lean into. It gets more of your daily time next week.</p><div class="cchips" id="rvfocus">${ps.map(p=>`<button class="chip" data-rvfocus="${p}" aria-pressed="${RV.focus===p}">${PATHS[p].name}</button>`).join("")}</div><button class="cta" style="width:100%;margin-top:16px" data-rvdone="1">Finish review</button>`,cap:""});
+ RV.own=W.own;openPlayer({label:"Weekly review",title:"Your week",sub:rng7(mon),cast:[top],cards,auto:false});
+ const nx=$('.story .row [data-pnext]');if(nx)nx.dataset.rv="1";
+}
+function finishReview(){const r=RV;if(!r)return;
+ r.own.forEach(o=>{const v=r.worth[o.t];if(v===0){const L=L_(o.t);L.never=true;if(S.custom[o.pid])S.custom[o.pid]=S.custom[o.pid].filter(c=>c.t!==o.t)}});injectCustom();
+ const W=weekStats(r.mon);S.reviews[r.mon]={done:true,act:W.act,tot:W.tot,by:W.by,worth:r.worth,focus:r.focus};
+ S.wfocus={w:r.nextMon,pid:r.focus};const k=Object.keys(S.reviews).sort();while(k.length>12)delete S.reviews[k.shift()];
+ RV=null;closeLayer();replan();toast(`Review saved. ${PATHS[r.focus].name} is your focus for the week.`)}
+function reviewHistory(){const k=Object.keys(S.reviews).filter(w=>S.reviews[w].done).sort().reverse().slice(0,4),cur=monOf(td()),W=weekStats(cur);
+ return `<button class="revcard" data-review="${cur}"><span class="revi">${ic("path")}</span><span><b>This week so far</b><small>${W.act} active days · ${W.tot} min. Tap to review now.</small></span></button>
+ ${k.length?k.map(w=>{const R=S.reviews[w];return `<div class="lrow"><span><b>${rng7(w)}</b><small>${R.act} days · ${R.tot} min${R.focus&&PATHS[R.focus]?` · then focused on ${PATHS[R.focus].name}`:""}</small></span></div>`}).join(""):`<p class="sub">Past reviews appear here.</p>`}`}
+
 /* ================= starter pack ================= */
 const enLine=n=>EN[n]?`<p class="en">${EN[n]}</p>`:"";
 const wantIntros=()=>S.lore!=="well";
@@ -598,7 +638,7 @@ function checkCard(){
 }
 const RC=2*Math.PI*28;
 function rings(){return `<div class="rings">${sel().map(pid=>{const P=PATHS[pid],pr=S.prog[pid],max=pr.m>=5,need=NEED[Math.min(pr.m,4)],f=max?1:Math.min(1,pr.xp/need),full=!max&&pr.xp>=need;
- return `<button class="ringi${full?" full":""}" data-ring="${pid}" data-skill="${pid}:${Math.min(pr.m,4)}" style="--c:${P.c}" aria-label="${P.name}: ${max?"mastered":full?"trial ready":Math.round(f*100)+"% to "+P.skills[pr.m].n}"><span class="rw"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--surface2)" stroke-width="5"/><circle class="rp" cx="32" cy="32" r="28" fill="none" stroke="${full?"var(--gold)":P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(f*RC).toFixed(1)} ${RC.toFixed(1)}"/></svg>${medal(pid,"sm")}</span><b>${P.name}</b><small>${max?"Mastered":full?"Trial ready":`${RANKS[Math.min(pr.m,5)][0]} · ${pr.m}/5`}</small></button>`}).join("")}</div>`}
+ return `<button class="ringi${full?" full":""}" data-ring="${pid}" data-skill="${pid}:${Math.min(pr.m,4)}" style="--c:${P.c}" aria-label="${P.name}: ${max?"mastered":full?"trial ready":Math.round(f*100)+"% to "+P.skills[pr.m].n}"><span class="rw"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--surface2)" stroke-width="5"/><circle class="rp" cx="32" cy="32" r="28" fill="none" stroke="${full?"var(--gold)":P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(f*RC).toFixed(1)} ${RC.toFixed(1)}"/></svg>${medal(pid,"sm")}${pid===focusPid()?`<span class="wfb" title="This week’s focus">★</span>`:""}</span><b>${P.name}</b><small>${max?"Mastered":full?"Trial ready":`${RANKS[Math.min(pr.m,5)][0]} · ${pr.m}/5`}</small></button>`}).join("")}</div>`}
 function companionCard(){const t=td(),pid=companionPid(t);if(!pid)return"";const g=CHAR[pid],pp=PEOPLE[g],J=S.journey,trav=J&&J.d===t&&!J.back,C=CHAPTERS[g][trav?J.ch:nextCh(g)];
  const tasks=S.plan.items.filter(x=>x.kind==="task"||x.kind==="anchor"),done=tasks.filter(x=>x.done).length,any=S.days[t]&&S.days[t].a;
  let st,body,btn="";
@@ -627,7 +667,7 @@ function todayView(){
   <div class="date">${dateStr}</div><h1 class="hello">${hi}${S.name?", "+esc(S.name):""}.</h1>
   <blockquote class="quote">${qt[0]}<cite>${qt[1]}</cite></blockquote>
   <button class="calchip" data-today-cal="1"><span class="dot" style="--c:var(--gold)"></span>${r.n} ritu · ${cal.fest?cal.n:"Story: "+cal.n}</button></div></section>
- <div class="wrap">${rings()}${companionCard()}${(()=>{const n=nudges()[0];return n?nudgeCard(n):""})()}${checkCard()}
+ <div class="wrap">${rings()}${reviewCard()}${companionCard()}${(()=>{const n=nudges()[0];return n?nudgeCard(n):""})()}${checkCard()}
   <div class="block" style="margin-top:8px"><div class="thead"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div><p class="sub">About ${mins} min of new practice${tasks.some(x=>x.kind==="anchor")?" plus your routine":""}. Tap a task for its guide.</p><div class="tasks">${rows}</div><button class="otherbtn" data-other="">+ I did something else</button></div>
   ${eveCard()}
  </div>`;
@@ -687,6 +727,7 @@ function heroView(){
  <div class="block"><h2>Arsenal</h2><p class="sub">Gifts from your guides, earned at milestones</p><div class="items">${items.map(({pid,s,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s.item:"lock")}</i><b>${s.itemName||s.n}</b><small>${on?`${s.item} · ${P.hero}`:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
  <div class="block"><h2>Skills</h2>${sel().map(pid=>{const P=PATHS[pid];return `<div class="ptitle" style="--c:${P.c}"><span class="dot"></span>${P.name} with ${P.hero}</div><div class="skills">${P.skills.map((s,k)=>{const on=has(pid,k);return `<button class="skill${on?"":" off"}" style="--c:${P.c}" data-skill="${pid}:${k}"><span class="ic">${on?s.d.slice(0,1):k+1}</span><div><b>${s.n}<span class="dev">${s.d}</span></b><small class="enm">${EN[s.n]||""}</small><small>${on?PERK[s.perk](P.name):`Unlocks after ${P.name} trial ${k+1}`}</small></div></button>`}).join("")}</div>`}).join("")}</div>
  <div class="block"><h2>Record</h2><div class="stats" style="margin-top:12px"><div class="stat"><b>${S.total}</b><small>Total growth</small></div><div class="stat"><b>${msTotal()}</b><small>Trials passed</small></div><div class="stat"><b>${closedDays}</b><small>Days closed</small></div></div></div>
+ <div class="block"><h2>Weekly reviews</h2>${reviewHistory()}</div>
  <div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div>
  <div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>
  <div class="block"><h2>App</h2>${appCard()}</div>
@@ -742,6 +783,7 @@ function loadSample(){
  S.chap={hanuman:4,rama:2,narada:1};S.chapters=[{g:"hanuman",ch:0},{g:"hanuman",ch:1},{g:"rama",ch:0},{g:"hanuman",ch:2},{g:"narada",ch:0},{g:"rama",ch:1},{g:"hanuman",ch:3}];
  S.charms=S.chapters.map(c=>({n:CHAPTERS[c.g][c.ch].charm[0],g:c.g}));
  for(let i=1;i<=14;i++)S.hist[addD(td(),-i)]={body:[2,2],bonds:[1,1],music:[1,i%5?1:0]};S.journey={d:yday(),g:"hanuman",ch:4,back:false};
+ [[1,"body","Gym: push day",40],[1,"music","Strumming patterns",20],[2,"bonds","Call your parents",15],[2,"body","Shoulder care",10],[3,"body","Bouldering",75],[3,"music","Football with friends",0],[4,"bonds","Cook a dish from home",45],[4,"music","One-minute chord changes",15],[5,"body","Swim drills",25],[7,"body","Gym: leg day",45],[8,"bonds","Video-call a friend",30]].forEach(([i,p,t,m],k)=>S.log.push({id:"s"+k,d:addD(td(),-i),t:t==="Football with friends"?"Jam with a friend":t,pid:p,m:m||30,load:[],own:t==="Football with friends"}));
  S.prog.body={m:2,xp:60};S.prog.bonds={m:2,xp:30};S.prog.music={m:1,xp:40};S.syn=[];
  SYN.forEach(s=>{if(s.p.every(p=>S.prog[p].m>=s.req))S.syn.push(s.id)});
  S.seen=stage();S.on=true;Q=null;save();render();window.scrollTo(0,0);toast("Sample profile loaded. Edit it from your hero page.");
@@ -803,13 +845,17 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){complete(d.done,e);return}
+ if(d.review){playReview(d.review);return}
+ if(d.worth){const[i,v]=d.worth.split(":");const o=RV&&RV.own[+i];if(!o)return;RV.worth[o.t]=+v;t.parentNode.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b===t?"true":"false"));return}
+ if(d.rvfocus){if(!RV)return;RV.focus=d.rvfocus;document.querySelectorAll("#rvfocus .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rvfocus===RV.focus?"true":"false"));return}
+ if(d.rvdone){finishReview();return}
  if(d.qlore){Q.lore=d.qlore;quiz();return}
  if(d.intro){closeLayer();S.intro=S.intro.filter(g=>g!==CHAR[d.intro]);playIntro([d.intro]);return}
  if(d.tip){S.tips.push(d.tip);save();render();return}

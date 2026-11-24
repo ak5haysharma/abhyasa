@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.0 · 24.11.2026
+- Weekly review: every Sunday (or until Tuesday), five swipe cards covering active days, minutes, moods, time per path, best day, a guide's comment, 'worth it?' for your own tasks, and next week's focus, which gets more daily time. Past reviews on the Hero tab.
+
 ## 1.3.0 · 24.11.2026
 - Starter pack: 'How well do you know these stories?' in onboarding, 3-card guide intros, English meanings next to Sanskrit names, a glossary on the Hero tab, and first-time tips on each tab.
 
