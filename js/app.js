@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.26.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.27.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -174,14 +174,14 @@ function ranked(pid,C,seed,exclude){
 }
 const mkT=(pid,o)=>({id:uid(),kind:"task",pid,ref:o.i,t:o.x.t,m:o.x.m,load:o.x.load,why:o.why,done:false});
 function buildPlan(keep){
- const ps=todayPs(),C=ctx(),items=keep.slice();
+ const ps=sel(),lead=todayPs(),C=ctx(),items=keep.slice();
  anchorsToday(C.c).forEach(a=>{if(items.some(x=>x.kind==="anchor"&&x.aid===a.id))return;const sr=C.c.sore.filter(k=>a.load.some(l=>SORE[k].includes(l)));
   items.push({id:uid(),kind:"anchor",aid:a.id,pid:a.pid,t:a.n,m:a.m,load:a.load,done:false,why:sr.length?`Your ${SORE_L[sr[0]]} is sore: go light, or skip it today`:""})});
- const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),rem=Math.max(0,S.time-used),wf=focusPid(),ep=(S.epic&&S.epic.goal&&!(S.epic.cur>=S.epic.ms[6]))?(S.epic.goal.combo?(SYN.find(x=>x.id===S.epic.goal.combo)||{p:[]}).p:[S.epic.goal.pid]):[],wt=p=>(p===wf?1.6:1)*(ep.includes(p)?1.3:1),wsum=ps.reduce((a,p)=>a+wt(p),0);
+ const used=items.filter(x=>x.kind==="task").reduce((a,x)=>a+x.m,0),rem=Math.max(0,S.time-used),wf=focusPid(),ep=(S.epic&&S.epic.goal&&!(S.epic.cur>=S.epic.ms[6]))?(S.epic.goal.combo?(SYN.find(x=>x.id===S.epic.goal.combo)||{p:[]}).p:[S.epic.goal.pid]):[],wt=p=>(p===wf?1.6:1)*(ep.includes(p)?1.3:1)*(ps.length>DAYMAX&&lead.includes(p)?1.8:1),wsum=ps.reduce((a,p)=>a+wt(p),0);
  ps.forEach(pid=>{
   const pr=S.prog[pid];
   if(pr.m<5&&pr.xp>=NEED[pr.m]&&!items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done))items.push({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});
-  const bz=busyToday(C.c),hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*wt(pid)/wsum,cap=bz?5:hasA?Math.min(15,share):share,maxN=bz||hasA?1:2;
+  const bz=busyToday(C.c),hasA=items.some(x=>x.kind==="anchor"&&x.pid===pid),share=rem*wt(pid)/wsum,cap=bz?5:hasA?Math.min(15,share):share,maxN=bz||hasA?1:(ps.length>DAYMAX&&!lead.includes(pid))?1:2;
   const list=ranked(pid,C,td()+pid+S.time+items.length+JSON.stringify(C.c),items.map(x=>x.t));
   let left=cap,n=items.filter(x=>x.kind==="task"&&x.pid===pid).length;
   for(const o of list){if(n>=maxN)break;if(o.x.m<=left+3){items.push(mkT(pid,o));left-=o.x.m;n++}}
@@ -609,7 +609,7 @@ function openDeck(){
  else{const C=CHAPTERS[g][nextCh(g)];cards.push({kick:"Today’s companion",svg:sceneInner({bg:"glow",chars:[[g,120,50,1,"float"]]}),cap:`${PEOPLE[g].n} is ready to travel to ${C.dest}. Do one task and close your day, and ${HE(g)} sets out tonight.`})}
  cards.push({html:`<div class="dk-cal">${r?`<span class="chip2">${rituL(r)}</span>`:""}<small>${cal.fest?"Today in the Indian calendar":"A story for today"}</small><h3>${cal.n}${cal.d?`<span class="dev">${cal.d}</span>`:""}</h3><p>${cal.s}</p><div class="box"><small>Try today</small>${cal.t}</div>${cal.src?`<span class="src">${cal.src}</span>`:""}${cal.approx?`<span class="src">Date approximate</span>`:""}</div>`,cap:""});
  {const il=todayPs().filter(idOf);if(il.length)cards.push({kick:"Who you are becoming",html:`<ul class="lifel big">${il.map(p=>`<li style="--c:${PATHS[p].c}">${medalA(p,"sm")}<span>I am becoming ${esc(idOf(p))}.</span></li>`).join("")}</ul>`,cap:"Today’s tasks are small steps toward these."})}
- if(sel().length>DAYMAX){const tp=todayPs();cards.push({kick:"Who walks with you today?",html:`<div class="dk-pick">${tp.map(p=>`<div style="--c:${PATHS[p].c}">${medal(p,"sm")}<b>${PATHS[p].hero}</b><small>${PATHS[p].name}</small><em>${(pickWhy(p)[0])||""}</em></div>`).join("")}</div><button class="cta alt" style="width:100%;margin-top:12px" data-daypick="1">Choose different mentors</button>`,cap:`${tp.length} of your ${sel().length} paths today. The others rest and keep their progress.`})}
+ if(sel().length>DAYMAX){const tp=todayPs();cards.push({kick:"Who leads today?",html:`<div class="dk-pick">${tp.map(p=>`<div style="--c:${PATHS[p].c}">${medal(p,"sm")}<b>${PATHS[p].hero}</b><small>${PATHS[p].name}</small><em>${(pickWhy(p)[0])||""}</em></div>`).join("")}</div><button class="cta alt" style="width:100%;margin-top:12px" data-daypick="1">Choose different mentors</button>`,cap:`Every path gets a task today. These ${tp.length} lead with the deeper ones.`})}
  cards.push({html:`<div class="dk-start"><div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><p class="gq">“${L[dayNum(t)%L.length]}”</p><small class="mute">${PATHS[pid].hero} walks with you today</small></div>`,cap:""});
  openPlayer({label:"Your morning",title:"Your morning",sub:new Date().toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."),cast:[pid],cards,auto:false,deck:true});
 }
@@ -896,8 +896,10 @@ function onbOpen(k){
  if(k==="tags"){OX=OX||{t:JSON.parse(JSON.stringify(S.tags||{}))};const ps=sel().filter(p=>PATHS[p].tags&&PATHS[p].tags.length);
   const y=$(".sheet")?$(".sheet").scrollTop:0;sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>What do you focus on?</h2><p class="sub">Pick any. Tasks will match.</p>${ps.map(p=>`<div class="qlabel">${PATHS[p].name}</div><div class="cchips">${PATHS[p].tags.map(([t,l])=>`<button class="chip" data-otag="${p}:${t}" aria-pressed="${(OX.t[p]||[]).includes(t)}">${l}</button>`).join("")}</div>`).join("")}<button class="cta" style="width:100%;margin-top:14px" data-osave="tags">Save</button>`);if($(".sheet"))$(".sheet").scrollTop=y;return}
  if(k==="lore"){sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">One question</div><h2>How well do you know these stories?</h2><p class="sub">The Ramayana, Mahabharata and Puranas. You don’t need to be religious.</p><div class="mlist">${[["well","I know them well","Fewer explanations"],["some","A little","Short intros"],["new","They’re new to me","Intros and explainers along the way"]].map(([v,l,d])=>`<button class="idsug" data-olore="${v}"><b>${l}</b><br><span class="mute">${d}</span></button>`).join("")}</div>`)}}
-function todayHead(){const ps=todayPs(),n=ps.length,sw=n<=3?9:7,gap=2,R0=30;let svg="",tD=0,tP=0;
- ps.forEach((pid,i)=>{const r=R0-i*(sw+gap),C=2*Math.PI*r,m=todayMins(pid),f=m.plan?Math.min(1,m.done/m.plan):0;tD+=m.done;tP+=m.plan;const P=PATHS[pid];
+function todayHead(){const all=sel(),ps=todayPs(),n=all.length,sw=n<=3?9:6,gap=1.5,R0=30;let svg="",tD=0,tP=0;
+ all.forEach(pid=>{const m=todayMins(pid);tD+=m.done;tP+=m.plan});
+ if(n>5){const C=2*Math.PI*R0,f=tP?Math.min(1,tD/tP):0;svg=`<circle cx="36" cy="36" r="${R0}" fill="none" stroke="var(--gold)" stroke-opacity=".18" stroke-width="10"/><circle cx="36" cy="36" r="${R0}" fill="none" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 36 36)"/>`}
+ else all.forEach((pid,i)=>{const r=R0-i*(sw+gap),C=2*Math.PI*r,m=todayMins(pid),f=m.plan?Math.min(1,m.done/m.plan):0,P=PATHS[pid];
   svg+=`<circle cx="36" cy="36" r="${r}" fill="none" stroke="${P.c}" stroke-opacity=".16" stroke-width="${sw}"/><circle class="tr-p" data-p="${pid}" cx="36" cy="36" r="${r}" fill="none" stroke="${P.c}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" style="--C:${C.toFixed(1)}" transform="rotate(-90 36 36)"/>`});
  const tasks=S.plan.items.filter(x=>x.kind==="task"||x.kind==="anchor"),dn=tasks.filter(x=>x.done).length,many=sel().length>DAYMAX;
  return `<div class="thd"><button class="thd-r" data-seg-go="journey:paths" aria-label="Today: ${tD} of ${tP} minutes done"><svg viewBox="0 0 72 72">${svg}</svg><span class="thd-t"><b>${tD}<small> / ${tP} min</small></b><small>${dn} of ${tasks.length} tasks${tP&&tD>=tP?" · all closed 🎉":""}</small></span></button>
@@ -1063,9 +1065,9 @@ function autoPick(){const c=sel();if(c.length<=DAYMAX)return c;const sc=p=>{cons
 function todayPs(){const c=sel(),P=S.dayPick;if(P&&P.d===td()){const p=P.p.filter(x=>c.includes(x));if(p.length)return p}return autoPick()}
 let DP=null;
 function dayPickSheet(keep){const c=sel();DP=keep&&DP?DP:todayPs().slice();
- sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Today</div><h2>Who walks with you today?</h2><p class="sub">Pick up to ${DAYMAX} mentors. Today’s plan and rings follow them. The rest keep their progress.</p>
+ sheet("var(--gold)",`<div class="kick" style="color:var(--gold)">Today</div><h2>Who leads today?</h2><p class="sub">Every path gets a task each day. Pick up to ${DAYMAX} mentors to lead: they get your longer, deeper tasks and today’s story.</p>
  <div class="dpl">${c.map(p=>{const on=DP.includes(p),w=pickWhy(p),d=sinceP(p);return `<button class="dpi${on?" on":""}" data-dp="${p}" aria-pressed="${on}" style="--c:${PATHS[p].c}">${medal(p,"sm")}<span><b>${PATHS[p].hero}</b><small>${PATHS[p].name} · ${d>=99?"not practised yet":d===0?"practised today":d===1?"practised yesterday":`${d} days ago`}</small>${w.length?`<em>${w.join(" · ")}</em>`:""}</span><i>${on?"✓":""}</i></button>`}).join("")}</div>
- <button class="cta" style="width:100%;margin-top:12px" data-dp-ok="1" ${DP.length?"":"disabled"}>Walk with ${DP.length} mentor${DP.length===1?"":"s"} today</button>
+ <button class="cta" style="width:100%;margin-top:12px" data-dp-ok="1" ${DP.length?"":"disabled"}>Lead with ${DP.length} mentor${DP.length===1?"":"s"} today</button>
  <button class="linkbtn" data-dp-auto="1">Let Abhyasa choose</button>`)}
 function mentorRow(){if(sel().length<=DAYMAX)return "";const p=todayPs();return `<button class="mrow" data-daypick="1"><span class="mrow-m">${p.map(x=>medalA(x,"xs")).join("")}</span><span><small>Today’s mentors · ${p.length} of ${sel().length}</small><b>${p.map(x=>PATHS[x].hero).join(", ")}</b></span><em>Change</em></button>`}
 function recordHist(){const P=S.plan;if(!P||!P.d||P.d===td()||S.hist[P.d])return;const h={};P.items.forEach(x=>{if(x.kind!=="task"&&x.kind!=="anchor")return;const a=h[x.pid]=h[x.pid]||[0,0];a[0]++;if(x.done)a[1]++});S.hist[P.d]=h;const k=Object.keys(S.hist).sort();while(k.length>60)delete S.hist[k.shift()]}
@@ -1659,7 +1661,7 @@ document.addEventListener("click",e=>{
  if(d.qmentor){const[p,g]=d.qmentor.split(":");Q.mentor[p]=g;quiz();return}
  if(d.daypick){closeLayer();dayPickSheet();return}
  if(d.dp){const v=d.dp;DP=DP.includes(v)?DP.filter(x=>x!==v):DP.length<DAYMAX?[...DP,v]:(toast(`Pick up to ${DAYMAX}. Untick one first.`),DP);const y=$(".sheet").scrollTop;dayPickSheet(true);$(".sheet").scrollTop=y;return}
- if(d.dpOk){S.dayPick={d:td(),p:DP.slice()};DP=null;closeLayer();replan("Today’s plan follows your mentors");return}
+ if(d.dpOk){S.dayPick={d:td(),p:DP.slice()};DP=null;closeLayer();replan("Your lead mentors get the deeper tasks today");return}
  if(d.dpAuto){S.dayPick=null;DP=null;closeLayer();replan("Abhyasa picked today’s mentors");return}
  if(d.st){const[a,v]=d.st.split(":");
   if(a==="open"){closeLayer();TR=null;stSheet();return}

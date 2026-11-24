@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.27.0 · 24.11.2026
+- Every path now gets a task every day. With more than 4 paths, today's mentors lead: they get the longer, deeper tasks and today's story, and every other path still gets one short task. Today's header shows one combined ring when you follow more than 5 paths.
+
 ## 1.26.0 · 24.11.2026
 - Cleaner and easier to find: a Settings button (gear) in the top right of every screen holds everything in one place: paths, life and kit, routine, retake setup, stories, calendar, backup and restore, feedback, tips, install, and Reset everything (the 'log out' for this phone). Hero tab is now Hero, Stats and Collection. Today shows at most 4 cards. Zoom into your hero from the Hero tab or the gear screen: pinch, +/-, drag, tap a mentor's mark to jump to it, and hide gear to see your tattoos clearly.
 
