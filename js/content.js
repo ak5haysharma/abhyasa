@@ -491,7 +491,7 @@ const GLOSSARY=[
  ["How the app works",[
   ["Abhyasa","Sanskrit for steady practice over a long time. The name of this app."],
   ["Realm","One of five areas of life: Body, Bonds, Craft, Joy and Peace."],
-  ["Path","Something you want to grow inside a realm, such as Strength or Music. You focus on up to 5 at a time."],
+  ["Path","Something you want to grow inside a realm, such as Strength or Music. You can follow up to 8, and walk with up to 4 each day."],
   ["Guide","A figure from Indian stories who walks a path with you and shares lines and stories."],
   ["Growth","Points you earn by doing tasks. They fill a path’s ring."],
   ["Trial","A real-life test that appears when a ring is full. Passing it earns the next skill."],

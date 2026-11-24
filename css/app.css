@@ -834,3 +834,22 @@ textarea.name{font-family:var(--f-body);line-height:1.5}
 .chip.stopt{display:inline-flex;align-items:center;gap:6px;text-align:left}
 .ep-why.sk h3 .dev{color:var(--mute);font-size:16px;font-weight:400;margin-left:6px}
 .ep-goal b .dev{color:var(--mute);font-size:15px;font-weight:400;margin-left:8px}
+
+/* ===== daily mentors (v1.20) ===== */
+.mrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:9px 12px;margin:4px 0 10px;color:var(--ink)}
+.mrow-m{display:flex;flex:none}.mrow-m .medal{margin-left:-6px}.mrow-m .medal:first-child{margin-left:0}
+.mrow span:nth-child(2){flex:1;min-width:0}
+.mrow small{display:block;font-size:12px;color:var(--mute);font-weight:600;white-space:nowrap}
+.mrow b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow em{font-style:normal;font-size:13px;font-weight:600;color:var(--gold)}
+.dpl{display:grid;gap:8px;margin-top:10px}
+.dpi{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--ink)}
+.dpi.on{border-color:var(--c);background:var(--gold-bg)}
+.dpi span{flex:1;min-width:0}.dpi b{display:block;font-size:15px}.dpi small{display:block;font-size:12.5px;color:var(--mute)}
+.dpi em{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--gold);margin-top:2px}
+.dpi i{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-weight:700;color:var(--bg)}
+.dpi.on i{background:var(--c);border-color:var(--c)}
+.dk-pick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.dk-pick div{display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 6px}
+.dk-pick b{font-size:14px;margin-top:4px}.dk-pick small{font-size:12px;color:var(--mute)}.dk-pick em{font-style:normal;font-size:11.5px;color:var(--gold);font-weight:600;min-height:14px}
+.dpi .medal{flex:none}

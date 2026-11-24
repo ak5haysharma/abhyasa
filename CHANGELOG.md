@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.20.0 · 24.11.2026
+- Path circle: follow up to 8 paths. Each day you walk with up to 4 mentors: Abhyasa picks them (week focus, Sankalpa, story trial, trials ready and paths you have not practised for a while come first), or tap Change on Today or in the morning cards to choose yourself. Today's plan and rings follow today's mentors; the others rest and keep their progress.
+
 ## 1.19.0 · 24.11.2026
 - Story trials: your rank is now the Ramayana. Path trials open a story trial for each book (Vishwamitra's lessons, Rama's vow, the forest years, allies, Hanuman's leap, facing Ravana, the return). Pick 1 way from your own paths (2 for a bonus gift), gentle or strict mode, day dots, today's step on the Today page, a smaller step for hard days, tips, share with someone, and a short reflection to claim your new title and next book scene. Your current title is kept. Goals with deadlines are now Sankalpa (vows), shown under the story in Journey > Story.
 
