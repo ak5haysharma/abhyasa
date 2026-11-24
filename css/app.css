@@ -624,3 +624,43 @@ nav.tabs button[aria-current="page"] svg{transform:translateY(-1px)}
 .tlegend .nx{border:2px solid #f5c76a}
 .tlegend .lc{border:1.5px solid #ffffff60}
 .tlegend .br{background:#f5c76a;border-radius:2px;transform:rotate(45deg);width:8px;height:8px}
+
+/* ===== tree explorer ===== */
+.treebox.night{cursor:pointer}
+.exhint{position:absolute;top:10px;right:12px;z-index:1;font-size:12px;font-weight:600;color:#f5c76a;background:#0b0e20cc;border:1px solid #f5c76a55;border-radius:999px;padding:4px 10px;pointer-events:none}
+html.exlock,html.exlock body{overflow:hidden}
+#ex{position:fixed;inset:0;z-index:15;background:#0b0e20;color:#eef0fb;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);animation:pop .25s ease-out}
+.ex-top{display:flex;align-items:center;gap:10px;padding:10px max(14px,env(safe-area-inset-left,0px)) 6px max(14px,env(safe-area-inset-right,0px))}
+.ex-top>span:nth-child(2){flex:1;font-family:var(--f-head);font-weight:600;font-size:17px}
+.ex-zoom{display:flex;gap:6px}
+.ex-b{min-width:38px;height:38px;border-radius:12px;border:1px solid #ffffff2a;background:#ffffff10;color:#eef0fb;font-size:18px;font-weight:600;padding:0 10px;line-height:1}
+.ex-b.wide{font-size:14px;padding:0 14px}
+.ex-b.pri{background:#f5c76a;color:#14182e;border-color:#f5c76a}
+.ex-b:disabled{opacity:.3}
+.ex-stage{flex:1;min-height:0;touch-action:none;cursor:grab}
+.ex-stage:active{cursor:grabbing}
+#exsvg{width:100%;height:100%;display:block}
+#exsel{pointer-events:none;transition:opacity .2s}
+.exrot{transform-box:fill-box;transform-origin:center;animation:spin 8s linear infinite}
+.ex-panel{background:#141a36;border-top:1px solid #ffffff1c;border-radius:22px 22px 0 0;padding:16px max(18px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));max-height:46vh;overflow:auto;animation:up .25s ease-out}
+.exp-k{font-size:12px;font-weight:600}
+.exp-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.exp-h b{font-family:var(--f-head);font-weight:600;font-size:23px}
+.exp-h .dev{color:#ffffff99;font-size:18px}
+.exst{margin-left:auto;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid #ffffff40;color:#ffffffb0}
+.exst.on{background:var(--c);color:#14182e;border-color:var(--c)}
+.exst.nx{border-color:var(--c);color:var(--c)}
+.exp-en{margin:2px 0 0;font-style:italic;color:#ffffffa0;font-size:14px}
+.exp-s{margin:8px 0 0;font-family:var(--f-head);font-size:15.5px;line-height:1.55;color:#e4e6f5}
+.exp-m{margin:4px 0 0;font-size:12px;color:#ffffff90}
+.exbar{height:7px;border-radius:999px;background:#ffffff18;margin-top:10px;overflow:hidden}
+.exbar i{display:block;height:100%;background:var(--c);border-radius:999px}
+.exgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+.exgrid>div{background:#ffffff0d;border-radius:12px;padding:10px 12px;font-size:14px}
+.exgrid small{display:block;font-size:11px;color:#ffffff80;margin-bottom:2px}
+.exnav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.exp-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:#c9cbe0}
+.exp-legend span{display:flex;align-items:center;gap:6px}
+.exp-legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.exp-legend .lk{background:#f5c76a;box-shadow:0 0 6px #f5c76a}.exp-legend .nx{border:2px solid #f5c76a}.exp-legend .lc{border:1.5px solid #ffffff60}.exp-legend .br{background:#f5c76a;border-radius:2px;transform:rotate(45deg);width:8px;height:8px}
+#ex .medal{width:32px;height:32px}

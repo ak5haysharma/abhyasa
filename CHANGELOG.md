@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.6.0 · 24.11.2026
+- Explore the skill tree like a game: full-screen, drag to pan, pinch or +/- to zoom, tap any star and the camera glides to it, with a detail panel for each skill, bridge, guide and your rank. Arrows walk along a branch; Next branch jumps across.
+
 ## 1.5.2 · 24.11.2026
 - More reliable updates: new versions always download fresh files, and the app checks for updates each time you open it.
 

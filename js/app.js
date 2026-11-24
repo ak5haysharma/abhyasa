@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.5.2";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.6.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -651,12 +651,12 @@ function companionCard(){const t=td(),pid=companionPid(t);if(!pid)return"";const
 function eveCard(){const t=td(),d=S.days[t];if(S.closed===t)return `<div class="evedone">Day closed${d&&d.mood?` · ${MOODS.find(m=>m[0]===d.mood)[1].toLowerCase()}`:""}${d&&d.note?` · “${esc(d.note)}”`:""}</div>`;
  return `<button class="evecard${new Date().getHours()>=17?" late":""}" data-eve="1"><span class="moon">${ic("moon")}</span><span><b>Close your day</b><small>How it felt, and one line. Your companion sets out tonight.</small></span></button>`}
 const TREEC={body:"#ff8a65",flex:"#5ec8dc",bonds:"#5cd6a2",love:"#f490a6",learn:"#8db2ff",focus:"#b39cff",music:"#ee93dc",calm:"#b4dc72"},TGOLD="#f5c76a";
-function treeSvg(){
+function treeSvg(){TPOS={};
  const L=sel(),n=L.length,CX=200,CY=220,base=Object.fromEntries(L.map((p,i)=>[p,-90+i*360/Math.max(1,n)]));
  const pos=(p,j)=>{const a=(base[p]+j*7)*Math.PI/180,r=58+j*30;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]};
  const tip=(p,r)=>{const a=(base[p]+30)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]};
  const f1=v=>v.toFixed(1),line=pts=>"M"+pts.map(q=>f1(q[0])+" "+f1(q[1])).join(" L");
- let g=`<defs><radialGradient id="tbg" cx="50%" cy="48%" r="70%"><stop offset="0" stop-color="#26305e"/><stop offset=".55" stop-color="#151a38"/><stop offset="1" stop-color="#0b0e20"/></radialGradient>
+ let g=`<defs><radialGradient id="tbg" cx="50%" cy="48%" r="50%"><stop offset="0" stop-color="#26305e"/><stop offset=".6" stop-color="#151a38"/><stop offset="1" stop-color="#0b0e20"/></radialGradient>
  <filter id="tglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
  <filter id="tglow2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter>
  <clipPath id="mc"><circle cx="60" cy="60" r="57"/></clipPath></defs>
@@ -668,29 +668,83 @@ function treeSvg(){
   const mx=(q1[0]+q2[0])/2,my=(q1[1]+q2[1])/2,k=-.55,cx=mx+(CX-mx)*k,cy=my+(CY-my)*k,mid=[(q1[0]+2*cx+q2[0])/4,(q1[1]+2*cy+q2[1])/4],d=`M${f1(q1[0])} ${f1(q1[1])} Q${f1(cx)} ${f1(cy)} ${f1(q2[0])} ${f1(q2[1])}`;
   g+=un?`<path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="5" opacity=".35" filter="url(#tglow2)"/><path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="2"/><path class="flow" d="${d}" fill="none" stroke="#fff" stroke-width="1.4" stroke-dasharray="2 12" opacity=".8"/>`
    :`<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.2" stroke-dasharray="3 6"/>`;
-  g+=`<g class="tn" data-syn="${b.id}" tabindex="0" role="button" aria-label="Bridge ${b.n}${un?", open":", locked"}"><circle cx="${f1(mid[0])}" cy="${f1(mid[1])}" r="18" fill="transparent"/>${un?`<rect x="${f1(mid[0]-11)}" y="${f1(mid[1]-11)}" width="22" height="22" rx="3" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${TGOLD}" opacity=".45" filter="url(#tglow2)"/>`:""}<rect x="${f1(mid[0]-8)}" y="${f1(mid[1]-8)}" width="16" height="16" rx="2.5" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${un?TGOLD:"#1b2146"}" stroke="${un?"#fff3d0":"#ffffff55"}" stroke-width="1.4"/>
+  TPOS["syn|"+b.id]=mid;g+=`<g class="tn" data-x="syn|${b.id}" tabindex="0" role="button" aria-label="Bridge ${b.n}${un?", open":", locked"}"><circle cx="${f1(mid[0])}" cy="${f1(mid[1])}" r="18" fill="transparent"/>${un?`<rect x="${f1(mid[0]-11)}" y="${f1(mid[1]-11)}" width="22" height="22" rx="3" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${TGOLD}" opacity=".45" filter="url(#tglow2)"/>`:""}<rect x="${f1(mid[0]-8)}" y="${f1(mid[1]-8)}" width="16" height="16" rx="2.5" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${un?TGOLD:"#1b2146"}" stroke="${un?"#fff3d0":"#ffffff55"}" stroke-width="1.4"/>
   <text x="${f1(mid[0])}" y="${f1(mid[1]+24)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${un?TGOLD:"#ffffff80"}" font-family="Inter,sans-serif" stroke="#0e1229" stroke-width="3.5" paint-order="stroke">${b.n}</text></g>`});
  // branches
  L.forEach((p,pi)=>{const P=PATHS[p],c=TREEC[p]||"#fff",pr=S.prog[p],pts=[[CX,CY],...[0,1,2,3,4].map(j=>pos(p,j))],un=Math.min(pr.m,5);
   g+=`<path d="${line(pts)}" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="${line(pts)}" fill="none" stroke="${c}" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round"/>`;
   const part=pts.slice(0,un+1+(pr.m<5&&pr.xp>0?0:0));
   if(un>0){g+=`<path d="${line(part)}" fill="none" stroke="${c}" stroke-width="7" opacity=".45" stroke-linecap="round" stroke-linejoin="round" filter="url(#tglow2)"/><path d="${line(part)}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path class="flow" d="${line(part)}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 14" stroke-linecap="round" opacity=".85"/>`}
-  for(let j=0;j<5;j++){const[x,y]=pos(p,j),sk=P.skills[j],X=f1(x),Y=f1(y);let nd=`<g class="tn pop" style="animation-delay:${(.15+j*.09+pi*.06).toFixed(2)}s" data-skill="${p}:${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${sk.n}${j<pr.m?", earned":j===pr.m?", next":", locked"}"><circle cx="${X}" cy="${Y}" r="17" fill="transparent"/>`;
+  for(let j=0;j<5;j++){const[x,y]=pos(p,j),sk=P.skills[j],X=f1(x),Y=f1(y);TPOS[`skill|${p}|${j}`]=[x,y];let nd=`<g class="tn pop" style="animation-delay:${(.15+j*.09+pi*.06).toFixed(2)}s" data-x="skill|${p}|${j}" tabindex="0" role="button" aria-label="${P.name} skill ${j+1}: ${sk.n}${j<pr.m?", earned":j===pr.m?", next":", locked"}"><circle cx="${X}" cy="${Y}" r="17" fill="transparent"/>`;
    if(j<pr.m)nd+=`<circle cx="${X}" cy="${Y}" r="15" fill="${c}" opacity=".5" filter="url(#tglow2)"/><circle cx="${X}" cy="${Y}" r="12" fill="${c}" stroke="#fff" stroke-width="1.6"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="#10142c">${sk.d.slice(0,1)}</text>`;
    else if(j===pr.m){const fr=Math.min(1,pr.xp/NEED[j]),Cc=2*Math.PI*14;nd+=`<circle class="pulse" cx="${X}" cy="${Y}" r="13" fill="none" stroke="${c}" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="14" fill="#141a3a" stroke="#ffffff30" stroke-width="3"/><circle cx="${X}" cy="${Y}" r="14" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${f1(fr*Cc)} ${f1(Cc)}" transform="rotate(-90 ${X} ${Y})" filter="url(#tglow)"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="${c}">${sk.d.slice(0,1)}</text>`}
    else nd+=`<circle cx="${X}" cy="${Y}" r="6.5" fill="#141a3a" stroke="${c}" stroke-opacity=".45" stroke-width="1.6"/>`;
    g+=nd+`</g>`;
    if(j===pr.m&&j<5){const a=(base[p]+j*7)*Math.PI/180,lx=x+24*Math.cos(a+Math.PI/2),ly=y+24*Math.sin(a+Math.PI/2);g+=`<text x="${f1(lx)}" y="${f1(ly+4)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${c}" font-family="Inter,sans-serif" stroke="#0e1229" stroke-width="3.5" paint-order="stroke">${sk.n}</text>`}}
   const ar=(base[p]+30)*Math.PI/180,px=CX+212*Math.cos(ar),py=CY+212*Math.sin(ar),ca=Math.cos(ar),anc=Math.abs(ca)<.35?"middle":ca>0?"end":"start",lx=anc==="middle"?px:anc==="end"?px+20:px-20;
-  g+=`<g class="tn" data-pdetail="${p}" tabindex="0" role="button" aria-label="${P.name} with ${P.hero}"><circle cx="${f1(px)}" cy="${f1(py)}" r="21" fill="${c}" opacity=".35" filter="url(#tglow2)"/><g transform="translate(${f1(px-18)} ${f1(py-18)}) scale(.3)"><circle cx="60" cy="60" r="60" fill="#f4efe3" stroke="${c}" stroke-width="7"/><g clip-path="url(#mc)">${portraitG(CHAR[p])}</g></g>
+  TPOS["path|"+p]=[px,py];g+=`<g class="tn" data-x="path|${p}" tabindex="0" role="button" aria-label="${P.name} with ${P.hero}"><circle cx="${f1(px)}" cy="${f1(py)}" r="21" fill="${c}" opacity=".35" filter="url(#tglow2)"/><g transform="translate(${f1(px-18)} ${f1(py-18)}) scale(.3)"><circle cx="60" cy="60" r="60" fill="#f4efe3" stroke="${c}" stroke-width="7"/><g clip-path="url(#mc)">${portraitG(CHAR[p])}</g></g>
   <text x="${f1(lx)}" y="${f1(py+(Math.sin(ar)<-.3?-26:34))}" text-anchor="${anc}" font-family="Literata,serif" font-weight="600" font-size="13" fill="${c}" stroke="#0e1229" stroke-width="4" paint-order="stroke">${P.name}</text></g>`});
  // mandala
  const sgOn=["body","bonds","music"].every(p=>S.paths.includes(p)),sgUn=S.syn.includes("sangam");
  let petals="";for(let i=0;i<12;i++){petals+=`<path d="M0 -40 C7 -30 7 -24 0 -18 C-7 -24 -7 -30 0 -40Z" transform="rotate(${i*30})" fill="${TGOLD}" fill-opacity="${sgUn?.7:.22}" stroke="${TGOLD}" stroke-opacity=".7" stroke-width=".8"/>`}
- g+=`<g ${sgOn?'class="tn" data-syn="sangam" tabindex="0" role="button" aria-label="Triveni Sangam"':""}><circle cx="${CX}" cy="${CY}" r="46" fill="${TGOLD}" opacity="${sgUn?.35:.14}" filter="url(#tglow2)"/><g transform="translate(${CX} ${CY})"><g class="spin">${petals}<circle r="44" fill="none" stroke="${TGOLD}" stroke-opacity=".5" stroke-dasharray="1 4"/></g><circle r="22" fill="#0f1430" stroke="${TGOLD}" stroke-width="1.6"/></g>
+ TPOS.center=[CX,CY];g+=`<g class="tn" data-x="center" tabindex="0" role="button" aria-label="Your rank"><circle cx="${CX}" cy="${CY}" r="46" fill="${TGOLD}" opacity="${sgUn?.35:.14}" filter="url(#tglow2)"/><g transform="translate(${CX} ${CY})"><g class="spin">${petals}<circle r="44" fill="none" stroke="${TGOLD}" stroke-opacity=".5" stroke-dasharray="1 4"/></g><circle r="22" fill="#0f1430" stroke="${TGOLD}" stroke-width="1.6"/></g>
  <text x="${CX}" y="${CY+3}" text-anchor="middle" font-family="Tiro Devanagari Hindi,serif" font-size="14" fill="${TGOLD}">${RANKS[stage()][1]}</text><text x="${CX}" y="${CY+14}" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#ffffffa0">${msTotal()} trials</text></g>`;
- return `<div class="treebox night"><svg class="tree" viewBox="-48 -38 496 520" role="img" aria-label="Skill tree">${g}</svg><div class="tlegend"><span><i class="lk"></i>Earned</span><span><i class="nx"></i>Next</span><span><i class="lc"></i>Locked</span><span><i class="br"></i>Bridge</span></div></div>`;
+ TREE_G=g;return `<div class="treebox night" data-x="open"><span class="exhint">Tap to explore ⤢</span><svg class="tree" viewBox="-48 -38 496 520" role="img" aria-label="Skill tree">${g}</svg><div class="tlegend"><span><i class="lk"></i>Earned</span><span><i class="nx"></i>Next</span><span><i class="lc"></i>Locked</span><span><i class="br"></i>Bridge</span></div></div>`;
 }
+
+/* ================= skill tree explorer (pan, zoom, tap nodes) ================= */
+let TPOS={},TREE_G="",EX=null;const VB0={x:-48,y:-38,w:496,h:520};
+function exOpen(key){treeSvg();const host=document.createElement("div");host.id="ex";host.setAttribute("role","dialog");host.setAttribute("aria-label","Skill tree explorer");
+ host.innerHTML=`<div class="ex-top"><button class="ex-b" data-ex="close" aria-label="Close">×</button><span>Skill tree</span><span class="ex-zoom"><button class="ex-b" data-ex="out" aria-label="Zoom out">−</button><button class="ex-b" data-ex="in" aria-label="Zoom in">+</button><button class="ex-b wide" data-ex="all">Overview</button></span></div>
+ <div class="ex-stage"><svg id="exsvg" viewBox="${VB0.x} ${VB0.y} ${VB0.w} ${VB0.h}" preserveAspectRatio="xMidYMid meet">${TREE_G}<g id="exsel" opacity="0"><circle r="24" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 5" class="exrot"/><circle r="30" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1"/></g></svg></div><div class="ex-panel" id="expanel"></div>`;
+ document.body.appendChild(host);document.documentElement.classList.add("exlock");
+ EX={vb:{...VB0},anim:null,sel:null,ptr:new Map(),moved:0};exBind();exSelect(key||exDefault(),true)}
+function exClose(){const h=$("#ex");if(h)h.remove();document.documentElement.classList.remove("exlock");EX=null}
+function exDefault(){const p=sel()[0];if(!p)return"center";return `skill|${p}|${Math.min(S.prog[p].m,4)}`}
+function exAspect(){const st=$("#ex .ex-stage");return st?st.clientHeight/Math.max(1,st.clientWidth):1}
+function exApply(){const v=EX.vb,el=$("#exsvg");if(el)el.setAttribute("viewBox",`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`)}
+function exTo(cx,cy,w,instant){const a=exAspect(),h=w*a,to={x:cx-w/2,y:cy-h/2,w,h},from={...EX.vb};cancelAnimationFrame(EX.anim);
+ if(instant||matchMedia("(prefers-reduced-motion: reduce)").matches){EX.vb=to;exApply();return}
+ const t0=performance.now(),D=480,ease=t=>1-Math.pow(1-t,3);const step=now=>{const k=ease(Math.min(1,(now-t0)/D));EX.vb={x:from.x+(to.x-from.x)*k,y:from.y+(to.y-from.y)*k,w:from.w+(to.w-from.w)*k,h:from.h+(to.h-from.h)*k};exApply();if(k<1)EX.anim=requestAnimationFrame(step)};EX.anim=requestAnimationFrame(step)}
+function exOverview(){const a=exAspect(),w=Math.max(440,460/a);exTo(VB0.x+VB0.w/2,VB0.y+VB0.h/2,w);EX.sel=null;$("#exsel").setAttribute("opacity","0");exPanel(null)}
+function exZoom(f,cx,cy){const v=EX.vb,nw=Math.max(120,Math.min(900,v.w*f));cx=cx??v.x+v.w/2;cy=cy??v.y+v.h/2;const nh=nw*exAspect(),kx=(cx-v.x)/v.w,ky=(cy-v.y)/v.h;cancelAnimationFrame(EX.anim);EX.vb={x:cx-kx*nw,y:cy-ky*nh,w:nw,h:nh};exApply()}
+function exSelect(key,first){if(!EX)return;const pos=TPOS[key];if(!pos)return;EX.sel=key;const r=$("#exsel");r.setAttribute("transform",`translate(${pos[0].toFixed(1)} ${pos[1].toFixed(1)})`);r.setAttribute("opacity","1");
+ const zoomW=key==="center"?300:key.startsWith("path")?260:230;if(first)exTo(...pos,VB0.w,true);exTo(pos[0],pos[1],zoomW);exPanel(key)}
+function exPanel(key){const el=$("#expanel");if(!el)return;if(!key){el.innerHTML=`<div class="exp-h"><b>Your constellation</b></div><p class="exp-s">Tap any star to explore it. Drag to move, pinch or use + and − to zoom.</p><div class="exp-legend"><span><i class="lk"></i>Earned</span><span><i class="nx"></i>Next</span><span><i class="lc"></i>Locked</span><span><i class="br"></i>Bridge</span></div>`;return}
+ const [type,a,b]=key.split("|"),L=sel();
+ if(type==="skill"){const pid=a,k=+b,P=PATHS[pid],sk=P.skills[k],pr=S.prog[pid],c=TREEC[pid],on=has(pid,k),nx=k===pr.m,full=nx&&pr.xp>=NEED[k];
+  const state=on?`<span class="exst on" style="--c:${c}">Earned</span>`:nx?`<span class="exst nx" style="--c:${c}">${full?"Trial ready":"In progress"}</span>`:`<span class="exst">Locked</span>`;
+  const prog=nx?`<div class="exbar" style="--c:${c}"><i style="width:${Math.min(100,pr.xp/NEED[k]*100)}%"></i></div><p class="exp-m">${Math.min(pr.xp,NEED[k])} of ${NEED[k]} growth</p>`:"";
+  el.innerHTML=`<div class="exp-k" style="color:${c}">${P.name} · skill ${k+1} of 5 · with ${P.hero}</div><div class="exp-h"><b>${sk.n}</b><span class="dev">${sk.d}</span>${state}</div>${EN[sk.n]?`<p class="exp-en">${EN[sk.n]}</p>`:""}
+  <p class="exp-s">${sk.s}</p>${prog}
+  <div class="exgrid"><div><small>Effect</small>${PERK[sk.perk](P.name)}</div><div><small>${on?"Trial passed":"Trial"}</small>${trialFor(pid,k)}</div>${sk.item?`<div><small>Gift</small>${sk.itemName||sk.n}</div>`:""}${!on&&!nx?`<div><small>Unlocks after</small>${P.skills[k-1].n}</div>`:""}</div>
+  <div class="exnav"><button class="ex-b" data-ex="prev" ${k===0?"disabled":""} aria-label="Previous skill">‹</button><button class="ex-b" data-ex="next" ${k===4?"disabled":""} aria-label="Next skill">›</button>${L.length>1?`<button class="ex-b wide" data-ex="branch">⇄ Next branch</button>`:""}${full?`<button class="ex-b wide pri" data-trial="${pid}">I passed</button>`:""}</div>`;return}
+ if(type==="syn"){const sy=SYN.find(x=>x.id===a),un=S.syn.includes(a);
+  el.innerHTML=`<div class="exp-k" style="color:${TGOLD}">Bridge · ${sy.p.map(p=>PATHS[p].name).join(" + ")}</div><div class="exp-h"><b>${sy.n}</b><span class="dev">${sy.d}</span><span class="exst ${un?"on":""}" style="--c:${TGOLD}">${un?"Open":"Locked"}</span></div>${EN[sy.n]?`<p class="exp-en">${EN[sy.n]}</p>`:""}<p class="exp-s">${sy.s}</p>
+  <div class="exgrid"><div><small>Opens when</small>${sy.p.map(p=>`${PATHS[p].name}: ${Math.min(S.prog[p].m,sy.req)}/${sy.req} trials`).join("<br>")}</div><div><small>Effect</small>+10% growth and a daily shared task</div></div>
+  <div class="exnav"><button class="ex-b wide pri" data-story="${a}">${un?"Watch the story":"Preview the story"}</button></div>`;return}
+ if(type==="path"){const pid=a,P=PATHS[pid],pr=S.prog[pid],g=CHAR[pid],c=TREEC[pid];
+  el.innerHTML=`<div class="exp-k" style="color:${c}">${REALMS.find(r=>r.id===P.realm).n} · ${P.about}</div><div class="exp-h">${medal(pid,"sm")}<b>${P.name}</b><span class="exst on" style="--c:${c}">${pr.m}/5</span></div><p class="exp-s">${PEOPLE[g].bio}</p>
+  <div class="exnav"><button class="ex-b wide" data-ex="go|skill|${pid}|${Math.min(pr.m,4)}">Go to next skill</button><button class="ex-b wide" data-intro="${pid}">Meet ${PEOPLE[g].n}</button></div>`;return}
+ if(type==="center"){const st=stage(),n=L.length,need=(st+1)*n-msTotal();
+  el.innerHTML=`<div class="exp-k" style="color:${TGOLD}">The centre of your constellation</div><div class="exp-h"><b>${RANKS[st][0]}</b><span class="dev">${RANKS[st][1]}</span><span class="exst on" style="--c:${TGOLD}">${msTotal()} trials</span></div><p class="exp-en">${EN[RANKS[st][0]]}</p><p class="exp-s">${st>=5?"You have reached the highest rank.":`${need} more trial${need===1?"":"s"} across your paths to become ${RANKS[st+1][0]}.`}</p>
+  <div class="exnav">${L.map(p=>`<button class="ex-b wide" data-ex="go|path|${p}" style="color:${TREEC[p]}">${PATHS[p].name}</button>`).join("")}</div>`}}
+function exNav(cmd){if(!EX)return;const k=EX.sel||exDefault(),[t,p,j]=k.split("|"),L=sel();
+ if(cmd==="prev"&&t==="skill")exSelect(`skill|${p}|${Math.max(0,+j-1)}`);
+ if(cmd==="next"&&t==="skill")exSelect(`skill|${p}|${Math.min(4,+j+1)}`);
+ if(cmd==="branch"){const cur=t==="skill"||t==="path"?p:L[0],np=L[(L.indexOf(cur)+1)%L.length];exSelect(`skill|${np}|${Math.min(S.prog[np].m,4)}`)}}
+function exBind(){const st=$("#ex .ex-stage"),svg=$("#exsvg");
+ const toSvg=(cx,cy)=>{const r=svg.getBoundingClientRect(),v=EX.vb,sc=Math.max(v.w/r.width,v.h/r.height),ox=(r.width-v.w/sc)/2,oy=(r.height-v.h/sc)/2;return[v.x+(cx-r.left-ox)*sc,v.y+(cy-r.top-oy)*sc,sc]};
+ st.addEventListener("pointerdown",e=>{EX.ptr.set(e.pointerId,[e.clientX,e.clientY]);EX.moved=0;cancelAnimationFrame(EX.anim);if(EX.ptr.size===2){const[a,b]=[...EX.ptr.values()];EX.pd=Math.hypot(a[0]-b[0],a[1]-b[1])}});
+ st.addEventListener("pointermove",e=>{if(!EX.ptr.has(e.pointerId))return;const prev=EX.ptr.get(e.pointerId);EX.ptr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(EX.ptr.size===1){const[,,sc]=toSvg(0,0),dx=e.clientX-prev[0],dy=e.clientY-prev[1];EX.moved+=Math.abs(dx)+Math.abs(dy);EX.vb.x-=dx*sc;EX.vb.y-=dy*sc;exApply()}
+  else if(EX.ptr.size===2){const[a,b]=[...EX.ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(EX.pd){const[mx,my]=toSvg((a[0]+b[0])/2,(a[1]+b[1])/2);exZoom(EX.pd/d,mx,my)}EX.pd=d;EX.moved+=10}});
+ const up=e=>{EX&&EX.ptr.delete(e.pointerId);if(EX&&EX.ptr.size<2)EX.pd=null};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);
+ st.addEventListener("click",e=>{if(EX.moved>8){e.stopPropagation();e.preventDefault()}},true);
+ st.addEventListener("wheel",e=>{e.preventDefault();const[mx,my]=toSvg(e.clientX,e.clientY);exZoom(e.deltaY>0?1.12:.89,mx,my)},{passive:false});
+ document.addEventListener("keydown",exKeys)}
+function exKeys(e){if(!EX){document.removeEventListener("keydown",exKeys);return}if(e.key==="Escape")exClose();if(e.key==="ArrowLeft")exNav("prev");if(e.key==="ArrowRight")exNav("next");if(e.key==="Tab"&&e.shiftKey===false&&e.target===document.body){e.preventDefault();exNav("branch")}}
+
 function storiesList(){const L=SYN.filter(x=>x.p.every(p=>S.paths.includes(p)));if(!L.length)return `<p class="sub">Choose two or more paths to unlock stories.</p>`;
  return `<div class="stories">${L.map(x=>{const on=S.syn.includes(x.id);return `<button class="storyc${on?"":" off"}" data-story="${x.id}"><span class="pair">${x.p.map(p=>medal(p,"sm")).join("")}</span><div><b>${x.n}</b><small>${on?"Unlocked · tap to watch":`Opens when ${x.p.map(p=>PATHS[p].name).join(" and ")} pass ${x.req} trials · preview`}</small></div><span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></button>`}).join("")}</div>`}
 
@@ -903,13 +957,15 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
- if(d.view){stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
+ if(d.view){exClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
  if(d.treeOpen){stopTool();OPEN=null;S.view="journey";render();window.scrollTo(0,0);return}
  if(d.time){setTime(+d.time);return}
  if(d.done){if(t.closest(".sheet"))closeLayer();complete(d.done,e);return}
+ if(d.x){const v=d.x;if(!EX){exOpen(v==="open"?null:v);if(v==="open")setTimeout(()=>EX&&exOverview(),520)}else if(v!=="open")exSelect(v);return}
+ if(d.ex){const v=d.ex;if(v==="close")exClose();else if(v==="in")exZoom(.75);else if(v==="out")exZoom(1.33);else if(v==="all")exOverview();else if(v.startsWith("go|"))exSelect(v.slice(3));else exNav(v);return}
  if(d.seg){const[k,v]=d.seg.split(":");S.seg=S.seg||{};S.seg[k]=v;render();window.scrollTo(0,0);return}
  if(d.segGo){const[k,v]=d.segGo.split(":");S.seg=S.seg||{};S.seg[k]=v;S.view=k;render();window.scrollTo(0,0);return}
  if(d.task){taskSheet(d.task);return}
