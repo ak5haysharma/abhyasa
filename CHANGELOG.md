@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.26.0 · 24.11.2026
+- Cleaner and easier to find: a Settings button (gear) in the top right of every screen holds everything in one place: paths, life and kit, routine, retake setup, stories, calendar, backup and restore, feedback, tips, install, and Reset everything (the 'log out' for this phone). Hero tab is now Hero, Stats and Collection. Today shows at most 4 cards. Zoom into your hero from the Hero tab or the gear screen: pinch, +/-, drag, tap a mentor's mark to jump to it, and hide gear to see your tattoos clearly.
+
 ## 1.25.0 · 24.11.2026
 - Fast start: setup is now 3 steps (name, paths, where you are now on one screen) and takes about a minute, with a nudge to start with 3 paths. Everything else comes as one optional question a day on Today (mentors, life and kit, weekly routine, who you are becoming, focus, story knowledge), with a Later button. Day one introduces only today's mentor, and tips show one per day. Today's big rings card is now a compact header: small rings with minutes and tasks, plus today's mentors.
 
