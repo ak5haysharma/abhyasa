@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.42.0 · 25.11.2026
+- Katha for all 35 mentors (96 stories) and 31 bonus stories where mentors meet.
+
 ## 1.41.0 · 25.11.2026
 - Katha: finish a path's tasks to hear a short story from your mentor. Finish all tasks for a bonus story where two mentors meet.
 
