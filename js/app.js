@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.45.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.46.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1052,7 +1052,20 @@ function enWeeks(k){const L=S.enLog||{};return Object.keys(L).sort().slice(-8).m
 let URGE=null,URGE_T=null;
 const urgeL=()=>S.urges||(S.urges=[]);
 function urgeMentor(e){const mine=Object.values(CHAR);return e.help.find(g=>mine.includes(g))||e.help[0]}
-function urgeFab(){const L=myEnemies().length?myEnemies():ENEMIES,e=L[dayNum(td())%L.length];return `<button class="urgefab" data-urge="1" aria-label="Craving? Hold the line against ${e.antN}"><span class="ufp">${portrait(e.ant)}</span><span class="ufb">${ic("urge")}</span></button>`}
+function urgeFab(){const L=myEnemies().length?myEnemies():ENEMIES,e=L[dayNum(td())%L.length];return `<button class="urgefab" data-urge="1" aria-label="Craving? Hold the line against ${e.antN}"><span class="ufp">${portrait(e.ant)}</span><span class="ufb">${ic("urge")}</span><span class="ufx">×</span></button>`}
+function urgeFan(){if($(".ufan")){urgeFanClose();return}const fb=$(".urgefab");if(!fb)return urgePick();
+ const cnt={};urgeL().forEach(u=>cnt[u.k]=(cnt[u.k]||0)+1);const def=["smoke","scroll","putoff","junk","snap"];
+ const top=[...URGES].sort((a,b)=>(cnt[b.k]||0)-(cnt[a.k]||0)||def.indexOf(a.k)-def.indexOf(b.k)).filter(u=>cnt[u.k]||def.includes(u.k)).slice(0,5);
+ const items=[...top.map(u=>({k:u.k,n:u.n,e:EN_(u.e).antN})),{k:"more",n:"Something else…",e:""}],N=items.length;
+ document.body.insertAdjacentHTML("beforeend",`<div class="ufan" data-ufx="1"></div>`);const F=$(".ufan"),vw=F.clientWidth,vh=F.clientHeight,r=fb.getBoundingClientRect();
+ // distances from the bottom-right corner, so the fan stays put if the screen resizes (like the button itself)
+ const fx=vw-(r.left+r.width/2),fy=vh-(r.top+r.height/2),SW=440,SH=900;
+ const pts=items.map((it,i)=>({dx:Math.min(vw-150,fx+34+56*Math.sin(Math.PI*(i+.5)/N)),dy:fy+62+i*50}));
+ const P=(dx,dy)=>`${(SW-dx).toFixed(1)} ${(SH-dy).toFixed(1)}`;
+ const lines=pts.map((p,i)=>`<path d="M${P(fx,fy+24)} Q${P(fx+6,p.dy-8)} ${P(p.dx-6,p.dy)}" pathLength="1" style="--d:${i*45}ms"/>`).join("");
+ F.innerHTML=`<svg class="ufl" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}">${lines}</svg>${items.map((it,i)=>`<button class="ufi${it.k==="more"?" more":""}" data-ufk="${it.k}" style="right:${pts[i].dx.toFixed(0)}px;bottom:${(pts[i].dy-19).toFixed(0)}px;--d:${120+i*45}ms"><b>${it.n}</b>${it.e?`<small>${it.e}</small>`:""}</button>`).join("")}<p class="ufh" style="bottom:${(pts[N-1].dy+30).toFixed(0)}px;right:${(fx-10).toFixed(0)}px">What is pulling you?</p>`;
+ fb.classList.add("open")}
+function urgeFanClose(){const f=$(".ufan");if(f){f.classList.add("out");setTimeout(()=>f.remove(),160)}const fb=$(".urgefab");if(fb)fb.classList.remove("open")}
 function urgePick(){const L=urgeL(),cnt={};L.forEach(u=>cnt[u.k]=(cnt[u.k]||0)+1);const list=[...URGES].sort((a,b)=>(cnt[b.k]||0)-(cnt[a.k]||0));
  sheet("var(--enemy)",`<div class="kick" style="color:var(--enemy)">Hold the line</div><h2>What is pulling you?</h2><p class="sub">One tap. Then we wait it out together.</p>
  <div class="urgel">${list.map(u=>{const e=EN_(u.e);return `<button class="urgec" data-urgek="${u.k}"><b>${u.n}</b><small>${e.antN} · ${e.en.toLowerCase()}</small></button>`}).join("")}</div>
@@ -1548,6 +1561,7 @@ function glossaryView(){return `<div class="cchips" style="margin:6px 0 12px">${
 let lastView="",GI=0,GANIM=false,TALK=null;
 function render(){
  if(!S.on){quiz();return}
+ {const f=$(".ufan");if(f)f.remove()}
  dayTick();stCheck();ensurePlan();{const nw=inkCheck();if(nw.length){save();inkAnnounce(nw)}}
  SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","cal","hero"].includes(S.view))S.view="today";
@@ -1950,7 +1964,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-evq],[data-katha],[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-ufk],[data-ufx],[data-evq],[data-katha],[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1966,7 +1980,9 @@ document.addEventListener("click",e=>{
  if(d.cday){daySheet(d.cday);return}
  if(d.cmon){CALM.m+=+d.cmon;if(CALM.m<0){CALM.m=11;CALM.y--}if(CALM.m>11){CALM.m=0;CALM.y++}render();return}
  if(d.slot){const[id,k]=d.slot.split(":");const it=S.plan.items.find(x=>x.id===id);if(it){it.slot=k;save();render();taskSheet(id);toast(`Moved to ${k}`)}return}
- if(d.urge){urgePick();return}
+ if(d.urge){urgeFan();return}
+ if(d.ufx!==undefined&&e.target===t){urgeFanClose();return}
+ if(d.ufk){const k=d.ufk;urgeFanClose();if(k==="more")urgePick();else urgeStart(k);return}
  if(d.urgek){urgeStart(d.urgek);return}
  if(d.urgeend){urgeEnd(d.urgeend);return}
  if(d.mv){mvSheet(d.mv);return}

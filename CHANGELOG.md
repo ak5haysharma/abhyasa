@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.46.0 · 25.11.2026
+- Craving button opens into lines that end on your most common cravings.
+
+## 1.46.0 · 25.11.2026
+- Craving button opens into lines that end on your most common cravings.
+
 ## 1.45.0 · 25.11.2026
 - Craving button is now a round floating portrait of an inner enemy, changing each day.
 
