@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.38.0 · 25.11.2026
+- Pop-ups close when you tap outside or drag them down. Tips close when you tap elsewhere.
+
 ## 1.37.0 · 25.11.2026
 - Hold the line: craving timer tied to the inner enemies. Sanjhi paper-cut accents and an origami fold when you finish a task.
 

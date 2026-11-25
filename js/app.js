@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.37.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.38.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -255,7 +255,16 @@ function popAt(txt,c,ev){if(!ev||!ev.clientX)return;const e=document.createEleme
 const queue=[];
 function pushModal(h){queue.push(h);if(!$(".scrim"))nextModal()}
 function nextModal(){const h=queue.shift();if(h)openLayer(`<div class="scrim center" data-close="1"><div class="modal" role="dialog" aria-modal="true">${h}<button class="cta" style="width:100%" data-close="1">Continue</button></div></div>`)}
-function openLayer(h){const s=$(".scrim");if(s)s.remove();document.body.insertAdjacentHTML("beforeend",h)}
+function openLayer(h){const s=$(".scrim");if(s)s.remove();document.body.insertAdjacentHTML("beforeend",h);dragBind()}
+// Drag a sheet or card down to close it (v1.38)
+document.addEventListener("pointerdown",e=>{const f=$(".tipf");if(f&&!e.target.closest(".tipf")){S.tipD=td();save();f.classList.add("out");setTimeout(()=>f.remove(),200)}},true);
+function dragBind(){const sc=$(".scrim"),el=sc&&sc.querySelector(":scope>.sheet,:scope>.modal");if(!el||el.dataset.dg)return;el.dataset.dg=1;el.insertAdjacentHTML("afterbegin",'<div class="grab" aria-hidden="true"></div>');
+ let y0=0,x0=0,dy=0,on=false,dec=false,t0=0;
+ el.addEventListener("touchstart",e=>{if(e.touches.length!==1||e.target.closest("input,textarea,select,[type=range],.nodrag,canvas"))return;y0=e.touches[0].clientY;x0=e.touches[0].clientX;dy=0;dec=false;on=el.scrollTop<=0;t0=Date.now()},{passive:true});
+ el.addEventListener("touchmove",e=>{if(!on)return;const y=e.touches[0].clientY-y0,x=e.touches[0].clientX-x0;if(!dec){if(Math.abs(y)<6&&Math.abs(x)<6)return;dec=true;if(y<=0||Math.abs(x)>Math.abs(y)){on=false;return}}
+  dy=Math.max(0,y);if(dy>0){e.preventDefault();el.style.transition="none";el.style.transform=`translateY(${dy}px)`;sc.style.background=`rgba(10,11,15,${Math.max(0,.45-dy/700)})`}},{passive:false});
+ el.addEventListener("touchend",()=>{if(!on||!dec){on=false;return}on=false;const fast=dy>40&&Date.now()-t0<250;el.style.transition="transform .2s ease-out";
+  if(dy>110||fast){el.style.transform="translateY(110%)";setTimeout(()=>{if(el.isConnected)closeLayer()},180)}else{el.style.transform="";sc.style.background=""}},{passive:true})}
 function closeLayer(){sayStop();const s=$(".scrim");if(s){if(s.querySelector(".tool"))stopTool();s.remove();if(LASTF&&LASTF.isConnected&&!queue.length)try{LASTF.focus({preventScroll:true})}catch(e){}}if(PL){clearTimeout(PL.t);const dk=PL.deck,af=PL.after;PL=null;if(dk){S.deck=td();save();render()}if(af){af();return}}if(queue.length)nextModal()}
 
 /* ================= actions ================= */
