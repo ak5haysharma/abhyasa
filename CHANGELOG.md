@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.49.0 · 25.11.2026
+- Nimbu-mirchi charm hangs at the top: 7 chillies for your last 7 days, a lemon for today.
+
 ## 1.48.0 · 25.11.2026
 - Home shows how far your next trial is. Close your day matches the app's look.
 

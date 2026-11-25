@@ -1241,3 +1241,17 @@ body:has(.tipf) .urgefab{display:none}
 .evi{background:var(--gold-bg);color:var(--gold)}
 .bub.evb.open .evd,.bub.evb.open .bubx{background:none;border:0}
 .bub.evb button{background:transparent;border:0}
+/* nimbu-mirchi charm (v1.49) */
+.bar .wrap{position:relative}
+.nmc{position:relative;align-self:flex-start;width:30px;height:46px;margin:-12px 2px 0 auto;padding:0;background:none;border:0;overflow:visible;flex:none}
+.nmc svg{position:absolute;top:0;left:0;transform-origin:15px 0;animation:nmsway 5s ease-in-out infinite}
+@keyframes nmsway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.nmc:active svg{animation-duration:.6s}
+@media (prefers-reduced-motion:reduce){.nmc svg{animation:none}}
+.nmbig{display:flex;justify-content:center;margin:4px 0 6px}
+.nmdays{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.nmdays span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.nmdays i{width:10px;height:22px;border-radius:6px 6px 8px 8px;background:#8b7448;opacity:.55}
+.nmdays .on i{background:#3d8b37;opacity:1}
+.nmdays .lem i{width:18px;height:22px;border-radius:50%;background:#d9d2a6}.nmdays .lem.on i{background:#e9c43c}
+.nmdays small{font-size:10.5px;color:var(--mute)}
