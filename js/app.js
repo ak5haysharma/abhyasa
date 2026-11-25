@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.40.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.41.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -278,6 +278,24 @@ function grow(pid,amount){const pr=S.prog[pid],from=pr.m<5?Math.min(1,pr.xp/NEED
  if(pr.m<5&&pr.xp>=NEED[pr.m]&&!S.plan.items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done)){S.plan.items.unshift({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});setTimeout(()=>toast(`${PATHS[pid].name} meter is full. Your trial is ready.`),900)}}
 let FOLD=null;
 const ORI=`<span class="ori" aria-hidden="true"><svg viewBox="0 0 40 30"><path d="M20 2 26 18 20 28 14 18Z" fill="var(--c)"/><path d="M20 2 26 18 20 28Z" fill="#000" opacity=".18"/><path d="M14 18 3 12 8 24 20 28Z" fill="var(--c)" opacity=".75"/><path d="M8 24 20 28 3 12Z" fill="#000" opacity=".12"/><path d="M26 18 37 12 32 24 20 28Z" fill="var(--c)" opacity=".75"/><path d="M26 18 37 12 32 24Z" fill="#fff" opacity=".25"/></svg></span>`;
+// ---- Katha: a short lesson story when a path's tasks are done (v1.41) ----
+const kSeen=()=>S.kseen||(S.kseen=[]);
+function kathaPick(key,n){const seen=kSeen();for(let i=0;i<n;i++)if(!seen.includes(key+":"+i))return i;return Math.floor(Math.random()*n)}
+function kathaCheck(it,left){const t=td(),pid=it.pid;
+ if(pid&&PATHS[pid]&&!(S.kq&&S.kq.d===t)){const mine=S.plan.items.filter(x=>x.pid===pid&&(x.kind==="task"||x.kind==="anchor"));const g=CHAR[pid],L=(typeof KATHA!=="undefined"&&KATHA[g])||[];
+  if(mine.length&&mine.every(x=>x.done)&&L.length){S.kq={d:t,g,pid,i:kathaPick(g,L.length)};setTimeout(()=>toast(`${PEOPLE[g].n} has a story for you`),1900)}}
+ if(!left&&!(S.kx&&S.kx.d===t)&&typeof KCROSS!=="undefined"){const mine=sel().map(p=>CHAR[p]),ok=KCROSS.map((x,i)=>[x,i]).filter(([x])=>x.g.every(g=>mine.includes(g)));
+  if(ok.length){const un=ok.filter(([x,i])=>!kSeen().includes("x:"+i)),[x,i]=(un.length?un:ok)[0];S.kx={d:t,i};setTimeout(()=>toast(`Bonus story: ${x.g.map(g=>PEOPLE[g].n).join(" and ")}`),3200)}}}
+function kathaCards(K,chars){const sc=(b,ch,an)=>sceneInner({bg:b,chars:ch});
+ return [{kick:"The moment",svg:sc(K.bg[0],chars(0)),cap:K.c[0]},{kick:"The choice",svg:sc(K.bg[1]||K.bg[0],chars(1)),cap:K.c[1]},
+  {kick:"The lesson",html:`<div class="klesson"><p class="kl">${K.c[2]}</p><div class="ktry"><small>Try today</small>${K.t}</div><p class="ksrc">${K.src}</p></div>`}]}
+function kathaPlay(kind,ref){if(kind==="m"){const q=ref||S.kq;if(!q)return;const K=KATHA[q.g][q.i],pid=Object.keys(CHAR).find(p=>CHAR[p]===q.g)||q.pid;
+  if(!kSeen().includes(q.g+":"+q.i))kSeen().push(q.g+":"+q.i);if(!ref){S.kq.read=1}save();render();
+  openPlayer({label:K.n,title:K.n,sub:`A story of ${PEOPLE[q.g].n}`,cast:pid?[pid]:[],cards:kathaCards(K,j=>j?one(q.g,"float"):one(q.g))})}
+ else{const i=ref!=null?ref:S.kx&&S.kx.i;if(i==null)return;const K=KCROSS[i],ps=K.g.map(g=>Object.keys(CHAR).find(p=>CHAR[p]===g)).filter(Boolean);
+  if(!kSeen().includes("x:"+i))kSeen().push("x:"+i);if(ref==null)S.kx.read=1;save();render();
+  openPlayer({label:K.n,title:K.n,sub:`${K.g.map(g=>PEOPLE[g].n).join(" and ")} · bonus story`,cast:ps,cards:kathaCards(K,()=>two(K.g[0],K.g[1]))})}}
+function kathaShelf(){const L=kSeen();if(!L.length)return"";return `<div class="block"><h2>Stories you have heard</h2><div class="kshelf">${L.slice().reverse().map(k=>{const[a,b]=k.split(":");if(a==="x"){const K=KCROSS[+b];return K?`<button class="kbk" data-katha="x:${b}"><span class="pair">${K.g.map(g=>portraitMini(g)).join("")}</span><span><b>${K.n}</b><small>${K.g.map(g=>PEOPLE[g].n).join(" and ")}</small></span></button>`:""}const K=(KATHA[a]||[])[+b];return K?`<button class="kbk" data-katha="m:${a}:${b}">${portraitMini(a)}<span><b>${K.n}</b><small>${PEOPLE[a].n}</small></span></button>`:""}).join("")}</div></div>`}
 function complete(id,ev){
  const it=S.plan.items.find(x=>x.id===id);if(!it||it.kind==="trial")return;
  if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);if(it.kind==="task"&&S.learn[it.t]){const L=S.learn[it.t];L.dn=Math.max(0,L.dn-1);L.dw[new Date().getDay()]=Math.max(0,L.dw[new Date().getDay()]-1)}save();render();return}
@@ -287,6 +305,7 @@ function complete(id,ev){
  else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;S.awT=S.awT&&S.awT.d===td()?S.awT:{d:td(),p:[]};if(it.pid&&PATHS[it.pid]&&!S.awT.p.includes(it.pid)){S.awT.p.push(it.pid);const _p=it.pid;setTimeout(()=>toast(`Your inner ${PATHS[_p].hero} ${AWVERB[Math.min(5,S.prog[_p].m)]}`),1100)}if(it.kind==="task")setTimeout(()=>askFeel(it),2600);grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
  if(TOOL&&TOOL.id===it.id)stopTool();if(OPEN===it.id)OPEN=null;
  const left=S.plan.items.filter(x=>(x.kind==="task"||x.kind==="anchor")&&!x.done).length;
+ kathaCheck(it,left);
  if(!left&&!S.plan.closed){S.plan.closed=true;setTimeout(()=>toast("Today’s practice is done. Rest well."),1000)}
  save();render();
 }
@@ -1131,6 +1150,8 @@ function sayCard(){const c=PL&&$(`.story .card2[data-i="${PL.i}"]`);if(c)sayText
 /* ================= calm home: bubbles + Calendar tab (v1.32) ================= */
 function bubbles(){const t=td(),out=[],c=checkToday(),b=(cls,attr,icon,label,x)=>`<span class="bub ${cls}"><button ${attr}>${icon}<span>${label}</span></button>${x||""}</span>`;
  out.push(b("urgeb",'data-urge="1"',ic("urge"),"Craving? Hold the line"));
+ if(S.kq&&S.kq.d===t&&!S.kq.read&&KATHA[S.kq.g])out.push(b("gold",'data-katha="today"',portraitMini(S.kq.g),`${PEOPLE[S.kq.g].n}’s story`));
+ if(S.kx&&S.kx.d===t&&!S.kx.read&&KCROSS[S.kx.i])out.push(b("gold",'data-katha="bonus"',`<span class="pair">${KCROSS[S.kx.i].g.map(g=>portraitMini(g)).join("")}</span>`,"Bonus story"));
  const q=onbNext();if(q)out.push(b("gold",`data-oq="${q.k}"`,ic("learn"),q.t,`<button class="bubx" data-oqx="1" aria-label="Later">×</button>`));
  const w=reviewWeek();if(w)out.push(b("gold",`data-review="${w}"`,ic("path"),"Your week in review"));
  if(new Date().getHours()>=17&&S.closed!==t&&S.days[t]&&S.days[t].a)out.push(b("",'data-eve="1"',ic("moon"),"Close your day"));
@@ -1805,7 +1826,7 @@ function heroView(){let sg=segOf("hero","hero");if(sg==="more")sg="hero";let bod
   <div class="block"><h2>Weekly reviews</h2>${reviewHistory()}</div><div class="block"><h2>What Abhyasa has learned</h2>${learnedView()}</div>`}
  if(sg==="coll"){const items=[];sel().forEach(pid=>PATHS[pid].skills.forEach((s2,k)=>{if(s2.item)items.push({pid,s2,k})}));const total=sel().reduce((a,p)=>a+CHAPTERS[CHAR[p]].length,0);
   body=`<div class="block" style="margin-top:4px"><h2>Your guides</h2><div class="guides" style="margin-top:10px">${sel().map(pid=>{const c=CHAR[pid];return `<button class="gd" data-person="${c}" style="--c:${PATHS[pid].c}">${medal(pid,"lg")}<b>${PEOPLE[c].n}</b><small>${PATHS[pid].name}</small></button>`}).join("")}</div></div>
-  ${enemyBlock()}${STORY_ON||(S.hall||[]).length?`<div class="block"><h2>Past vows</h2>${hallView()}</div>`:""}
+  ${kathaShelf()}${enemyBlock()}${STORY_ON||(S.hall||[]).length?`<div class="block"><h2>Past vows</h2>${hallView()}</div>`:""}
   <div class="block"><h2>Arsenal</h2><div class="items" style="margin-top:10px">${items.map(({pid,s2,k})=>{const on=has(pid,k),P=PATHS[pid];return `<div class="item${on?"":" off"}" style="--c:${P.c}"><i>${ic(on?s2.item:"lock")}</i><b>${s2.itemName||s2.n}</b><small>${on?P.hero:`${P.name} trial ${k+1}`}</small></div>`}).join("")}</div></div>
   <div class="block"><h2>Charms</h2><p class="sub">${S.charms.length} of ${total} found on your companions’ journeys</p>${S.charms.length?`<div class="charms">${S.charms.map(c=>`<div class="charm">${charmSvg(c.g,36)}<b>${c.n}</b><small>${PEOPLE[c.g].n}</small></div>`).join("")}</div>`:""}</div>`}
  if(sg==="more")body=`<button class="revcard" data-learn="1" style="margin-top:4px"><span class="revi">${ic("learn")}</span><span><b>Learn</b><small>The app and the stories behind it · ${LEARN.length-learnLeft()} of ${LEARN.length} guides done</small></span></button><div class="block"><h2>Stories and glossary</h2>${glossaryView()}</div><button class="revcard" data-feedback="1"><span class="revi">${ic("love")}</span><span><b>Send feedback</b><small>Ideas, bugs or stories. It helps shape Abhyasa.</small></span></button><div class="block"><h2>Calendar</h2><p class="sub">What shows on your Calendar tab and morning cards. The story for each day stays in every option.</p><div class="cchips">${[["indian","Indian festivals and ritus"],["seasons","Spring, summer, autumn, winter"],["none","No calendar"]].map(([k,l])=>`<button class="chip" data-calmode="${k}" aria-pressed="${calMode()===k}">${l}</button>`).join("")}</div></div><div class="block"><h2>App</h2>${appCard()}${S.lastBackup?`<p class="sub">Last backup: ${S.lastBackup.split("-").reverse().join(".")}</p>`:""}</div>
@@ -1926,7 +1947,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-katha],[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -2101,6 +2122,7 @@ document.addEventListener("click",e=>{
  if(d.eve){eveSheet();return}
  if(d.mood){EV=EV||{mood:null,note:""};const n=$("#evenote");if(n)EV.note=n.value;EV.mood=d.mood;eveSheet();return}
  if(d.eveClose){if(EV&&EV.mood){const n=$("#evenote");if(n)EV.note=n.value;eveClose()}return}
+ if(d.katha){const v=d.katha;if(v==="today")kathaPlay("m");else if(v==="bonus")kathaPlay("x");else{const[k,a,b]=v.split(":");if(k==="x")kathaPlay("x",+a);else kathaPlay("m",{g:a,i:+b})}return}
  if(d.chap){const[g,c]=d.chap.split(":");playChapter(g,+c);return}
  if(d.todayCal!==undefined){calSheet();return}
  if(d.fest){calSheet(d.fest);return}

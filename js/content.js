@@ -1648,3 +1648,16 @@ const URGES=[
  {k:"bed",n:"Stay in bed",e:"moha",do:["Sit up and put both feet on the floor","Open the curtains","Drink water, then decide"]},
  {k:"snap",n:"Snap at someone",e:"krodha",do:["Three slow breaths before any word","Leave the room for 5 minutes","Name it: “I am angry”"]}];
 const URGE_LINES=["Name it: this is a craving. It is not an order.","Breathe out slowly. A craving rises like a wave, then falls.","You do not have to win forever. Only these few minutes.","Notice where you feel it in your body. Just watch it.","Each time you ride one out, you practise saying no.","Stay. The wave is already smaller than it was."];
+
+/* ================= Katha: lesson stories (v1.41) ================= */
+// KATHA[mentor] = stories shown when all of a path's tasks are done for the day.
+// c = [the moment, the choice, the lesson]; t = "try today"; src = where the episode comes from.
+const KATHA={
+ hanuman:[
+  {n:"The forgotten strength",bg:["sea","glow"],c:["At the edge of the ocean, the vanaras ask who can leap all the way to Lanka. Hanuman sits quietly at the back. He does not think it can be him.","Old Jambavan walks over and reminds him who he is: the son of the wind, who as a child leapt for the sun. Hanuman stands, and grows, and leaps.","You are often stronger than you remember."],t:"Do one more rep, or one more minute, than you planned.",src:"Valmiki Ramayana · Kishkindha Kanda"},
+  {n:"Surasa’s test",bg:["sea","clouds"],c:["Flying over the sea, Hanuman meets Surasa, mother of serpents. She blocks his way: he must enter her mouth. He grows larger. She opens wider. He grows again. So does she.","Then Hanuman does the opposite. He becomes tiny, darts into her mouth and out again before she can close it. Surasa laughs and blesses him.","Strength is not only getting bigger. Sometimes it is getting smarter."],t:"Find a smaller, smarter way to do the hardest part of a task.",src:"Valmiki Ramayana · Sundara Kanda"},
+  {n:"The whole mountain",bg:["hills","stars"],c:["Lakshmana lies wounded on the battlefield. The healer Sushena needs one herb, the sanjeevani, from a mountain far to the north. Hanuman flies there through the night.","On the mountain, every plant glows. He cannot tell which one is right, and there is no time to ask. So he lifts the whole peak and carries it back.","When you do not know which piece matters, bring all of your effort."],t:"Not sure what to train today? Do the full routine, gently.",src:"Valmiki Ramayana · Yuddha Kanda"}]};
+// KCROSS = bonus stories where two mentors meet. Shown when all of today's tasks are done
+// and both mentors are on the user's paths.
+const KCROSS=[
+ {g:["hanuman","rama"],n:"The first meeting",bg:["hills","forest"],c:["Two strangers with bows walk near Rishyamuka hill. The frightened Sugriva sends Hanuman, dressed as a wandering scholar, to find out who they are.","Hanuman speaks with such care, clarity and respect that Rama turns to Lakshmana: no one who speaks like this could mean harm. A lifelong bond begins with one conversation.","How you speak to a stranger can start a friendship for life."],t:"Speak to one person today with full attention and care.",src:"Valmiki Ramayana · Kishkindha Kanda"}];

@@ -1172,3 +1172,13 @@ body:has(.scrim) .tipf,body:has(#ex) .tipf{display:none}
 .ychips{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-width:260px}.ych{width:100%;max-width:28px;height:auto;aspect-ratio:1}
 #ex .tsk,#ex .tbr{display:none}#ex .tsk.on,#ex .tbr.on{display:inline}
 #ex .tpath.off{display:none}
+/* katha (v1.41) */
+.klesson{padding:18px 6px 4px;text-align:center}
+.klesson .kl{font-family:var(--f-head);font-size:21px;line-height:1.35;margin:0 0 18px}
+.ktry{display:inline-block;text-align:left;border-left:3px solid var(--gold);padding:8px 12px;background:var(--gold-bg);border-radius:0 10px 10px 0;font-size:15px;max-width:30ch}
+.ktry small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
+.ksrc{font-size:11.5px;color:var(--mute);margin:16px 0 0}
+.kshelf{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.kbk{display:flex;gap:10px;align-items:center;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink)}
+.kbk b{display:block;font-size:14px}.kbk small{font-size:12px;color:var(--mute)}
+.bub .pair,.kbk .pair{display:inline-flex}.bub .pair .pmini+.pmini,.kbk .pair .pmini+.pmini{margin-left:-8px}

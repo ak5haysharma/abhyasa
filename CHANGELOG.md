@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.41.0 · 25.11.2026
+- Katha: finish a path's tasks to hear a short story from your mentor. Finish all tasks for a bonus story where two mentors meet.
+
 ## 1.40.0 · 25.11.2026
 - Skill tree: short path names, all 5 skill names shown for the path you tap, no overlaps.
 
