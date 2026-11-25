@@ -1170,3 +1170,5 @@ body:has(.scrim) .tipf,body:has(#ex) .tipf{display:none}
 .tipf.out{opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s}
 .mvcal{margin-top:16px;padding:12px;border:1.5px dashed var(--line);border-radius:14px}.mvcr{display:flex;align-items:center;gap:12px}.mvcr input[type=time]{padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums}.mvcal .cta svg{width:16px;height:16px;vertical-align:-3px;margin-right:4px}
 .ychips{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-width:260px}.ych{width:100%;max-width:28px;height:auto;aspect-ratio:1}
+#ex .tsk,#ex .tbr{display:none}#ex .tsk.on,#ex .tbr.on{display:inline}
+#ex .tpath.off{display:none}

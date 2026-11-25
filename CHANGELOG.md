@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.40.0 · 25.11.2026
+- Skill tree: short path names, all 5 skill names shown for the path you tap, no overlaps.
+
 ## 1.39.0 · 25.11.2026
 - Add a moved task to your calendar. Clean-up: calmer task rows, short path names, tidier sections.
 

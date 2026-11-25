@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.39.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.40.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1590,7 +1590,7 @@ function treeSvg(){TPOS={};
   g+=un?`<path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="5" opacity=".35" filter="url(#tglow2)"/><path d="${d}" fill="none" stroke="${TGOLD}" stroke-width="2"/><path class="flow" d="${d}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 12" opacity=".8"/>`
    :`<path d="${d}" fill="none" stroke="currentColor" stroke-opacity=".4" stroke-width="1.2" stroke-dasharray="3 6"/>`;
   TPOS["syn|"+b.id]=mid;g+=`<g class="tn" data-x="syn|${b.id}" tabindex="0" role="button" aria-label="Bridge ${b.n}${un?", open":", locked"}"><circle cx="${f1(mid[0])}" cy="${f1(mid[1])}" r="18" fill="transparent"/>${un?`<rect x="${f1(mid[0]-11)}" y="${f1(mid[1]-11)}" width="22" height="22" rx="3" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" fill="${TGOLD}" opacity=".45" filter="url(#tglow2)"/>`:""}<rect x="${f1(mid[0]-8)}" y="${f1(mid[1]-8)}" width="16" height="16" rx="2.5" transform="rotate(45 ${f1(mid[0])} ${f1(mid[1])})" style="fill:${un?TGOLD:"var(--surface)"}" stroke="${un?"#fff3d0":"#8a8d9c"}" stroke-width="1.4"/>
-  <text class="tlab" x="${f1(mid[0])}" y="${f1(mid[1]+24)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${un?TGOLD:"#8a8d9c"}" font-family="Inter,sans-serif" style="stroke:var(--bg)" stroke-width="3.5" paint-order="stroke">${b.n}</text></g>`});
+  <text class="tlab tbr" data-s="${b.id}" x="${f1(mid[0])}" y="${f1(mid[1]+24)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${un?TGOLD:"#8a8d9c"}" font-family="Inter,sans-serif" style="stroke:var(--bg)" stroke-width="3.5" paint-order="stroke">${b.n}</text></g>`});
  // branches
  L.forEach((p,pi)=>{const P=PATHS[p],c=PATHS[p].c,pr=S.prog[p],pts=[[CX,CY],...[0,1,2,3,4].map(j=>pos(p,j))],un=Math.min(pr.m,5);
   g+=`<path d="${line(pts)}" fill="none" stroke="currentColor" stroke-opacity=".06" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="${line(pts)}" fill="none" stroke="${c}" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round"/>`;
@@ -1601,10 +1601,10 @@ function treeSvg(){TPOS={};
    else if(j===pr.m){const fr=Math.min(1,pr.xp/NEED[j]),Cc=2*Math.PI*14;nd+=`<circle class="pulse" cx="${X}" cy="${Y}" r="13" fill="none" stroke="${c}" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="14" style="fill:var(--surface)" stroke="#8a8d9c55" stroke-width="3"/><circle cx="${X}" cy="${Y}" r="14" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${f1(fr*Cc)} ${f1(Cc)}" transform="rotate(-90 ${X} ${Y})" filter="url(#tglow)"/><text x="${X}" y="${f1(y+4.5)}" text-anchor="middle" font-size="12" font-family="Tiro Devanagari Hindi,serif" fill="${c}">${sk.d.slice(0,1)}</text>`}
    else nd+=`<circle cx="${X}" cy="${Y}" r="6.5" style="fill:var(--surface)" stroke="${c}" stroke-opacity=".45" stroke-width="1.6"/>`;
    g+=nd+`</g>`;
-   if(j===pr.m&&j<5){const a=(base[p]+j*7)*Math.PI/180,lx=x+24*Math.cos(a+Math.PI/2),ly=y+24*Math.sin(a+Math.PI/2);g+=`<text class="tlab" x="${f1(lx)}" y="${f1(ly+4)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${c}" font-family="Inter,sans-serif" style="stroke:var(--bg)" stroke-width="3.5" paint-order="stroke">${sk.n}</text>`}}
+   if(j<5){const a=(base[p]+j*7)*Math.PI/180,sg=j%2?-1:1,lx=x+sg*21*Math.cos(a+Math.PI/2),ly=y+sg*21*Math.sin(a+Math.PI/2);g+=`<text class="tlab tsk${j===pr.m?" nx":""}" data-p="${p}" x="${f1(lx)}" y="${f1(ly+4)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${c}" font-family="Inter,sans-serif" style="stroke:var(--bg)" stroke-width="3.5" paint-order="stroke">${sk.n}</text>`}}
   const ar=(base[p]+30)*Math.PI/180,px=CX+212*Math.cos(ar),py=CY+212*Math.sin(ar),ca=Math.cos(ar),anc=Math.abs(ca)<.35?"middle":ca>0?"end":"start",lx=anc==="middle"?px:anc==="end"?px+20:px-20;
   TPOS["path|"+p]=[px,py];g+=`<g class="tn" data-x="path|${p}" tabindex="0" role="button" aria-label="${P.name} with ${P.hero}"><circle cx="${f1(px)}" cy="${f1(py)}" r="21" fill="${c}" opacity=".35" filter="url(#tglow2)"/><g transform="translate(${f1(px-18)} ${f1(py-18)}) scale(.3)"><circle cx="60" cy="60" r="60" fill="#f4efe3" stroke="${c}" stroke-width="7"/><g clip-path="url(#mc)">${portraitG(CHAR[p])}</g></g>
-  <text class="tlab tpath" x="${f1(lx)}" y="${f1(py+(Math.sin(ar)<-.3?-26:34))}" text-anchor="${anc}" font-family="Literata,serif" font-weight="600" font-size="13" fill="${c}" style="stroke:var(--bg)" stroke-width="4" paint-order="stroke">${P.name}</text></g>`});
+  <text class="tlab tpath" data-p="${p}" x="${f1(px)}" y="${f1(py+(Math.sin(ar)<-.3?-27:35))}" text-anchor="middle" font-family="Literata,serif" font-weight="600" font-size="13" fill="${c}" style="stroke:var(--bg)" stroke-width="4" paint-order="stroke">${P.name.split(" ")[0]}</text></g>`});
  // mandala
  const sgOn=["body","bonds","music"].every(p=>S.paths.includes(p)),sgUn=S.syn.includes("sangam");
  let petals="";for(let i=0;i<12;i++){petals+=`<path d="M0 -40 C7 -30 7 -24 0 -18 C-7 -24 -7 -30 0 -40Z" transform="rotate(${i*30})" fill="${TGOLD}" fill-opacity="${sgUn?.7:.22}" stroke="${TGOLD}" stroke-opacity=".7" stroke-width=".8"/>`}
@@ -1627,10 +1627,11 @@ function exApply(){const v=EX.vb,el=$("#exsvg");if(el)el.setAttribute("viewBox",
 function exTo(cx,cy,w,instant){const a=exAspect(),h=w*a,to={x:cx-w/2,y:cy-h/2,w,h},from={...EX.vb};cancelAnimationFrame(EX.anim);
  if(instant||matchMedia("(prefers-reduced-motion: reduce)").matches){EX.vb=to;exApply();return}
  const t0=performance.now(),D=480,ease=t=>1-Math.pow(1-t,3);const step=now=>{const k=ease(Math.max(0,Math.min(1,(now-t0)/D)));EX.vb={x:from.x+(to.x-from.x)*k,y:from.y+(to.y-from.y)*k,w:from.w+(to.w-from.w)*k,h:from.h+(to.h-from.h)*k};exApply();if(k<1)EX.anim=requestAnimationFrame(step)};EX.anim=requestAnimationFrame(step)}
-function exOverview(){const a=exAspect(),w=Math.max(440,460/a);exTo(VB0.x+VB0.w/2,VB0.y+VB0.h/2,w);EX.sel=null;$("#exsel").setAttribute("opacity","0");exPanel(null)}
+function exLabels(key){document.querySelectorAll("#ex .tsk.on,#ex .tbr.on,#ex .tpath.off").forEach(e=>e.classList.remove("on","off"));if(!key)return;const[t,a]=key.split("|");if(t==="skill"||t==="path"){document.querySelectorAll(`#ex .tsk[data-p="${a}"]`).forEach(e=>e.classList.add("on"));const pl=$(`#ex .tpath[data-p="${a}"]`);if(pl)pl.classList.add("off")}if(t==="syn")document.querySelectorAll(`#ex .tbr[data-s="${a}"]`).forEach(e=>e.classList.add("on"))}
+function exOverview(){exLabels(null);const a=exAspect(),w=Math.max(440,460/a);exTo(VB0.x+VB0.w/2,VB0.y+VB0.h/2,w);EX.sel=null;$("#exsel").setAttribute("opacity","0");exPanel(null)}
 function exZoom(f,cx,cy){const v=EX.vb,nw=Math.max(120,Math.min(900,v.w*f));cx=cx??v.x+v.w/2;cy=cy??v.y+v.h/2;const nh=nw*exAspect(),kx=(cx-v.x)/v.w,ky=(cy-v.y)/v.h;cancelAnimationFrame(EX.anim);EX.vb={x:cx-kx*nw,y:cy-ky*nh,w:nw,h:nh};exApply()}
-function exSelect(key,first){if(!EX)return;const pos=TPOS[key];if(!pos)return;EX.sel=key;const r=$("#exsel");r.setAttribute("transform",`translate(${pos[0].toFixed(1)} ${pos[1].toFixed(1)})`);r.setAttribute("opacity","1");
- const zoomW=key==="center"?300:key.startsWith("path")?260:230;if(first)exTo(...pos,VB0.w,true);exTo(pos[0],pos[1],zoomW);exPanel(key)}
+function exSelect(key,first){if(!EX)return;const pos=TPOS[key];if(!pos)return;EX.sel=key;exLabels(key);const r=$("#exsel");r.setAttribute("transform",`translate(${pos[0].toFixed(1)} ${pos[1].toFixed(1)})`);r.setAttribute("opacity","1");
+ const zoomW=key==="center"?300:key.startsWith("path")?250:225;let fc=pos;if(key.startsWith("path")){const c=TPOS.center||[200,200];fc=[(pos[0]*.55+c[0]*.45),(pos[1]*.55+c[1]*.45)]}if(first)exTo(...fc,VB0.w,true);exTo(fc[0],fc[1],zoomW);exPanel(key)}
 function paceOf(pid){let m=0;S.log.forEach(l=>{if(l.pid===pid&&diff(l.d,td())<14&&diff(l.d,td())>=0)m+=logMin(l)});return m/14*mult(pid)}
 function etaText(pid,k){const pr=S.prog[pid];if(k<pr.m)return"";let rem=Math.max(0,NEED[pr.m]-pr.xp);for(let i=pr.m+1;i<=k;i++)rem+=NEED[i];const pace=paceOf(pid);
  if(!rem)return"Your trial is ready now.";const d=pace>0?Math.ceil(rem/pace):0;
