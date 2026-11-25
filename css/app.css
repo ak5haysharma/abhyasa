@@ -1225,3 +1225,19 @@ body:has(.tipf) .urgefab{display:none}
 .evd:active{background:rgba(255,255,255,.12)}
 .bub.evb.open .bubx{color:#f3e7c4}
 @keyframes evpop{from{opacity:0;transform:scale(.5)}}
+/* why today matters (v1.48) */
+.whyl{display:block;width:100%;text-align:left;background:color-mix(in srgb,var(--c) 7%,transparent);border:0;border-radius:12px;padding:8px 10px 9px;margin:10px 0 2px;color:var(--ink);font-size:13px;line-height:1.35}
+.whyl b{color:var(--c);font-weight:600}
+.whyb{display:block;height:4px;border-radius:2px;background:color-mix(in srgb,var(--c) 18%,transparent);margin-top:6px;overflow:hidden}.whyb i{display:block;height:100%;background:var(--c);border-radius:2px}
+.whyt2{font-size:12.5px;color:var(--mute);margin:8px 0 0}.whyt2 b{color:var(--c)}
+/* close day matches app (v1.48) */
+.bub.evb button{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.bub.evb button svg{color:var(--gold)}
+.bub.evb.open{background:var(--surface);border-color:var(--gold);color:var(--ink)}
+.bub.evb.open .evol svg{color:var(--gold)}
+.bub.evb.open .evd,.bub.evb.open .bubx{color:var(--ink)}
+.evd:active{background:var(--surface2)}
+.evetop{background:var(--surface)}
+.evi{background:var(--gold-bg);color:var(--gold)}
+.bub.evb.open .evd,.bub.evb.open .bubx{background:none;border:0}
+.bub.evb button{background:transparent;border:0}

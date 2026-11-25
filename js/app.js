@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.47.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.48.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1202,11 +1202,19 @@ function slotFor(it,i){if(it.slot)return it.slot;const x=poolItem(it),sp=(S.slot
 function dayTimeline(items){const now=slotNow(),order=["morning","afternoon","evening"];items.forEach((it,i)=>{if(!it.slot)it.slot=slotFor(it,i)});
  return `<div class="dtl">${SLOTS_D.map(([k,l,sub])=>{const L=items.filter(x=>x.slot===k);if(!L.length)return "";const past=order.indexOf(k)<order.indexOf(now),dn=L.filter(x=>x.done).length;
   return `<div class="tl-sec${k===now?" now":""}${past?" past":""}"><div class="tl-h"><span class="tl-dot">${ic(k==="morning"?"sun":k==="afternoon"?"calm":"moon")}</span><b>${l}</b><small>${sub}${k===now?" · now":""}</small><em>${dn}/${L.length}</em></div><div class="tlist">${L.map(taskRow).join("")}</div></div>`}).join("")}</div>`}
+// ---- why today matters: distance to the next trial (v1.48) ----
+function taskG(pid,it){return Math.round(Math.max(5,(it&&it.m)||10)*mult(pid))}
+function nextTrial(pid){const pr=S.prog[pid],P=PATHS[pid];if(!pr||pr.m>=5)return null;const need=NEED[pr.m],rem=Math.max(0,need-pr.xp),sk=P.skills[pr.m];
+ const today=S.plan.items.filter(x=>x.pid===pid&&(x.kind==="task"||x.kind==="anchor"));const avg=today.length?today.reduce((a,x)=>a+taskG(pid,x),0)/today.length:taskG(pid,{m:10});
+ return{pid,rem,need,xp:Math.min(pr.xp,need),n:rem?Math.ceil(rem/avg):0,sk:sk.n,k:pr.m}}
+function whyLine(){const L=sel().map(nextTrial).filter(Boolean);if(!L.length)return"";L.sort((a,b)=>a.n-b.n||b.xp/b.need-a.xp/a.need);const w=L[0],P=PATHS[w.pid],nm=P.name.split(" ")[0];
+ const txt=w.n?`<b>${nm}</b> · ${w.n} task${w.n>1?"s":""} to your next trial, for <b>${w.sk}</b>`:`<b>${nm}</b> trial is ready · earn <b>${w.sk}</b>`;
+ return `<button class="whyl" data-trial-info="${w.pid}" style="--c:${P.c}"><span class="whyt">${txt}</span><span class="whyb"><i style="width:${(w.xp/w.need*100).toFixed(0)}%"></i></span></button>`}
 function pathRings(){const ps=sel(),lead=companionPid(),t=td();let tD=0,tP=0;
  const rings=ps.map(pid=>{const m=todayMins(pid),f=m.plan?Math.min(1,m.done/m.plan):0,P=PATHS[pid],C=2*Math.PI*29;tD+=m.done;tP+=m.plan;
   return `<button class="pr" data-pdetail="${pid}" style="--c:${P.c}" aria-label="${P.name}: ${m.done} of ${m.plan} minutes"><span class="pr-r"><svg viewBox="0 0 68 68"><circle cx="34" cy="34" r="29" fill="none" stroke="${P.c}" stroke-opacity=".18" stroke-width="5"/><circle class="tr-p" data-p="${pid}" cx="34" cy="34" r="29" fill="none" stroke="${P.c}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" style="--C:${C.toFixed(1)}" transform="rotate(-90 34 34)"/></svg>${medalA(pid,"pr-m")}${f>=1&&m.plan?`<i class="pr-ok">✓</i>`:""}</span><b>${P.name.split(" ")[0]}</b><small>${m.done}/${m.plan} min</small></button>`}).join("");
  const L=lead?GUIDE_LINES[lead]:null,line=L?L[dayNum(t)%L.length]:"",tasks=S.plan.items.filter(x=>x.kind==="task"||x.kind==="anchor"),dn=tasks.filter(x=>x.done).length;
- return `<div class="prw"><div class="prh"><b>${tD}<small> / ${tP} min today</small></b><small>${dn} of ${tasks.length} tasks${tP&&tD>=tP?" · all rings closed 🎉":""}</small></div><div class="prs">${rings}</div>${lead?`<p class="prq">“${line}” <span>${PATHS[lead].hero}</span></p>`:""}</div>`}
+ return `<div class="prw"><div class="prh"><b>${tD}<small> / ${tP} min today</small></b><small>${dn} of ${tasks.length} tasks${tP&&tD>=tP?" · all rings closed 🎉":""}</small></div><div class="prs">${rings}</div>${whyLine()}${lead?`<p class="prq">“${line}” <span>${PATHS[lead].hero}</span></p>`:""}</div>`}
 const T0=Date.now();let TIPT=null;
 function tipBusy(){return !!($(".scrim")||$("#ex")||$(".quiz")||PL||queue.length||(S.on&&S.deck!==td())||Date.now()-T0<15000)}
 function tipSched(){clearTimeout(TIPT);if($(".tipf")){tipFloat();return}TIPT=setTimeout(tipFloat,9000)}
@@ -1769,7 +1777,7 @@ function taskIcs(it,hm,rep){const now=new Date(),stamp=now.toISOString().replace
  const sum=E(`${progT(it.t)} · ${P.name}`),desc=E(`${it.m||10} min with ${P.hero}. Open Abhyasa to tick it off.`);
  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Abhyasa//Task//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",`UID:abhyasa-task-${it.id}-${now.getTime()}@abhyasa`,`DTSTAMP:${stamp}`,`DTSTART:${d.replace(/-/g,"")}T${hm.replace(":","")}00`,`DURATION:PT${Math.max(5,it.m||10)}M`,rep?"RRULE:FREQ=DAILY":"",`SUMMARY:${sum}`,`DESCRIPTION:${desc}`,`URL:${location.href.split("#")[0]}`,"BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY",`DESCRIPTION:${sum}`,"END:VALARM","END:VEVENT","END:VCALENDAR"].filter(Boolean).join("\r\n")}
 function taskSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it)return;const P=PATHS[it.pid],x=poolItem(it);
- sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(progT(it.t))}</h2><div class="cchips slotc">${SLOTS_D.map(([k,l])=>`<button class="chip" data-slot="${it.id}:${k}" aria-pressed="${it.slot===k}">${l}</button>`).join("")}</div>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}
+ sheet(P.c,`<div class="kick">${P.name} · ${it.m} min · with ${P.hero}</div><h2>${esc(progT(it.t))}</h2><div class="cchips slotc">${SLOTS_D.map(([k,l])=>`<button class="chip" data-slot="${it.id}:${k}" aria-pressed="${it.slot===k}">${l}</button>`).join("")}</div>${it.why?`<p class="why" style="margin:6px 0 0">${it.why}</p>`:""}${(()=>{const w=nextTrial(it.pid);if(!w||it.kind==="bridge")return"";const g=it.done?(it.g||taskG(it.pid,it)):taskG(it.pid,it);return `<p class="whyt2">This task: <b>+${g} growth</b> · ${w.xp} of ${w.need} to <b>${w.sk}</b></p>`})()}
  ${x?guideView(it):`<p class="sub" style="margin-top:12px">${it.kind==="anchor"?"Part of your weekly routine.":"Your own task."}</p>`}
  ${it.done?"":`<button class="cta fmgo" style="width:100%;margin-top:16px" data-focus="${it.id}">${ic("sun")} Start focus mode · ${it.m} min</button>`}
  <div class="row" style="margin-top:10px">${it.kind==="task"&&!it.done?`<button class="cta alt" data-swap="${it.id}">Swap</button>`:""}<button class="cta alt" data-done="${it.id}">${it.done?"Undo":"Mark done"}</button></div>`)}

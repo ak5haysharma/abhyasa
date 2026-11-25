@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.48.0 · 25.11.2026
+- Home shows how far your next trial is. Close your day matches the app's look.
+
 ## 1.47.0 · 25.11.2026
 - Close your day unfolds in place: tap a mood, add one line, see tonight's quest.
 
