@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.36.0 · 25.11.2026
+- Welcome art in background, realm cards, tree blends with app, tips wait, move tasks across the day
+
 ## 1.35.0 · 24.11.2026
 - New first screens: the welcome shows the churning of the ocean (Samudra Manthan) in irezumi style, with a new opening: 'The art of steady practice'. After choosing paths, each path gets its own card: pick the mentor who will awaken in you (with what they bring) and where you are now. The last step shows your skill tree. The skill tree is redrawn in ink-on-paper style with irezumi waves and clouds, matching the rest of the app.
 
