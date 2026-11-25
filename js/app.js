@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.42.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.43.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -686,7 +686,7 @@ function eveSheet(){EV=EV||{mood:null,note:""};const t=td(),pid=companionPid(t),
 function eveClose(){const t=td(),d=S.days[t]=S.days[t]||{},pid=companionPid(t),g=CHAR[pid];d.mood=EV.mood;d.note=(EV.note||"").trim().slice(0,140);S.closed=t;
  if(d.a&&!(S.journey&&S.journey.d===t))S.journey={d:t,g,ch:nextCh(g),back:false};
  const C=CHAPTERS[g][S.journey&&S.journey.d===t?S.journey.ch:nextCh(g)],L=REPLY[d.mood];EV=null;$(".scrim")&&$(".scrim").remove();save();render();
- pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="margin-top:8px;color:${PATHS[pid].c}">${PEOPLE[g].n}</div><h2 style="font-size:21px;line-height:1.35">“${L[dayNum(t)%L.length]}”</h2><p>${d.a?`${CAP(HE(g))} sets out for ${C.dest} tonight. Come back tomorrow morning to hear what happened.`:`Rest well. Tomorrow, one task is enough to send ${HIM(g)} on ${HIS(g)} way.`}</p>`)}
+ pushModal(`<div style="display:flex;justify-content:center">${medal(pid,"lg")}</div><div class="kick" style="margin-top:8px;color:${PATHS[pid].c}">${PEOPLE[g].n}</div><h2 style="font-size:21px;line-height:1.35">“${L[dayNum(t)%L.length]}”</h2><p>${d.a?`${CAP(HE(g))} sets out for ${C.dest} tonight. Come back tomorrow morning to hear what happened.`:`Rest well. Tomorrow, one task is enough to send ${HIM(g)} on ${HIS(g)} way.`}</p><label class="qlabel" for="evenote2" style="display:block;text-align:left">One line about today (optional)</label><input class="name" id="evenote2" maxlength="140" placeholder="What went well, or what you learned" value="${esc(d.note||"")}" style="font-size:16px;margin-bottom:12px" oninput="(S.days[td()]||{}).note=this.value.slice(0,140);save()">`)}
 function openDeck(){
  const t=td(),pid=companionPid(t);if(!pid)return;const g=CHAR[pid],J=S.journey,cards=[],r=ritu(t),cal=todayCal(),L=GUIDE_LINES[pid];
  const hi=new Date().getHours()<12?"Good morning":"Welcome back";
@@ -1154,7 +1154,6 @@ function bubbles(){const t=td(),out=[],c=checkToday(),b=(cls,attr,icon,label,x)=
  if(S.kx&&S.kx.d===t&&!S.kx.read&&KCROSS[S.kx.i])out.push(b("gold",'data-katha="bonus"',`<span class="pair">${KCROSS[S.kx.i].g.map(g=>portraitMini(g)).join("")}</span>`,"Bonus story"));
  const q=onbNext();if(q)out.push(b("gold",`data-oq="${q.k}"`,ic("learn"),q.t,`<button class="bubx" data-oqx="1" aria-label="Later">×</button>`));
  const w=reviewWeek();if(w)out.push(b("gold",`data-review="${w}"`,ic("path"),"Your week in review"));
- if(new Date().getHours()>=17&&S.closed!==t&&S.days[t]&&S.days[t].a)out.push(b("",'data-eve="1"',ic("moon"),"Close your day"));
  if(c.d!==t)out.push(b("",'data-checkin="1"',ic("sun"),"How are you today?"));
  const J=S.journey;if(J&&J.back&&J.ret===t)out.push(b("gold",`data-chap="${J.g}:${J.ch}"`,portraitMini(J.g),`${PEOPLE[J.g].n} is back`));
  const sc=STORY_ON&&SS().cur;if(sc){const T=STRIALS[sc.i];out.push(b("gold",'data-st="open"',DIYA,stReady()?"Claim your title":`${T.n} · ${T.kind==="once"?"to do":`${stProg()}/${stNeed(sc.i)}`}${T.kind==="daily"&&stToday()?" ✓":""}`))}
@@ -1766,12 +1765,15 @@ function checkSheet(){if(!CI)CI=JSON.parse(JSON.stringify(checkToday()));const c
  <div class="cirow"><span>Today</span><div class="cchips">${Object.keys(W_L).map(v=>chip("where",v,W_L[v],CI.where===v)).join("")}</div></div>
  <div class="cirow"><span>Day</span><div class="cchips">${chip("busy","0","Normal day",!(CI.busy===undefined?busyToday():CI.busy))}${chip("busy","1","Busy day",!!(CI.busy===undefined?busyToday():CI.busy))}</div></div>
  <button class="cta" style="width:100%;margin-top:18px" data-ci="apply">Fit my plan</button>`)}
+function eveTop(){const t=td(),h=new Date().getHours(),any=!!(S.days[t]&&S.days[t].a),left=S.plan.items.filter(x=>(x.kind==="task"||x.kind==="anchor")&&!x.done).length;
+ if(S.closed===t||!(h>=17||(any&&!left)))return"";const pid=companionPid(t),g=CHAR[pid],C=CHAPTERS[g][nextCh(g)];
+ return `<div class="evetop"><div class="evh"><span class="evi">${ic("moon")}</span><div><b>Close your day</b><small>${any?`How did it feel? ${PEOPLE[g].n} sets out for ${C.dest.replace(/^The /,"the ")} tonight.`:`How did it feel? Even a quiet day can be closed.`}</small></div></div><div class="moods evm">${MOODS.map(([k,l])=>`<button class="mood" data-evq="${k}"><span class="mdot m-${k}"></span>${l}</button>`).join("")}</div>${left&&any?`<p class="evleft">${left} task${left>1?"s":""} still open. You can close anyway.</p>`:""}</div>`}
 function todayView(){
  const d=new Date(),h=d.getHours(),hi=h<5?"Still up":h<12?"Good morning":h<17?"Good afternoon":"Good evening";
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
- const eve=S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
+ const top=!!eveTop(),eve=top?"":S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
- ${pathRings()}${bubbles()}
+ ${pathRings()}${eveTop()}${bubbles()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>
  ${restBanner()}${busyToday()?`<div class="busyn">Busy day: one short task per mentor. Your streak is safe with just one.</div>`:""}${dayTimeline(timeSort(items))}
  <div class="tfoot"><button class="linkbtn" data-other="">+ I did something else</button>${eve}</div><button class="linkbtn restl" data-rest="1">${isRest(addD(td(),1))?"Tomorrow is a rest day · change":"Plan a rest day"}</button></div>`}
@@ -1947,7 +1949,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-katha],[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-evq],[data-katha],[data-mvcal],[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -2123,6 +2125,7 @@ document.addEventListener("click",e=>{
  if(d.mood){EV=EV||{mood:null,note:""};const n=$("#evenote");if(n)EV.note=n.value;EV.mood=d.mood;eveSheet();return}
  if(d.eveClose){if(EV&&EV.mood){const n=$("#evenote");if(n)EV.note=n.value;eveClose()}return}
  if(d.katha){const v=d.katha;if(v==="today")kathaPlay("m");else if(v==="bonus")kathaPlay("x");else{const[k,a,b]=v.split(":");if(k==="x")kathaPlay("x",+a);else kathaPlay("m",{g:a,i:+b})}return}
+ if(d.evq){EV={mood:d.evq,note:""};eveClose();return}
  if(d.chap){const[g,c]=d.chap.split(":");playChapter(g,+c);return}
  if(d.todayCal!==undefined){calSheet();return}
  if(d.fest){calSheet(d.fest);return}

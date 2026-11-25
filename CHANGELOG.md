@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.43.0 · 25.11.2026
+- Close your day moves to the top: one tap on how it felt closes the day. Optional note after.
+
 ## 1.42.0 · 25.11.2026
 - Katha for all 35 mentors (96 stories) and 31 bonus stories where mentors meet.
 
