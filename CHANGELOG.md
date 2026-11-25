@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.39.0 · 25.11.2026
+- Add a moved task to your calendar. Clean-up: calmer task rows, short path names, tidier sections.
+
 ## 1.38.0 · 25.11.2026
 - Pop-ups close when you tap outside or drag them down. Tips close when you tap elsewhere.
 
