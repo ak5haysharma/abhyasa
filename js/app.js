@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.43.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.44.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1149,7 +1149,7 @@ const sayStop=()=>{try{if(canSay())speechSynthesis.cancel()}catch(e){}};
 function sayCard(){const c=PL&&$(`.story .card2[data-i="${PL.i}"]`);if(c)sayText(c.innerText)}
 /* ================= calm home: bubbles + Calendar tab (v1.32) ================= */
 function bubbles(){const t=td(),out=[],c=checkToday(),b=(cls,attr,icon,label,x)=>`<span class="bub ${cls}"><button ${attr}>${icon}<span>${label}</span></button>${x||""}</span>`;
- out.push(b("urgeb",'data-urge="1"',ic("urge"),"Craving? Hold the line"));
+ if(S.closed!==t&&!eveTop())out.push(b("evb",'data-eve="1"',ic("moon"),"Close your day"));
  if(S.kq&&S.kq.d===t&&!S.kq.read&&KATHA[S.kq.g])out.push(b("gold",'data-katha="today"',portraitMini(S.kq.g),`${PEOPLE[S.kq.g].n}’s story`));
  if(S.kx&&S.kx.d===t&&!S.kx.read&&KCROSS[S.kx.i])out.push(b("gold",'data-katha="bonus"',`<span class="pair">${KCROSS[S.kx.i].g.map(g=>portraitMini(g)).join("")}</span>`,"Bonus story"));
  const q=onbNext();if(q)out.push(b("gold",`data-oq="${q.k}"`,ic("learn"),q.t,`<button class="bubx" data-oqx="1" aria-label="Later">×</button>`));
@@ -1551,7 +1551,7 @@ function render(){
  SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","cal","hero"].includes(S.view))S.view="today";
  const v=S.view,app=$("#app");
- app.innerHTML=(v==="hero"?heroView():v==="journey"?journeyView():v==="cal"?calView():todayView())+tabs();
+ app.innerHTML=(v==="hero"?heroView():v==="journey"?journeyView():v==="cal"?calView():todayView())+`<button class="urgefab" data-urge="1" aria-label="Craving? Hold the line">${ic("urge")}<span>Craving?</span></button>`+tabs();
  paint();setBg(pageScene());
  if(anim){const a=anim;anim=null;Object.keys(a).forEach(pid=>{const el=document.querySelector(`.ringi[data-ring="${pid}"] .rp`);if(!el)return;const to=el.getAttribute("stroke-dasharray");el.style.transition="none";el.style.strokeDasharray=`${(a[pid]*RC).toFixed(1)} ${RC.toFixed(1)}`;el.getBoundingClientRect();el.style.transition="";el.style.strokeDasharray=to})}
  if(TANIM){const el=document.querySelector(`.tr-p[data-p="${TANIM.pid}"]`);if(el){const C=+el.style.getPropertyValue("--C"),to=el.getAttribute("stroke-dashoffset");el.style.transition="none";el.setAttribute("stroke-dashoffset",(C*(1-TANIM.f)).toFixed(1));el.getBoundingClientRect();el.style.transition="stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)";el.setAttribute("stroke-dashoffset",to)}TANIM=null}
@@ -1771,7 +1771,7 @@ function eveTop(){const t=td(),h=new Date().getHours(),any=!!(S.days[t]&&S.days[
 function todayView(){
  const d=new Date(),h=d.getHours(),hi=h<5?"Still up":h<12?"Good morning":h<17?"Good afternoon":"Good evening";
  const items=S.plan.items,tl=TIMES.find(t=>t[0]===S.time)||TIMES[1],t=td(),dd=S.days[t];
- const top=!!eveTop(),eve=top?"":S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
+ const eve=S.closed!==t?"":S.closed===t?`<div class="evedone">Day closed${dd&&dd.mood?` · ${MOODS.find(m=>m[0]===dd.mood)[1].toLowerCase()}`:""}</div>`:`<button class="evebar" data-eve="1">${ic("moon")}<span>Close your day</span></button>`;
  return header(`${hi}${S.name?", "+esc(S.name):""}`,d.toLocaleDateString("en-GB",{weekday:"long"})+", "+t.split("-").reverse().join("."))+tipCard()+`<div class="wrap">
  ${pathRings()}${eveTop()}${bubbles()}
  <div class="thead" style="margin-top:18px"><h2>Today’s practice</h2><button class="chip" data-time-cycle="1" aria-label="Time for new tasks: ${tl[1]}. Tap to change">${tl[1]}</button></div>

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.44.0 · 25.11.2026
+- Close your day is always at the top. Craving is now a floating button on every screen.
+
 ## 1.43.0 · 25.11.2026
 - Close your day moves to the top: one tap on how it felt closes the day. Optional note after.
 

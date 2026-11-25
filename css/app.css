@@ -1188,3 +1188,10 @@ body:has(.scrim) .tipf,body:has(#ex) .tipf{display:none}
 .evh b{display:block;font-size:16px}.evh small{color:var(--mute);font-size:12.5px;line-height:1.3}
 .evm{margin:12px 0 2px}.evm .mood{padding:9px 4px;font-size:13px}
 .evleft{margin:6px 2px 0;font-size:12px;color:var(--mute)}
+/* craving button + close bubble (v1.44) */
+.urgefab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:7;display:flex;align-items:center;gap:6px;padding:10px 14px 10px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--enemy) 35%,var(--line));background:var(--surface);color:var(--enemy);font-weight:600;font-size:13.5px;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.urgefab svg{width:18px;height:18px}
+body:has(.scrim) .urgefab,body:has(#ex) .urgefab,body:has(.zoomv) .urgefab{display:none}
+.bub.evb button{background:#2b2f55;color:#f3e7c4;border-color:#2b2f55}
+body:has(.tipf) .urgefab{display:none}
+#app{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
