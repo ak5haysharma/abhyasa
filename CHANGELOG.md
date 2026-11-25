@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.45.0 · 25.11.2026
+- Craving button is now a round floating portrait of an inner enemy, changing each day.
+
 ## 1.44.0 · 25.11.2026
 - Close your day is always at the top. Craving is now a floating button on every screen.
 

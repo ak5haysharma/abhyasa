@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.44.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.45.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -1052,6 +1052,7 @@ function enWeeks(k){const L=S.enLog||{};return Object.keys(L).sort().slice(-8).m
 let URGE=null,URGE_T=null;
 const urgeL=()=>S.urges||(S.urges=[]);
 function urgeMentor(e){const mine=Object.values(CHAR);return e.help.find(g=>mine.includes(g))||e.help[0]}
+function urgeFab(){const L=myEnemies().length?myEnemies():ENEMIES,e=L[dayNum(td())%L.length];return `<button class="urgefab" data-urge="1" aria-label="Craving? Hold the line against ${e.antN}"><span class="ufp">${portrait(e.ant)}</span><span class="ufb">${ic("urge")}</span></button>`}
 function urgePick(){const L=urgeL(),cnt={};L.forEach(u=>cnt[u.k]=(cnt[u.k]||0)+1);const list=[...URGES].sort((a,b)=>(cnt[b.k]||0)-(cnt[a.k]||0));
  sheet("var(--enemy)",`<div class="kick" style="color:var(--enemy)">Hold the line</div><h2>What is pulling you?</h2><p class="sub">One tap. Then we wait it out together.</p>
  <div class="urgel">${list.map(u=>{const e=EN_(u.e);return `<button class="urgec" data-urgek="${u.k}"><b>${u.n}</b><small>${e.antN} · ${e.en.toLowerCase()}</small></button>`}).join("")}</div>
@@ -1551,7 +1552,7 @@ function render(){
  SYN.forEach(sy=>{if(S.syn.includes(sy.id)||!sy.p.every(p=>S.paths.includes(p)&&S.prog[p].m>=sy.req))return;S.syn.push(sy.id);pushModal(`<div class="evo" style="gap:0">${sy.p.map(p=>medal(p,"lg")).join("")}</div><div class="kick">Bridge opened</div><h2>${sy.n}<span class="dev">${sy.d}</span></h2>${enLine(sy.n)}<p>${sy.p.map(p=>PATHS[p].name).join(" and ")} now help each other: +10% growth and a shared daily task.</p><button class="cta alt" style="width:100%;margin-bottom:10px" data-story="${sy.id}">Watch their story</button>`)});
  if(!["today","journey","cal","hero"].includes(S.view))S.view="today";
  const v=S.view,app=$("#app");
- app.innerHTML=(v==="hero"?heroView():v==="journey"?journeyView():v==="cal"?calView():todayView())+`<button class="urgefab" data-urge="1" aria-label="Craving? Hold the line">${ic("urge")}<span>Craving?</span></button>`+tabs();
+ app.innerHTML=(v==="hero"?heroView():v==="journey"?journeyView():v==="cal"?calView():todayView())+urgeFab()+tabs();
  paint();setBg(pageScene());
  if(anim){const a=anim;anim=null;Object.keys(a).forEach(pid=>{const el=document.querySelector(`.ringi[data-ring="${pid}"] .rp`);if(!el)return;const to=el.getAttribute("stroke-dasharray");el.style.transition="none";el.style.strokeDasharray=`${(a[pid]*RC).toFixed(1)} ${RC.toFixed(1)}`;el.getBoundingClientRect();el.style.transition="";el.style.strokeDasharray=to})}
  if(TANIM){const el=document.querySelector(`.tr-p[data-p="${TANIM.pid}"]`);if(el){const C=+el.style.getPropertyValue("--C"),to=el.getAttribute("stroke-dashoffset");el.style.transition="none";el.setAttribute("stroke-dashoffset",(C*(1-TANIM.f)).toFixed(1));el.getBoundingClientRect();el.style.transition="stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)";el.setAttribute("stroke-dashoffset",to)}TANIM=null}

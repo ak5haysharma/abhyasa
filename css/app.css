@@ -1189,8 +1189,13 @@ body:has(.scrim) .tipf,body:has(#ex) .tipf{display:none}
 .evm{margin:12px 0 2px}.evm .mood{padding:9px 4px;font-size:13px}
 .evleft{margin:6px 2px 0;font-size:12px;color:var(--mute)}
 /* craving button + close bubble (v1.44) */
-.urgefab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:7;display:flex;align-items:center;gap:6px;padding:10px 14px 10px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--enemy) 35%,var(--line));background:var(--surface);color:var(--enemy);font-weight:600;font-size:13.5px;box-shadow:0 6px 18px rgba(0,0,0,.14)}
-.urgefab svg{width:18px;height:18px}
+.urgefab{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:7;width:56px;height:56px;padding:0;border-radius:50%;border:2.5px solid var(--enemy);background:var(--surface);box-shadow:0 6px 18px rgba(0,0,0,.18),0 0 0 4px color-mix(in srgb,var(--enemy) 14%,transparent);animation:ufloat 4s ease-in-out infinite}
+.urgefab .ufp{position:absolute;inset:2px;border-radius:50%;overflow:hidden;display:block}
+.urgefab .ufp svg{width:100%;height:100%;display:block}
+.urgefab .ufb{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:var(--enemy);color:#fff;display:grid;place-items:center;border:2px solid var(--surface)}
+.urgefab .ufb svg{width:12px;height:12px}
+@keyframes ufloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.urgefab{animation:none}}
 body:has(.scrim) .urgefab,body:has(#ex) .urgefab,body:has(.zoomv) .urgefab{display:none}
 .bub.evb button{background:#2b2f55;color:#f3e7c4;border-color:#2b2f55}
 body:has(.tipf) .urgefab{display:none}
