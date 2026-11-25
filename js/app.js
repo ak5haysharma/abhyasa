@@ -1,5 +1,5 @@
 /* Abhyasa app logic. Content lives in js/content.js. */
-const APP_VERSION="1.36.0";   // bump with tools/bump_version.py for every release
+const APP_VERSION="1.37.0";   // bump with tools/bump_version.py for every release
 const SCHEMA=2;              // bump when the saved data shape changes, and add a step to migrate()
 /* ================= icons ================= */
 const ICO={
@@ -7,7 +7,7 @@ const ICO={
  bonds:'<path d="M7 3c8 2.5 8 15.5 0 18"/><path d="M7 3v18"/><path d="M4 12h15m-3-3 3 3-3 3"/>',
  music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
  spirit:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',craft:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5"/>',
- check:'<path d="m5 12 4.5 4.5L19 7"/>',mv:'<path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',path:'<path d="M6 21c0-5 12-4 12-9S6 7 6 3"/><circle cx="6" cy="3" r="1.5"/><circle cx="6" cy="21" r="1.5"/>',hero:'<circle cx="12" cy="6.5" r="3.5"/><path d="M5 21c.8-5.5 4-7.5 7-7.5s6.2 2 7 7.5"/>',moon:'<path d="M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z"/>',swap:'<path d="M4 8h13l-3-3M20 16H7l3 3"/>',back:'<path d="m15 5-7 7 7 7"/>',
+ check:'<path d="m5 12 4.5 4.5L19 7"/>',mv:'<path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4"/>',urge:'<path d="M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-1.6.7-2.7 1.6-3.6.2 1.4.9 2.1 1.9 2.4C11 8 11 5.5 12 3Z"/><path d="M5 21h14"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',path:'<path d="M6 21c0-5 12-4 12-9S6 7 6 3"/><circle cx="6" cy="3" r="1.5"/><circle cx="6" cy="21" r="1.5"/>',hero:'<circle cx="12" cy="6.5" r="3.5"/><path d="M5 21c.8-5.5 4-7.5 7-7.5s6.2 2 7 7.5"/>',moon:'<path d="M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z"/>',swap:'<path d="M4 8h13l-3-3M20 16H7l3 3"/>',back:'<path d="m15 5-7 7 7 7"/>',
  tree:'<circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="3.5" r="1.8"/><circle cx="4.5" cy="17" r="1.8"/><circle cx="19.5" cy="17" r="1.8"/><path d="M12 5.5v4.3M10.2 13.3l-4 2.6M13.8 13.3l4 2.6"/>',
  trial:'<path d="M3 7h18M5 4h14M6 7v13M18 7v13M10 7v4h4V7"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
  Weapon:'<circle cx="8" cy="8" r="4.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M11.3 11.3l8.7 8.7"/>',Bow:'<path d="M7 3c8 2.5 8 15.5 0 18"/><path d="M7 3v18"/>',Armlets:'<ellipse cx="12" cy="12" rx="8" ry="4"/><path d="M4 12v2c0 2 3.6 4 8 4s8-2 8-4v-2"/>',
@@ -267,10 +267,12 @@ function activity(){const t=td();S.days[t]=S.days[t]||{};S.days[t].a=1;
 let anim=null;
 function grow(pid,amount){const pr=S.prog[pid],from=pr.m<5?Math.min(1,pr.xp/NEED[pr.m]):1;pr.xp+=amount;S.total+=amount;anim=anim||{};anim[pid]=from;
  if(pr.m<5&&pr.xp>=NEED[pr.m]&&!S.plan.items.some(x=>x.kind==="trial"&&x.pid===pid&&!x.done)){S.plan.items.unshift({id:uid(),kind:"trial",pid,t:trialText(pid),m:0,done:false});setTimeout(()=>toast(`${PATHS[pid].name} meter is full. Your trial is ready.`),900)}}
+let FOLD=null;
+const ORI=`<span class="ori" aria-hidden="true"><svg viewBox="0 0 40 30"><path d="M20 2 26 18 20 28 14 18Z" fill="var(--c)"/><path d="M20 2 26 18 20 28Z" fill="#000" opacity=".18"/><path d="M14 18 3 12 8 24 20 28Z" fill="var(--c)" opacity=".75"/><path d="M8 24 20 28 3 12Z" fill="#000" opacity=".12"/><path d="M26 18 37 12 32 24 20 28Z" fill="var(--c)" opacity=".75"/><path d="M26 18 37 12 32 24Z" fill="#fff" opacity=".25"/></svg></span>`;
 function complete(id,ev){
  const it=S.plan.items.find(x=>x.id===id);if(!it||it.kind==="trial")return;
  if(it.done){it.done=false;const back=(pid,a)=>{S.prog[pid].xp=Math.max(0,S.prog[pid].xp-a);S.total=Math.max(0,S.total-a)};if(it.kind==="bridge")SYN.find(s=>s.id===it.sid).p.forEach(p=>back(p,it.g));else back(it.pid,it.g);S.log=S.log.filter(l=>l.id!==it.id);if(it.kind==="task"&&S.learn[it.t]){const L=S.learn[it.t];L.dn=Math.max(0,L.dn-1);L.dw[new Date().getDay()]=Math.max(0,L.dw[new Date().getDay()]-1)}save();render();return}
- if(it.pid&&PATHS[it.pid])TANIM={pid:it.pid,f:todayFrac(it.pid)};it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
+ FOLD=it.id;setTimeout(()=>{FOLD=null},900); if(it.pid&&PATHS[it.pid])TANIM={pid:it.pid,f:todayFrac(it.pid)};it.done=true;activity();if(it.kind==="task"){const L=L_(it.t);L.dn++;L.dw[new Date().getDay()]++}burst(ev,it.kind==="bridge"?"var(--gold)":PATHS[it.pid].c);
  S.log.push({id:it.id,d:td(),h:new Date().getHours(),t:it.t,load:it.load||[],pid:it.pid||"bridge",m:it.m||0,own:!!it.own});S.log=S.log.filter(l=>diff(l.d,td())<=60);
  if(it.kind==="bridge"){const s=SYN.find(x=>x.id===it.sid);it.g=8;s.p.forEach(p=>grow(p,Math.round(8*mult(p))));popAt("+ growth","var(--gold)",ev)}
  else{const g=Math.round(Math.max(5,it.m)*mult(it.pid));it.g=g;S.awT=S.awT&&S.awT.d===td()?S.awT:{d:td(),p:[]};if(it.pid&&PATHS[it.pid]&&!S.awT.p.includes(it.pid)){S.awT.p.push(it.pid);const _p=it.pid;setTimeout(()=>toast(`Your inner ${PATHS[_p].hero} ${AWVERB[Math.min(5,S.prog[_p].m)]}`),1100)}if(it.kind==="task")setTimeout(()=>askFeel(it),2600);grow(it.pid,g);popAt("+"+g,PATHS[it.pid].c,ev)}
@@ -1019,6 +1021,34 @@ const EN_=k=>ENEMIES.find(e=>e.k===k);
 const myEnemies=()=>(S.enemies||[]).map(EN_).filter(Boolean);
 const enName=e=>`${e.antN} · ${e.en.toLowerCase()}`;
 function enWeeks(k){const L=S.enLog||{};return Object.keys(L).sort().slice(-8).map(w=>L[w][k]||"")}
+let URGE=null,URGE_T=null;
+const urgeL=()=>S.urges||(S.urges=[]);
+function urgeMentor(e){const mine=Object.values(CHAR);return e.help.find(g=>mine.includes(g))||e.help[0]}
+function urgePick(){const L=urgeL(),cnt={};L.forEach(u=>cnt[u.k]=(cnt[u.k]||0)+1);const list=[...URGES].sort((a,b)=>(cnt[b.k]||0)-(cnt[a.k]||0));
+ sheet("var(--enemy)",`<div class="kick" style="color:var(--enemy)">Hold the line</div><h2>What is pulling you?</h2><p class="sub">One tap. Then we wait it out together.</p>
+ <div class="urgel">${list.map(u=>{const e=EN_(u.e);return `<button class="urgec" data-urgek="${u.k}"><b>${u.n}</b><small>${e.antN} · ${e.en.toLowerCase()}</small></button>`}).join("")}</div>
+ <div class="urgeo"><input id="urgeown" placeholder="Something else…" maxlength="40"><button class="cta alt" data-urgek="own">Go</button></div>`)}
+function urgeStart(k){let u=URGES.find(x=>x.k===k);if(k==="own"){const v=($("#urgeown")||{}).value||"";if(!v.trim())return toast("Type what is pulling you");u={k:"own",n:v.trim().slice(0,40),e:"kama",do:URGES[0].do.slice(0,2).concat(["Change the room you are in"])}}if(!u)return;
+ const e=EN_(u.e),g=urgeMentor(e);URGE={u,e,g,end:Date.now()+5*60000,li:0,t0:Date.now()};urgeSheet()}
+function urgeSheet(){if(!URGE)return;const{u,e,g}=URGE,P=PEOPLE[g],L=urgeL().filter(x=>x.e===e.k),won=L.filter(x=>x.r==="won").length;
+ sheet("var(--enemy)",`<div id="urge"><div class="kick" style="color:var(--enemy)">${u.n} · ${e.n} <span class="dev">${e.d}</span></div>
+ <div class="urgevs"><span class="medal md" style="--c:#6b1f2a">${portrait(e.ant)}</span><div class="urgering"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ur0"/><circle cx="60" cy="60" r="52" class="ur1" id="urring" pathLength="100"/></svg><b id="urclock">5:00</b><small>let it pass</small></div><span class="medal md" style="--c:${PATHS[Object.keys(CHAR).find(p=>CHAR[p]===g)]?.c||"var(--gold)"}">${portrait(g)}</span></div>
+ <p class="urgeq" id="urline">“${URGE_LINES[0]}”<cite>${P.n}</cite></p>
+ <div class="box"><small>While you wait, do one</small><ul class="tips">${u.do.map(t=>`<li>${t}</li>`).join("")}</ul></div>
+ <div class="urgebtns"><button class="cta" data-urgeend="won">It passed</button><button class="cta alt" data-urgeend="lost">I gave in</button></div>
+ <p class="sub" style="text-align:center;margin-top:8px">${L.length?`Against ${e.antN} so far: ${won} of ${L.length} held.`:`First time facing ${e.antN} here. Just wait with me.`}</p></div>`);
+ clearInterval(URGE_T);URGE_T=setInterval(urgeTick,1000);urgeTick()}
+function urgeTick(){const el=$("#urclock");if(!el||!URGE){clearInterval(URGE_T);return}const left=Math.max(0,URGE.end-Date.now()),s=Math.ceil(left/1000);
+ el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;const r=$("#urring");if(r)r.style.strokeDashoffset=String(100-(left/300000)*100);
+ const li=Math.min(URGE_LINES.length-1,Math.floor((Date.now()-URGE.t0)/50000));if(li!==URGE.li){URGE.li=li;const q=$("#urline");if(q)q.innerHTML=`“${URGE_LINES[li]}”<cite>${PEOPLE[URGE.g].n}</cite>`}
+ if(!left){clearInterval(URGE_T);const sm=$("#urge .urgering small");if(sm)sm.textContent="did it pass?";el.textContent="0:00"}}
+function urgeEnd(r){if(!URGE)return;const{u,e}=URGE;urgeL().push({d:td(),h:new Date().getHours(),k:u.k,n:u.n,e:e.k,r,s:Math.round((Date.now()-URGE.t0)/1000)});S.urges=S.urges.filter(x=>diff(x.d,td())<=120);
+ clearInterval(URGE_T);URGE=null;save();closeLayer();render();
+ const wk=S.urges.filter(x=>x.e===e.k&&x.r==="won"&&diff(x.d,td())<7).length;
+ toast(r==="won"?`${e.antN} loses ground. ${wk} held this week.`:`Noted, no shame. Next time, start the timer a little earlier.`)}
+function urgeStats(ek){const L=urgeL().filter(x=>!ek||x.e===ek);if(!L.length)return null;const won=L.filter(x=>x.r==="won").length;let peak="";
+ if(L.length>=5){const b={};L.forEach(x=>{const k=Math.floor(x.h/2)*2;b[k]=(b[k]||0)+1});const top=Object.entries(b).sort((a,c)=>c[1]-a[1])[0];if(top[1]>=3){const h=+top[0];peak=`Most often ${String(h).padStart(2,"0")}:00–${String(h+2).padStart(2,"0")}:00`}}
+ const ks={};L.forEach(x=>ks[x.n]=(ks[x.n]||0)+1);const main=Object.entries(ks).sort((a,c)=>c[1]-a[1])[0][0];return{n:L.length,won,peak,main}}
 let EPK=null;
 function enemyPick(){EPK=EPK||[...(S.enemies||[])];const y=$(".sheet")?$(".sheet").scrollTop:0;
  sheet("var(--ink)",`<div class="kick" style="color:var(--mute)">The six inner enemies · षड्रिपु</div><h2>What holds you back most?</h2><p class="sub">Indian thought names six inner enemies. Each is shown through a great figure undone by that one weakness. Pick up to 2. You can change them any time.</p>
@@ -1029,10 +1059,11 @@ function enemySheet(k){const e=EN_(k);if(!e)return;const W=enWeeks(k),won=W.filt
  <p class="story">${e.story}</p>
  <div class="box"><small>How it shows up today</small>${e.signs.join(" · ")}</div>
  <div class="box"><small>Your weeks against ${e.antN}</small><div class="enw">${W.length?W.map(x=>`<i class="${x}" title="${x||"no answer"}"></i>`).join(""):`<span class="mute">Your weekly review asks about this.</span>`}</div>${W.length?`${won} of ${W.length} weeks won`:""}</div>
+ ${(()=>{const u=urgeStats(k);return u?`<div class="box"><small>Cravings you faced</small>${u.won} of ${u.n} held · mostly “${esc(u.main)}”${u.peak?`<br>${u.peak}`:""}</div>`:""})()}
  <div class="box"><small>What helps</small><ul class="tips">${e.tips.map(t=>`<li>${t}</li>`).join("")}</ul></div>
  <div class="qlabel">Mentors who stand against ${e.antN}</div><div class="enh">${help.map(p=>`<span>${medalG(Object.keys(PEOPLE).find(g=>PEOPLE[g]===p),"xs")}${p.n}</span>`).join("")}</div>
  <button class="cta alt" style="width:100%;margin-top:14px" data-enpick="1">Change my inner enemies</button>`)}
-function enemyBlock(){const E=myEnemies();return `<div class="block"><h2>Inner enemies</h2>${E.length?`<div class="enl">${E.map(e=>{const W=enWeeks(e.k);return `<button class="enrow" data-enemy="${e.k}"><span class="medal sm" style="--c:#6b1f2a">${portrait(e.ant)}</span><span><b>${e.antN}</b><small>${e.n} · ${e.en}${W.length?` · ${W.filter(x=>x==="won").length} of ${W.length} weeks won`:""}</small></span><span class="srar">›</span></button>`}).join("")}</div>`:`<p class="sub">Name what holds you back, and your weekly review will check in on it.</p>`}<button class="cta alt" style="width:100%;margin-top:8px" data-enpick="1">${E.length?"Change":"Choose your inner enemies"}</button></div>`}
+function enemyBlock(){const E=myEnemies();return `<div class="block"><h2>Inner enemies</h2>${E.length?`<div class="enl">${E.map(e=>{const W=enWeeks(e.k);return `<button class="enrow" data-enemy="${e.k}"><span class="medal sm" style="--c:#6b1f2a">${portrait(e.ant)}</span><span><b>${e.antN}</b><small>${e.n} · ${e.en}${W.length?` · ${W.filter(x=>x==="won").length} of ${W.length} weeks won`:""}</small></span><span class="srar">›</span></button>`}).join("")}</div>`:`<p class="sub">Name what holds you back, and your weekly review will check in on it.</p>`}${(()=>{const u=urgeStats();return u?`<p class="sub" style="margin:10px 0 0">Cravings: ${u.won} of ${u.n} held${u.peak?` · ${u.peak.toLowerCase()}`:""}</p>`:""})()}<button class="cta alt" style="width:100%;margin-top:8px" data-enpick="1">${E.length?"Change":"Choose your inner enemies"}</button></div>`}
 // Skill stories were written for each path's first mentor. With another mentor, credit the story and add their own voice.
 function skS(pid,sk,k){const g=CHAR[pid],g0=CHAR0[pid];if(g===g0||!sk)return sk?sk.s:"";const L=MLINES[g]||[];return `${sk.s} <span class="mute">(From ${PEOPLE[g0].n}’s story.)</span>${L.length?`<span class="skv"><b>Your inner ${PEOPLE[g].n}:</b> “${L[k%L.length]}”</span>`:""}`}
 /* ================= comeback + rest days (v1.30) ================= */
@@ -1092,6 +1123,7 @@ const sayStop=()=>{try{if(canSay())speechSynthesis.cancel()}catch(e){}};
 function sayCard(){const c=PL&&$(`.story .card2[data-i="${PL.i}"]`);if(c)sayText(c.innerText)}
 /* ================= calm home: bubbles + Calendar tab (v1.32) ================= */
 function bubbles(){const t=td(),out=[],c=checkToday(),b=(cls,attr,icon,label,x)=>`<span class="bub ${cls}"><button ${attr}>${icon}<span>${label}</span></button>${x||""}</span>`;
+ out.push(b("urgeb",'data-urge="1"',ic("urge"),"Craving? Hold the line"));
  const q=onbNext();if(q)out.push(b("gold",`data-oq="${q.k}"`,ic("learn"),q.t,`<button class="bubx" data-oqx="1" aria-label="Later">×</button>`));
  const w=reviewWeek();if(w)out.push(b("gold",`data-review="${w}"`,ic("path"),"Your week in review"));
  if(new Date().getHours()>=17&&S.closed!==t&&S.days[t]&&S.days[t].a)out.push(b("",'data-eve="1"',ic("moon"),"Close your day"));
@@ -1675,7 +1707,7 @@ function taskRow(it){const d=new Date(),chk=`<button class="check" data-done="${
  if(it.kind==="trial"){const P=PATHS[it.pid],k=it.done?it.k:S.prog[it.pid].m,sn=P.skills[k]?P.skills[k].n:"";return `<div class="trow trial" style="--c:${P.c}"><span class="trialicon">${ic(it.done?"check":"trial")}</span><button class="tx" data-trial-info="${it.pid}"><span class="tag">${P.name} trial · ${it.done?"earned":"unlocks"} ${sn}</span><b>${it.t}</b></button>${it.done?"":`<button class="mini pri" data-trial="${it.pid}">Passed</button>`}</div>`}
  if(it.kind==="bridge"){const sy=SYN.find(x=>x.id===it.sid);return `<div class="trow${it.done?" done":""}" style="--c:var(--gold)">${chk}<div class="tx"><b>${it.t}</b><small><span class="duo" style="--a:${PATHS[sy.p[0]].c};--b:${PATHS[sy.p[1]].c}"></span>Bridge · ${sy.n}</small></div></div>`}
  const P=PATHS[it.pid],g=it.done?it.g:Math.round(Math.max(5,it.m)*mult(it.pid)),x=poolItem(it);
- return `<div class="trow${it.done?" done":""}${it.kind==="anchor"?" anchor":""}" style="--c:${P.c}">${chk}<button class="tx" data-task="${it.id}"><b>${esc(progT(it.t))}</b><small><span class="dot"></span>${it.kind==="anchor"?"Your routine · ":""}${P.name} · ${it.m} min · +${g}${x&&x.tool&&!it.done?` · ${TOOLNAME[x.tool.type]}`:""}</small>${!it.done&&it.why?`<span class="why">${it.why}</span>`:""}</button>${!it.done?`<button class="swap mvb" data-mv="${it.id}" aria-label="Move to another time of day">${ic("mv")}</button>`:""}${!it.done&&it.kind==="task"?`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`:""}</div>`}
+ return `<div class="trow${it.done?" done":""}${it.kind==="anchor"?" anchor":""}${FOLD===it.id?" fold":""}" style="--c:${P.c}">${FOLD===it.id?ORI:""}${chk}<button class="tx" data-task="${it.id}"><b>${esc(progT(it.t))}</b><small><span class="dot"></span>${it.kind==="anchor"?"Your routine · ":""}${P.name} · ${it.m} min · +${g}${x&&x.tool&&!it.done?` · ${TOOLNAME[x.tool.type]}`:""}</small>${!it.done&&it.why?`<span class="why">${it.why}</span>`:""}</button>${!it.done?`<button class="swap mvb" data-mv="${it.id}" aria-label="Move to another time of day">${ic("mv")}</button>`:""}${!it.done&&it.kind==="task"?`<button class="swap" data-swap="${it.id}" aria-label="Swap this task">${ic("swap")}</button>`:""}</div>`}
 function mvSheet(id){const it=S.plan.items.find(x=>x.id===id);if(!it)return;const P=PATHS[it.pid],sp=(S.slotPref||{})[it.pid];
  sheet(P.c,`<div class="kick">Move · ${P.name}</div><h2>${esc(progT(it.t))}</h2><div class="mvopts">${SLOTS_D.map(([k,l,sub])=>`<button class="mvo" data-mvto="${it.id}:${k}" aria-pressed="${it.slot===k}"><span>${ic(k==="morning"?"sun":k==="afternoon"?"calm":"moon")}</span><b>${l}</b><small>${sub}</small></button>`).join("")}</div>
  <label class="mvpin"><input type="checkbox" id="mvpin" ${sp?"checked":""}> Always plan ${P.name} here</label>${sp?`<p class="sub" style="margin:4px 0 0">Now: ${SLOTS_D.find(x=>x[0]===sp)[1]}</p>`:""}`)}
@@ -1817,7 +1849,7 @@ function finishQuiz(){
 }
 
 /* ================= sheets ================= */
-let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;sayStop();openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1">${h}</div></div>`);{const st=$(".sheet .story");if(st&&canSay())st.insertAdjacentHTML("beforebegin",`<button class="listen" data-listen="1">${ic("sound")} Listen</button>`)}const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
+let LASTF=null;function sheet(c,h){if(!$(".scrim"))LASTF=document.activeElement;sayStop();openLayer(`<div class="scrim" data-close="1"><div class="sheet" style="--c:${c}" role="dialog" aria-modal="true" tabindex="-1"><div class="sanjhi" aria-hidden="true"></div>${h}</div></div>`);{const st=$(".sheet .story");if(st&&canSay())st.insertAdjacentHTML("beforebegin",`<button class="listen" data-listen="1">${ic("sound")} Listen</button>`)}const sh=$(".sheet");if(sh&&!sh.querySelector("textarea,input:not([type=file])"))sh.focus({preventScroll:true})}
 function skillSheet(pid,k){const P=PATHS[pid],s=P.skills[k],on=has(pid,k),pr=S.prog[pid],rf=(S.trialLog||[]).filter(x=>x.pid===pid&&x.k===k).pop();
  sheet(P.c,`<div class="kick">${P.name} with ${P.hero} · skill ${k+1} of 5</div><h2>${s.n}<span class="dev">${s.d}</span></h2>${enLine(s.n)}<p class="story">${skS(pid,s,k)}</p>
  <div class="box"><small>Effect</small>${PERK[s.perk](P.name)}${s.item?`<small style="margin-top:6px">Gift</small>${s.itemName||s.n} (${s.item.toLowerCase()})`:""}</div>
@@ -1875,7 +1907,7 @@ let lastTouchEnd=0;document.addEventListener("touchend",e=>{const n=Date.now();i
 /* ================= events ================= */
 let resetArm=0;
 document.addEventListener("click",e=>{
- const t=e.target.closest("[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
+ const t=e.target.closest("[data-urge],[data-urgek],[data-urgeend],[data-mv],[data-mvto],[data-cday],[data-cmon],[data-slot],[data-fch],[data-remind],[data-rm],[data-rmgo],[data-say],[data-listen],[data-rest],[data-rday],[data-rwhy],[data-rsave],[data-cbgo],[data-enpick],[data-enp],[data-ensave],[data-enemy],[data-rven],[data-settings],[data-zoom],[data-zm],[data-tips-on],[data-noop],[data-oq],[data-oqx],[data-omsel],[data-odone],[data-oday],[data-otag],[data-osave],[data-olore],[data-tf],[data-fit],[data-flife],[data-fbusy],[data-fkit],[data-fsave],[data-qlife],[data-qbusy],[data-ident],[data-idsug],[data-idsave],[data-idclear],[data-pvals],[data-pv],[data-pvshare],[data-pvsave],[data-lifeshare],[data-rvid],[data-inktog],[data-mentor],[data-msel],[data-qmentor],[data-daypick],[data-dp],[data-dp-ok],[data-dp-auto],[data-st],[data-herosheet],[data-gear],[data-epic],[data-epic-setup],[data-ep],[data-feedback],[data-fbk],[data-fbsend],[data-cer],[data-learn],[data-pack],[data-who],[data-gloss],[data-focus],[data-fm],[data-x],[data-ex],[data-seg],[data-seg-go],[data-task],[data-checkin],[data-pdetail],[data-focus-manage],[data-review],[data-worth],[data-rvfocus],[data-rvfoe],[data-rvdone],[data-qlore],[data-intro],[data-tip],[data-tips-off],[data-lore],[data-calmode],[data-why],[data-other],[data-oth],[data-oth-go],[data-unnever],[data-uncustom],[data-pathsheet],[data-path-add],[data-path-pause],[data-nudge-act],[data-nudge-x],[data-pnext],[data-pprev],[data-streak],[data-goal],[data-eve],[data-mood],[data-eve-close],[data-chap],[data-today-cal],[data-fest],[data-time-cycle],[data-qgoal],[data-ring],[data-story],[data-snext],[data-sprev],[data-guide-next],[data-person],[data-talk],[data-close],[data-view],[data-time],[data-done],[data-swap],[data-open],[data-ci],[data-tgo],[data-treset],[data-tadj],[data-ttap],[data-trial],[data-trial-info],[data-pass],[data-skill],[data-syn],[data-tree-open],[data-act],[data-q],[data-qpath],[data-qrealm],[data-qlvl],[data-qtag],[data-qtime],[data-qkit],[data-qday]");
  if(!t)return;const d=t.dataset;
  if(d.close!==undefined){if(t.classList.contains("scrim")&&e.target!==t)return;closeLayer();return}
  if(d.view){exClose();fmClose();stopTool();OPEN=null;S.view=d.view;render();window.scrollTo(0,0);return}
@@ -1891,6 +1923,9 @@ document.addEventListener("click",e=>{
  if(d.cday){daySheet(d.cday);return}
  if(d.cmon){CALM.m+=+d.cmon;if(CALM.m<0){CALM.m=11;CALM.y--}if(CALM.m>11){CALM.m=0;CALM.y++}render();return}
  if(d.slot){const[id,k]=d.slot.split(":");const it=S.plan.items.find(x=>x.id===id);if(it){it.slot=k;save();render();taskSheet(id);toast(`Moved to ${k}`)}return}
+ if(d.urge){urgePick();return}
+ if(d.urgek){urgeStart(d.urgek);return}
+ if(d.urgeend){urgeEnd(d.urgeend);return}
  if(d.mv){mvSheet(d.mv);return}
  if(d.mvto){const[id,k]=d.mvto.split(":"),cb=$("#mvpin");moveTask(id,k,cb?cb.checked:undefined);return}
  if(d.fch){const[a,v]=[d.fch.split(":")[0],d.fch.slice(d.fch.indexOf(":")+1)];

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.37.0 · 25.11.2026
+- Hold the line: craving timer tied to the inner enemies. Sanjhi paper-cut accents and an origami fold when you finish a task.
+
 ## 1.36.0 · 25.11.2026
 - Welcome art in background, realm cards, tree blends with app, tips wait, move tasks across the day
 

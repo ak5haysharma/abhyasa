@@ -1634,3 +1634,17 @@ const FCH=[
  {k:"ganesh",re:/Ganesh Chaturthi/i,n:"Clear one obstacle",d:"गणेश चतुर्थी",days:10,g:"ganesha",charm:"Modak",s:"For ten days Ganesha is welcomed into homes as the remover of obstacles. Clear one small obstacle each day.",steps:["Write down 10 small obstacles","Clear obstacle 1","Clear obstacle 2","Clear obstacle 3","Clear obstacle 4","Clear obstacle 5","Clear obstacle 6","Clear obstacle 7","Clear obstacle 8","Clear obstacle 9, and celebrate"]},
  {k:"guru",re:/Guru Purnima/i,n:"Thank your teachers",d:"गुरु पूर्णिमा",days:3,g:"vyasa",charm:"Teacher’s flower",s:"Guru Purnima honours teachers. Three days, three thank-yous.",steps:["Thank a teacher from your childhood","Thank someone who teaches you now","Teach someone one thing you know"]},
  {k:"kartik",re:/Kartika Purnima|Dev Diwali/i,n:"Lamps of Kartik",d:"कार्तिक",days:5,g:"shiva",charm:"Ghat lamp",s:"In Kartik, lamps line the ghats of Varanasi. Light a lamp each evening and sit with it.",steps:["Light a lamp or candle and sit for 2 minutes","Again, and think of one person you love","Again, and think of one thing you are grateful for","Again, and let go of one worry","Again, and set one intention"]}];
+
+/* ================= cravings: hold the line (v1.37) ================= */
+// Each craving is the work of one inner enemy. "do" = what to do instead while the timer runs.
+const URGES=[
+ {k:"smoke",n:"Smoke",e:"kama",do:["Drink a full glass of water, slowly","10 slow breaths, out longer than in","Walk for 2 minutes, hands busy","Chew something: saunf, gum, a clove"]},
+ {k:"scroll",n:"Scroll the phone",e:"kama",do:["Put the phone in another room","Turn it face down and watch the timer","Do the smallest next step of your task"]},
+ {k:"episode",n:"One more episode",e:"kama",do:["Stand up and stretch","Close the app, not just the video","Write down what you will watch tomorrow"]},
+ {k:"game",n:"Gaming",e:"kama",do:["Put the controller or phone out of reach","Do 10 squats","Set a time for it later, then let it wait"]},
+ {k:"junk",n:"Sugar or junk food",e:"kama",do:["Drink a glass of water first","Eat a fruit or a handful of nuts","Brush your teeth"]},
+ {k:"drink",n:"A drink",e:"kama",do:["Make a tea or a sparkling water","Text someone you trust","Leave the room where it is"]},
+ {k:"putoff",n:"Put the task off",e:"moha",do:["Do just 2 minutes of it","Write the very first step on paper","Start badly. Fix it later"]},
+ {k:"bed",n:"Stay in bed",e:"moha",do:["Sit up and put both feet on the floor","Open the curtains","Drink water, then decide"]},
+ {k:"snap",n:"Snap at someone",e:"krodha",do:["Three slow breaths before any word","Leave the room for 5 minutes","Name it: “I am angry”"]}];
+const URGE_LINES=["Name it: this is a craving. It is not an order.","Breathe out slowly. A craving rises like a wave, then falls.","You do not have to win forever. Only these few minutes.","Notice where you feel it in your body. Just watch it.","Each time you ride one out, you practise saying no.","Stay. The wave is already smaller than it was."];
