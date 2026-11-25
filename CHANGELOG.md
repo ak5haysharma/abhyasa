@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.47.0 · 25.11.2026
+- Close your day unfolds in place: tap a mood, add one line, see tonight's quest.
+
 ## 1.46.0 · 25.11.2026
 - Craving button opens into lines that end on your most common cravings.
 
